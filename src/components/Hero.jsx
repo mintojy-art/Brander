@@ -29,7 +29,7 @@ export default function Hero({ onAddToCart }) {
 
   const userLink =
     'https://photos.google.com/album/AF1QipP3HG_6igBufvLK9z4mqH0zwPXXH_4-XNd60c2C/photo/AF1QipPkHC4J38q40J7zb2oLcegDg8nIev38Rq65e8Gz'
-  const fallbackLink = 'product.jpg'
+  const fallbackLink = '/product.jpg'
 
   return (
     <div id="product" className="relative pt-20 pb-16 md:pt-32 md:pb-28 overflow-hidden">
