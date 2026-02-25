@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0f1012;
+    color: #e5e7eb;
+    scroll-behavior: smooth;
+  }
+
+  /* Slim red scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0f1012;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #dc2626;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #ef4444;
+  }
+}
+
+/* ── Carbon dot pattern ── */
+.carbon-pattern {
+  background-image:
+    radial-gradient(#2a2a2a 15%, transparent 16%),
+    radial-gradient(#2a2a2a 15%, transparent 16%);
+  background-size: 4px 4px;
+  background-position: 0 0, 2px 2px;
+  background-color: #1a1a1c;
+}
+
+/* ── Marquee / rolling-text ── */
+@keyframes roll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.rolling-text {
+  display: inline-flex;
+  animation: roll 22s linear infinite;
+  will-change: transform;
+}
+.rolling-text-reverse {
+  display: inline-flex;
+  animation: roll 22s linear infinite reverse;
+  will-change: transform;
+}
+
+/* ── Hero image glow ring ── */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(220, 38, 38, 0.3),
+      0 0 60px rgba(220, 38, 38, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 50px rgba(220, 38, 38, 0.65),
+      0 0 110px rgba(220, 38, 38, 0.2);
+  }
+}
+.glow-pulse {
+  animation: glowPulse 3.5s ease-in-out infinite;
+}
+
+/* ── Hero image floating ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-14px); }
+}
+.float-animation {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* ── Gradient top border for footer ── */
+.footer-gradient-top::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #dc2626, transparent);
+}
