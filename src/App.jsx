@@ -6,7 +6,7 @@ import MarqueeTicker from './components/MarqueeTicker'
 import VideoSection from './components/VideoSection'
 import Features from './components/Features'
 import Gallery from './components/Gallery'
-import PreviewTool from './components/PreviewTool'
+import DesignLab from './components/DesignLab'
 import Specs from './components/Specs'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
@@ -24,7 +24,7 @@ export default function App() {
       <Features />
       <MarqueeTicker reverse />
       <Gallery />
-      <PreviewTool />
+      <DesignLab onAddToCart={() => setCartCount((c) => c + 1)} />
       <Specs />
       <Contact />
       <Footer />

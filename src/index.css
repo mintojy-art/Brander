@@ -52,6 +52,11 @@
   animation: roll 22s linear infinite reverse;
   will-change: transform;
 }
+.rolling-text-slow {
+  display: inline-flex;
+  animation: roll 18s linear infinite;
+  will-change: transform;
+}
 
 /* ── Hero image glow ring ── */
 @keyframes glowPulse {
