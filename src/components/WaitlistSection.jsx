@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 //    - Who has access: Anyone
 // 5. Copy the Web App URL and paste it below
 // ─────────────────────────────────────────────────────────────────────────────
-const SHEET_URL = 'YOUR_GOOGLE_SCRIPT_URL'   // ← paste your Web App URL here
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxAXWbtjWvWXQTTVIR8pilVJaOgyvRrcjx0W4Kwo_ufDc1qPNZgynLeKRvl2kpnV6AK/exec'
 
 const PERKS = [
   { icon: '🔒', text: 'Locked-in early bird price — RS 1080/-' },
