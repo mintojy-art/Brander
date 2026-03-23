@@ -48,18 +48,17 @@ export default function WaitlistSection() {
 
     setStatus('loading')
     try {
-      const body = new URLSearchParams({
+      // GET + URL params is the most reliable approach for Google Apps Script
+      // (POST with no-cors can be silently dropped due to redirect handling)
+      const params = new URLSearchParams({
         name:       form.name.trim(),
         email:      form.email.trim(),
         phone:      form.phone.trim(),
         readyToPay: readyToPay === 'yes' ? 'Yes — Ready to pay' : 'Not yet',
       })
-      // no-cors is required for Google Apps Script from browser
-      await fetch(SHEET_URL, {
-        method:  'POST',
-        mode:    'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body:    body.toString(),
+      await fetch(`${SHEET_URL}?${params.toString()}`, {
+        method: 'GET',
+        mode:   'no-cors',
       })
       setStatus('done')
     } catch {
