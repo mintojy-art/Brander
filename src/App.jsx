@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import StatsBar from './components/StatsBar'
@@ -8,25 +7,26 @@ import Features from './components/Features'
 import Gallery from './components/Gallery'
 import DesignLab from './components/DesignLab'
 import Specs from './components/Specs'
-import Contact from './components/Contact'
+import WaitlistSection from './components/WaitlistSection'
 import Footer from './components/Footer'
 
 export default function App() {
-  const [cartCount, setCartCount] = useState(0)
+  const scrollToWaitlist = () =>
+    document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
 
   return (
     <div className="min-h-screen bg-[#0f1012]">
-      <Navbar cartCount={cartCount} />
-      <Hero onAddToCart={() => setCartCount((c) => c + 1)} />
+      <Navbar onJoinWaitlist={scrollToWaitlist} />
+      <Hero onJoinWaitlist={scrollToWaitlist} />
       <StatsBar />
       <MarqueeTicker />
       <VideoSection />
       <Features />
       <MarqueeTicker reverse />
       <Gallery />
-      <DesignLab onAddToCart={() => setCartCount((c) => c + 1)} />
+      <DesignLab />
       <Specs />
-      <Contact />
+      <WaitlistSection />
       <Footer />
     </div>
   )

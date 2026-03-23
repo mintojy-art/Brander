@@ -699,14 +699,14 @@ export default function DesignLab({ onAddToCart }) {
               {/* CTA */}
               <div className="p-5 border-t border-gray-800/60">
                 <button
-                  onClick={onAddToCart}
+                  onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
                   className="group w-full py-3.5 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold text-sm rounded-xl transition-all shadow-[0_0_24px_rgba(220,38,38,0.3)] hover:shadow-[0_0_40px_rgba(220,38,38,0.55)] flex items-center justify-center gap-2"
                 >
-                  Pre-Order Now — RS 1080/-
+                  Join the Waitlist — Free
                   <span className="group-hover:translate-x-1 transition-transform duration-200 inline-block">→</span>
                 </button>
                 <p className="text-center text-[10px] text-gray-600 mt-3">
-                  Custom design sent after order confirmation
+                  Lock in your early bird price today
                 </p>
               </div>
 

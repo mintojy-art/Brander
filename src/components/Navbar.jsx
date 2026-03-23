@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Menu, X } from '../icons'
+import { Menu, X } from '../icons'
 
 const links = [
-  { href: '#product',  label: 'Product'    },
-  { href: '#video',    label: 'Video'      },
-  { href: '#features', label: 'Features'   },
-  { href: '#gallery',  label: 'Gallery'    },
-  { href: '#preview',  label: 'Design Lab' },
-  { href: '#contact',  label: 'Contact'    },
+  { href: '#product',    label: 'Product'    },
+  { href: '#video',      label: 'Video'      },
+  { href: '#features',   label: 'Features'   },
+  { href: '#gallery',    label: 'Gallery'    },
+  { href: '#design-lab', label: 'Design Lab' },
 ]
 
-export default function Navbar({ cartCount }) {
+export default function Navbar({ onJoinWaitlist }) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -20,6 +19,11 @@ export default function Navbar({ cartCount }) {
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  const handleWaitlist = () => {
+    setMobileOpen(false)
+    onJoinWaitlist?.()
+  }
 
   return (
     <nav
@@ -31,6 +35,7 @@ export default function Navbar({ cartCount }) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
+
           {/* Logo */}
           <motion.div
             className="flex items-center gap-2 cursor-pointer"
@@ -61,28 +66,17 @@ export default function Navbar({ cartCount }) {
             ))}
           </div>
 
-          {/* Cart + hamburger */}
+          {/* Waitlist CTA + hamburger */}
           <div className="flex items-center gap-3">
             <motion.button
-              className="relative p-2 hover:bg-gray-800 rounded-full transition-colors group"
+              onClick={handleWaitlist}
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg transition-all shadow-[0_0_16px_rgba(220,38,38,0.35)] hover:shadow-[0_0_24px_rgba(220,38,38,0.55)]"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <ShoppingCart size={22} className="text-gray-300 group-hover:text-white transition-colors" />
-              <AnimatePresence>
-                {cartCount > 0 && (
-                  <motion.span
-                    key={cartCount}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    className="absolute -top-0.5 -right-0.5 w-5 h-5 flex items-center justify-center text-xs font-bold text-white bg-red-600 rounded-full shadow-[0_0_8px_rgba(220,38,38,0.7)]"
-                  >
-                    {cartCount}
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              Join Waitlist
             </motion.button>
 
             <button
@@ -115,6 +109,12 @@ export default function Navbar({ cartCount }) {
                   {link.label}
                 </a>
               ))}
+              <button
+                onClick={handleWaitlist}
+                className="w-full mt-2 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all text-sm"
+              >
+                Join Waitlist — Free
+              </button>
             </div>
           </motion.div>
         )}

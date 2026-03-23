@@ -13,7 +13,7 @@ const item = {
 
 const tags = ['PLA Fiber Body', 'Works on Concrete', 'Rapid Swap System']
 
-export default function Hero({ onAddToCart }) {
+export default function Hero({ onJoinWaitlist }) {
   const [imgError, setImgError] = useState(false)
 
   // ── Parallax transforms (all driven by global scrollY) ──────────────────
@@ -89,10 +89,10 @@ export default function Hero({ onAddToCart }) {
 
             <motion.div variants={item} className="mt-8 flex flex-col sm:flex-row gap-4">
               <button
-                onClick={onAddToCart}
+                onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
                 className="group px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(220,38,38,0.4)] hover:shadow-[0_0_50px_rgba(220,38,38,0.7)] flex items-center justify-center gap-2"
               >
-                Pre-Order Now — RS 1080/-
+                Join the Waitlist — Free
                 <ArrowRight
                   size={18}
                   className="group-hover:translate-x-1 transition-transform duration-200"
