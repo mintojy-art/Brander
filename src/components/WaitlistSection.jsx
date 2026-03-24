@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -20,11 +20,29 @@ const PERKS = [
   { icon: '🎨', text: 'Custom roll design assistance included' },
 ]
 
+// Read the latest design the user built in Design Lab
+function getDesign() {
+  try { return JSON.parse(localStorage.getItem('brander_design') || '{}') } catch { return {} }
+}
+
 export default function WaitlistSection() {
   const [form, setForm]       = useState({ name: '', email: '', phone: '' })
   const [readyToPay, setReadyToPay] = useState(null)   // 'yes' | 'not-yet' | null
   const [status, setStatus]   = useState('idle')       // idle | loading | done | error
   const [errors, setErrors]   = useState({})
+  const [design, setDesign]   = useState({})
+
+  // Refresh design snapshot on mount + whenever window gets focus (user scrolls back up, edits, scrolls down)
+  useEffect(() => {
+    const refresh = () => setDesign(getDesign())
+    refresh()
+    window.addEventListener('focus', refresh)
+    window.addEventListener('scroll', refresh, { passive: true })
+    return () => {
+      window.removeEventListener('focus', refresh)
+      window.removeEventListener('scroll', refresh)
+    }
+  }, [])
 
   const set = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }))
@@ -50,11 +68,21 @@ export default function WaitlistSection() {
     try {
       // GET + URL params is the most reliable approach for Google Apps Script
       // (POST with no-cors can be silently dropped due to redirect handling)
+      const latest = getDesign()   // always grab freshest snapshot at submit time
       const params = new URLSearchParams({
         name:       form.name.trim(),
         email:      form.email.trim(),
         phone:      form.phone.trim(),
         readyToPay: readyToPay === 'yes' ? 'Yes — Ready to pay' : 'Not yet',
+        // design data
+        designText:      latest.text          || '(none)',
+        designFont:      latest.font          || '',
+        designStyle:     latest.style         || '',
+        designScale:     latest.scale         || '',
+        designRingSize:  latest.ringSize      || '',
+        designPrintMode: latest.printMode     || '',
+        designBridging:  latest.bridging      || '',
+        designHasImage:  latest.hasCustomImage ? 'Yes' : 'No',
       })
       await fetch(`${SHEET_URL}?${params.toString()}`, {
         method: 'GET',
@@ -294,6 +322,28 @@ export default function WaitlistSection() {
                     <p className="text-center text-[11px] text-gray-600">
                       No payment now. We'll reach out before launch.
                     </p>
+
+                    {/* Design snapshot badge */}
+                    {design.text || design.hasCustomImage ? (
+                      <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-green-500/20 bg-green-900/10 mt-1">
+                        <span className="text-green-400 text-base shrink-0">✓</span>
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold text-green-400 uppercase tracking-wider">Design captured</p>
+                          <p className="text-[10px] text-gray-500 truncate">
+                            {design.hasCustomImage
+                              ? `Custom image · ${design.ringSize} · ${design.printMode}`
+                              : `"${design.text}" · ${design.font} · ${design.ringSize}`}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-gray-800 bg-white/[0.02] mt-1">
+                        <span className="text-gray-600 text-base shrink-0">🎨</span>
+                        <p className="text-[11px] text-gray-600">
+                          Build your stamp in the <a href="#design-lab" className="text-red-400 hover:underline">Design Lab</a> above to attach your pattern
+                        </p>
+                      </div>
+                    )}
                   </motion.form>
                 )}
               </AnimatePresence>

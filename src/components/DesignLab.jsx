@@ -65,6 +65,20 @@ export default function DesignLab({ onAddToCart }) {
 
   const isNegative = printMode === 'NEGATIVE'
 
+  // ── Persist design snapshot to localStorage on every change ────────────────
+  useEffect(() => {
+    localStorage.setItem('brander_design', JSON.stringify({
+      text:          text || '',
+      font,
+      style:         [bold && 'Bold', italic && 'Italic'].filter(Boolean).join(' + ') || 'Normal',
+      scale,
+      ringSize,
+      printMode,
+      bridging,
+      hasCustomImage: !!uploadedImage,
+    }))
+  }, [text, font, bold, italic, scale, ringSize, printMode, bridging, uploadedImage])
+
   // ── Render design to shared offscreen canvas ────────────────────────────────
   const renderToOffscreen = useCallback(() => {
     const canvas = offscreenRef.current
