@@ -83,6 +83,7 @@ export default function WaitlistSection() {
         designPrintMode: latest.printMode     || '',
         designBridging:  latest.bridging      || '',
         designHasImage:  latest.hasCustomImage ? 'Yes' : 'No',
+        designPreview:   localStorage.getItem('brander_design_preview') || '',
       })
       await fetch(`${SHEET_URL}?${params.toString()}`, {
         method: 'GET',

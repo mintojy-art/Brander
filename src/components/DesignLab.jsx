@@ -185,9 +185,19 @@ export default function DesignLab({ onAddToCart }) {
     if (threeRef.current.texture) threeRef.current.texture.needsUpdate = true
   }, [])
 
+  // Save a small JPEG thumbnail of the design to localStorage so the
+  // WaitlistSection can include it in the Google Sheets submission
+  const saveThumb = useCallback(() => {
+    if (!offscreenRef.current) return
+    const thumb = document.createElement('canvas')
+    thumb.width = 200; thumb.height = 44
+    thumb.getContext('2d').drawImage(offscreenRef.current, 0, 0, 200, 44)
+    localStorage.setItem('brander_design_preview', thumb.toDataURL('image/jpeg', 0.3))
+  }, [])
+
   useEffect(() => {
-    renderToOffscreen(); drawEditor(); updateTexture()
-  }, [renderToOffscreen, drawEditor, updateTexture])
+    renderToOffscreen(); drawEditor(); updateTexture(); saveThumb()
+  }, [renderToOffscreen, drawEditor, updateTexture, saveThumb])
 
   // ── Initialize Three.js ────────────────────────────────────────────────────
   useEffect(() => {
