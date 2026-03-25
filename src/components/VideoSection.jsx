@@ -47,7 +47,7 @@ export default function VideoSection() {
           <iframe
             className="absolute inset-0 w-full h-full"
             src="https://www.youtube.com/embed/lzlw8EM95Bo?autoplay=1&mute=1&loop=1&playlist=lzlw8EM95Bo"
-            title="Brander 15mm Demo"
+            title="Brander Roller Demo"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

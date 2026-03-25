@@ -143,7 +143,7 @@ export default function WaitlistSection() {
             </h2>
 
             <p className="text-gray-400 text-base leading-relaxed mb-10 max-w-md">
-              The Brander 15 is in its pre-launch phase. Join the waitlist now to
+              The Brander Roller is in its pre-launch phase. Join the waitlist now to
               lock in your early bird price and be first in line when we ship.
             </p>
 

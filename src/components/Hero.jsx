@@ -78,7 +78,7 @@ export default function Hero({ onJoinWaitlist }) {
               BRANDER
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-400 to-red-700">
-                15
+                ROLLER
               </span>
             </motion.h1>
 
@@ -156,7 +156,7 @@ export default function Hero({ onJoinWaitlist }) {
                   <img
                     src={imgError ? fallbackLink : userLink}
                     onError={() => setImgError(true)}
-                    alt="Brander 15"
+                    alt="Brander Roller"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute bottom-0 w-full bg-gradient-to-t from-black via-black/60 to-transparent p-6 text-center z-20">

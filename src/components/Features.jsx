@@ -37,7 +37,7 @@ export default function Features() {
           <p className="text-red-500 text-xs font-bold uppercase tracking-widest mb-3">Why Brander</p>
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-5">Engineered for Extremes</h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-            The Brander 15 isn't just a marker—it's a precision instrument designed for
+            The Brander Roller isn't just a marker—it's a precision instrument designed for
             workshops, construction sites, and urban artists.
           </p>
         </motion.div>
