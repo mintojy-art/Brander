@@ -82,9 +82,13 @@ export default function Hero({ onJoinWaitlist }) {
               </span>
             </motion.h1>
 
-            <motion.p variants={item} className="text-lg text-gray-400 leading-relaxed max-w-lg">
-              Record-breaking 15mm print width. The ultimate handheld tool for large-scale
-              industrial marking, logos, and striking designs on any surface.
+            <motion.p variants={item} className="text-xl text-white font-semibold leading-snug max-w-lg mb-3">
+              Brand any surface. By hand. In seconds.
+            </motion.p>
+            <motion.p variants={item} className="text-base text-gray-400 leading-relaxed max-w-lg">
+              No printer. No minimum order. Just load your custom roll and stamp wood,
+              concrete, cardboard, metal — anything.
+              <span className="block mt-1 text-gray-500 text-sm">15mm print width · industrial grade · rapid swap system.</span>
             </motion.p>
 
             <motion.div variants={item} className="mt-8 flex flex-col sm:flex-row gap-4">
@@ -106,9 +110,25 @@ export default function Hero({ onJoinWaitlist }) {
               </a>
             </motion.div>
 
+            {/* Price anchor */}
+            <motion.p variants={item} className="mt-4 text-sm text-gray-500">
+              🔒 Early bird: <span className="text-white font-semibold">RS 1080/-</span>
+              <span className="text-gray-600"> — price increases at launch.</span>
+            </motion.p>
+
+            {/* Design Lab teaser */}
+            <motion.a
+              variants={item}
+              href="#design-lab"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors group"
+            >
+              <span>Design your custom roll before you buy</span>
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
+            </motion.a>
+
             <motion.div
               variants={item}
-              className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500"
+              className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500"
             >
               {tags.map((tag) => (
                 <div key={tag} className="flex items-center gap-1.5">

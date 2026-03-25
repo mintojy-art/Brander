@@ -35,7 +35,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <p className="text-gray-700 text-xs text-center">
-          &copy; {new Date().getFullYear()} BRANDER. Made in Germany.
+          &copy; {new Date().getFullYear()} BRANDER. Made in India.
         </p>
       </div>
     </footer>

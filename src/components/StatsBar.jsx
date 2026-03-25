@@ -10,19 +10,21 @@ const stats = [
 
 function CountUp({ value, unit }) {
   const ref = useRef(null)
-  const inView = useInView(ref, { once: true })
-  const [count, setCount] = useState(0)
+  const inView = useInView(ref, { once: true, margin: '0px 0px -60px 0px' })
+  // Start at the real value so it's never blank — animation is a bonus
+  const [count, setCount] = useState(value)
 
   useEffect(() => {
     if (!inView) return
     const steps = 50
     const increment = value / steps
     let cur = 0
+    setCount(0)
     const id = setInterval(() => {
       cur += increment
       if (cur >= value) { setCount(value); clearInterval(id) }
       else              { setCount(Math.floor(cur)) }
-    }, 1400 / steps)
+    }, 1200 / steps)
     return () => clearInterval(id)
   }, [inView, value])
 

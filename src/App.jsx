@@ -4,6 +4,7 @@ import StatsBar from './components/StatsBar'
 import MarqueeTicker from './components/MarqueeTicker'
 import VideoSection from './components/VideoSection'
 import Features from './components/Features'
+import WhoItsFor from './components/WhoItsFor'
 import Gallery from './components/Gallery'
 import DesignLab from './components/DesignLab'
 import Specs from './components/Specs'
@@ -22,6 +23,7 @@ export default function App() {
       <MarqueeTicker />
       <VideoSection />
       <Features />
+      <WhoItsFor />
       <MarqueeTicker reverse />
       <Gallery />
       <DesignLab />
