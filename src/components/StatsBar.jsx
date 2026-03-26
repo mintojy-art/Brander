@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const stats = [
-  { value: 60,  unit: 'mm', label: 'Print Width'      },
-  { value: 4,   unit: '+',  label: 'Surface Types'    },
+  { value: 30,  unit: 'cm', label: 'Print Length'     },
+  { value: 6,   unit: '+',  label: 'Surface Types'    },
   { value: 210, unit: 'g',  label: 'Empty Weight'     },
   { value: 24,  unit: 'h',  label: 'Custom Response'  },
 ]
