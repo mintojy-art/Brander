@@ -715,7 +715,7 @@ export default function DesignLab({ onAddToCart }) {
                   <p className="text-sm font-bold text-white">{printMode}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-0.5">Print Length</p>
+                  <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-0.5">Text Length</p>
                   <p className="text-sm font-bold text-red-400">30 cm</p>
                 </div>
               </div>
