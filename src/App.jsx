@@ -8,6 +8,7 @@ import WhoItsFor from './components/WhoItsFor'
 import Gallery from './components/Gallery'
 import DesignLab from './components/DesignLab'
 import Specs from './components/Specs'
+import FAQ from './components/FAQ'
 import WaitlistSection from './components/WaitlistSection'
 import Footer from './components/Footer'
 
@@ -28,6 +29,7 @@ export default function App() {
       <Gallery />
       <DesignLab />
       <Specs />
+      <FAQ />
       <WaitlistSection />
       <Footer />
     </div>
