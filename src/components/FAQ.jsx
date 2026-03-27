@@ -113,7 +113,7 @@ export default function FAQ() {
         >
           Still have a question?{' '}
           <a
-            href="https://wa.me/919746357750"
+            href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
             className="text-red-400 hover:text-red-300 underline underline-offset-2 transition-colors"
