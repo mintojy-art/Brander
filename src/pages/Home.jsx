@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { products } from '../data/products'
 import { useCart } from '../context/CartContext'
+import PrintConfigurator from '../components/PrintConfigurator'
 
 const services = [
   { icon: '⚙️', title: 'Small Batch Manufacturing', desc: 'From 5 to 500 units — consistent quality, no MOQ.',   href: '/services#manufacturing' },
@@ -147,6 +148,35 @@ export default function Home() {
 
         {/* Bottom fade */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+      </section>
+
+      {/* ── 3D PRINT CONFIGURATOR ── */}
+      <section className="py-20 bg-[#F5F5F7] border-b border-[#D2D2D7]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+          <div className="mb-12">
+            <motion.p
+              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            >
+              Instant Quote
+            </motion.p>
+            <motion.h2
+              className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Configure Your Print
+            </motion.h2>
+            <motion.p
+              className="text-[#86868B] text-base mt-3 max-w-lg"
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              Upload your STL, pick your material and settings, get an instant price estimate.
+            </motion.p>
+          </div>
+          <PrintConfigurator />
+        </div>
       </section>
 
       {/* ── SERVICES GRID ── */}
