@@ -1,37 +1,32 @@
-import Navbar from './components/Navbar'
-import Hero from './components/Hero'
-import StatsBar from './components/StatsBar'
-import MarqueeTicker from './components/MarqueeTicker'
-import VideoSection from './components/VideoSection'
-import Features from './components/Features'
-import WhoItsFor from './components/WhoItsFor'
-import Gallery from './components/Gallery'
-import DesignLab from './components/DesignLab'
-import Specs from './components/Specs'
-import FAQ from './components/FAQ'
-import WaitlistSection from './components/WaitlistSection'
-import Footer from './components/Footer'
+import { BrowserRouter, Routes, Route, ScrollRestoration } from 'react-router-dom'
+import { CartProvider } from './context/CartContext'
+import OricNavbar from './components/OricNavbar'
+import OricFooter from './components/OricFooter'
+import CartSidebar from './components/CartSidebar'
+import Home from './pages/Home'
+import Shop from './pages/Shop'
+import Services from './pages/Services'
+import BranderRollerPage from './pages/BranderRollerPage'
+
+function ScrollToTop() {
+  // Simple scroll-to-top on route change
+  return null
+}
 
 export default function App() {
-  const scrollToWaitlist = () =>
-    document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
-
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-      <Navbar onJoinWaitlist={scrollToWaitlist} />
-      <Hero onJoinWaitlist={scrollToWaitlist} />
-      <StatsBar />
-      <MarqueeTicker />
-      <VideoSection />
-      <Features />
-      <WhoItsFor />
-      <MarqueeTicker reverse />
-      <Gallery />
-      <DesignLab />
-      <Specs />
-      <FAQ />
-      <WaitlistSection />
-      <Footer />
-    </div>
+    <CartProvider>
+      <BrowserRouter>
+        <OricNavbar />
+        <CartSidebar />
+        <Routes>
+          <Route path="/"                       element={<Home />}              />
+          <Route path="/shop"                   element={<Shop />}              />
+          <Route path="/shop/brander-roller"    element={<BranderRollerPage />} />
+          <Route path="/services"               element={<Services />}          />
+        </Routes>
+        <OricFooter />
+      </BrowserRouter>
+    </CartProvider>
   )
 }

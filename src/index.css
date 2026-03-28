@@ -4,29 +4,42 @@
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
-    background-color: #0f1012;
-    color: #e5e7eb;
+    font-family: 'Poppins', sans-serif;
+    background-color: #ffffff;
+    color: #1D1D1F;
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Slim red scrollbar */
-  ::-webkit-scrollbar {
-    width: 4px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0f1012;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #dc2626;
-    border-radius: 2px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #ef4444;
-  }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #F5F5F7; }
+  ::-webkit-scrollbar-thumb { background: #1D1D1F; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #424245; }
 }
 
-/* ── Carbon dot pattern ── */
+/* ── Marquee / rolling-text ── */
+@keyframes roll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.rolling-text {
+  display: inline-flex;
+  animation: roll 28s linear infinite;
+  will-change: transform;
+}
+.rolling-text-reverse {
+  display: inline-flex;
+  animation: roll 28s linear infinite reverse;
+  will-change: transform;
+}
+.rolling-text-slow {
+  display: inline-flex;
+  animation: roll 20s linear infinite;
+  will-change: transform;
+}
+
+/* ── Carbon dot pattern (Brander page) ── */
 .carbon-pattern {
   background-image:
     radial-gradient(#2a2a2a 15%, transparent 16%),
@@ -36,58 +49,31 @@
   background-color: #1a1a1c;
 }
 
-/* ── Marquee / rolling-text ── */
-@keyframes roll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.rolling-text {
-  display: inline-flex;
-  animation: roll 22s linear infinite;
-  will-change: transform;
-}
-.rolling-text-reverse {
-  display: inline-flex;
-  animation: roll 22s linear infinite reverse;
-  will-change: transform;
-}
-.rolling-text-slow {
-  display: inline-flex;
-  animation: roll 18s linear infinite;
-  will-change: transform;
-}
-
-/* ── Hero image glow ring ── */
+/* ── Glow pulse (Brander page) ── */
 @keyframes glowPulse {
-  0%, 100% {
-    box-shadow:
-      0 0 20px rgba(220, 38, 38, 0.3),
-      0 0 60px rgba(220, 38, 38, 0.1);
-  }
-  50% {
-    box-shadow:
-      0 0 50px rgba(220, 38, 38, 0.65),
-      0 0 110px rgba(220, 38, 38, 0.2);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(220,38,38,0.3), 0 0 60px rgba(220,38,38,0.1); }
+  50%       { box-shadow: 0 0 50px rgba(220,38,38,0.65), 0 0 110px rgba(220,38,38,0.2); }
 }
-.glow-pulse {
-  animation: glowPulse 3.5s ease-in-out infinite;
-}
+.glow-pulse { animation: glowPulse 3.5s ease-in-out infinite; }
 
-/* ── Hero image floating ── */
+/* ── Float (Brander page) ── */
 @keyframes float {
-  0%, 100% { transform: translateY(0px);  }
+  0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-14px); }
 }
-.float-animation {
-  animation: float 5s ease-in-out infinite;
-}
+.float-animation { animation: float 5s ease-in-out infinite; }
 
-/* ── Gradient top border for footer ── */
-.footer-gradient-top::before {
-  content: '';
-  display: block;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #dc2626, transparent);
+/* ── Cart slide-in ── */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.cart-slide-in { animation: slideInRight 0.28s ease-out forwards; }
+
+/* ── ORIC hero gradient text ── */
+.oric-gradient-text {
+  background: linear-gradient(135deg, #1D1D1F 0%, #424245 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
