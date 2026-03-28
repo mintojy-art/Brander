@@ -38,13 +38,13 @@ function estimatePrice(dims, strength, materialId, qualityId) {
   const infill = strength / 100
 
   const bboxVol     = (dims.x * dims.y * dims.z) / 1000        // mm³ → cm³
-  const filamentVol = bboxVol * (0.20 + infill * 0.38)         // walls + infill estimate
+  const filamentVol = bboxVol * (0.018 + infill * 0.05)        // realistic shell+infill fraction
   const weight      = filamentVol * mat.density                 // grams
   const matCost     = weight * mat.ppg
-  const timeCost    = (filamentVol / 15) * 80 * qual.timeMul   // ₹80/hr
-  const base        = 60                                        // handling fee
+  const timeCost    = (filamentVol / 15) * 50 * qual.timeMul   // ₹50/hr print rate
+  const base        = 65                                        // handling fee
 
-  return Math.max(Math.round(base + matCost + timeCost), 80)
+  return Math.max(Math.round(base + matCost + timeCost), 150)
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
