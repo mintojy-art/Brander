@@ -2,16 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 
 const stats = [
-  { value: 30,  unit: 'cm', label: 'Text Length'      },
-  { value: 6,   unit: '+',  label: 'Surface Types'    },
-  { value: 210, unit: 'g',  label: 'Empty Weight'     },
-  { value: 24,  unit: 'h',  label: 'Custom Response'  },
+  { value: 30,  unit: 'cm', label: 'Text Length'    },
+  { value: 6,   unit: '+',  label: 'Surface Types'  },
+  { value: 210, unit: 'g',  label: 'Empty Weight'   },
+  { value: 24,  unit: 'h',  label: 'Custom Response'},
 ]
 
 function CountUp({ value, unit }) {
-  const ref = useRef(null)
+  const ref    = useRef(null)
   const inView = useInView(ref, { once: true, margin: '0px 0px -60px 0px' })
-  // Start at the real value so it's never blank — animation is a bonus
   const [count, setCount] = useState(value)
 
   useEffect(() => {
@@ -29,18 +28,18 @@ function CountUp({ value, unit }) {
   }, [inView, value])
 
   return (
-    <span ref={ref} className="font-stencil text-4xl md:text-5xl font-black text-white tabular-nums">
+    <span ref={ref} className="text-4xl md:text-5xl font-bold text-[#111111] tabular-nums">
       {count}
-      <span className="text-red-500 text-2xl ml-0.5">{unit}</span>
+      <span className="text-2xl ml-0.5 text-stone-400">{unit}</span>
     </span>
   )
 }
 
 export default function StatsBar() {
   return (
-    <section className="py-16 bg-black border-y border-gray-900">
+    <section className="py-16 bg-[#F5F2EE] border-y border-stone-200">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x md:divide-gray-800/60">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0 md:divide-x md:divide-stone-200">
           {stats.map((s, i) => (
             <motion.div
               key={s.label}
@@ -51,7 +50,7 @@ export default function StatsBar() {
               transition={{ delay: i * 0.1, duration: 0.5 }}
             >
               <CountUp value={s.value} unit={s.unit} />
-              <p className="text-gray-500 text-xs mt-2 uppercase tracking-widest">{s.label}</p>
+              <p className="text-stone-400 text-xs mt-2 uppercase tracking-widest">{s.label}</p>
             </motion.div>
           ))}
         </div>

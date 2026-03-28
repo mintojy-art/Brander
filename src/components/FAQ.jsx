@@ -26,19 +26,19 @@ const FAQS = [
 
 function Item({ faq, isOpen, onToggle }) {
   return (
-    <div className="border-b border-gray-800/70 last:border-0">
+    <div className="border-b border-stone-200 last:border-0">
       <button
         onClick={onToggle}
         className="w-full flex items-start justify-between gap-6 py-6 text-left group"
       >
-        <span className="text-white text-sm md:text-base font-semibold leading-snug group-hover:text-red-400 transition-colors">
+        <span className="text-[#111111] text-sm md:text-base font-semibold leading-snug group-hover:text-stone-500 transition-colors">
           {faq.q}
         </span>
         <span
           className={`shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-all mt-0.5 ${
             isOpen
-              ? 'bg-red-600 border-red-500 text-white'
-              : 'border-gray-700 text-gray-500 group-hover:border-red-500/50 group-hover:text-red-400'
+              ? 'bg-[#111111] border-[#111111] text-white'
+              : 'border-stone-300 text-stone-400 group-hover:border-stone-400'
           }`}
         >
           {isOpen ? '−' : '+'}
@@ -55,7 +55,7 @@ function Item({ faq, isOpen, onToggle }) {
             transition={{ duration: 0.28, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <p className="text-gray-400 text-sm leading-relaxed pb-6 max-w-2xl">
+            <p className="text-stone-500 text-sm leading-relaxed pb-6 max-w-2xl">
               {faq.a}
             </p>
           </motion.div>
@@ -67,32 +67,37 @@ function Item({ faq, isOpen, onToggle }) {
 
 export default function FAQ() {
   const [open, setOpen] = useState(0)
-
   const toggle = (i) => setOpen((prev) => (prev === i ? null : i))
 
   return (
-    <section id="faq" className="py-24 bg-[#0a0a0c] border-t border-gray-900">
+    <section id="faq" className="py-28 bg-[#F5F2EE] border-b border-stone-200">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Header */}
-        <motion.div
-          className="text-center mb-14"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <p className="text-red-500 text-xs font-bold uppercase tracking-widest mb-3">Before You Join</p>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Questions answered.
-          </h2>
-          <p className="text-gray-500 text-sm mt-3">Everything you need to know before committing.</p>
-        </motion.div>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-4">Before You Join</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#111111] leading-tight">
+              Questions<br />answered.
+            </h2>
+          </motion.div>
+          <motion.p
+            className="text-stone-400 text-sm max-w-xs"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            Everything you need to know before committing.
+          </motion.p>
+        </div>
 
-        {/* Accordion */}
         <motion.div
-          className="rounded-2xl border border-gray-800/60 px-6 md:px-8"
-          style={{ background: 'linear-gradient(135deg, #111318 0%, #0d0f14 100%)' }}
+          className="bg-white rounded-2xl border border-stone-200 px-6 md:px-8 shadow-sm"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -103,9 +108,8 @@ export default function FAQ() {
           ))}
         </motion.div>
 
-        {/* Bottom CTA */}
         <motion.p
-          className="text-center text-gray-600 text-sm mt-8"
+          className="text-center text-stone-400 text-sm mt-8"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -116,7 +120,7 @@ export default function FAQ() {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-red-400 hover:text-red-300 underline underline-offset-2 transition-colors"
+            className="text-[#111111] font-semibold hover:underline underline-offset-2 transition-colors"
           >
             WhatsApp us directly
           </a>

@@ -1,194 +1,123 @@
 import { useState } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { ArrowRight, Youtube } from '../icons'
+import { motion } from 'framer-motion'
+import { ArrowRight } from '../icons'
 
 const container = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.13 } },
+  visible: { transition: { staggerChildren: 0.12 } },
 }
 const item = {
-  hidden: { opacity: 0, y: 32 },
+  hidden:  { opacity: 0, y: 28 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
 }
-
-const tags = ['PLA Fiber Body', 'Works on Concrete', 'Rapid Swap System']
 
 export default function Hero({ onJoinWaitlist }) {
   const [imgError, setImgError] = useState(false)
 
-  // ── Parallax transforms (all driven by global scrollY) ──────────────────
-  const { scrollY } = useScroll()
-  //  background grid  → moves DOWN (+) so it "lags" behind scroll = depth layer
-  const bgGridY = useTransform(scrollY, [0, 800], [0, 200])
-  //  glow blob        → slightly faster than grid
-  const glowY   = useTransform(scrollY, [0, 800], [0, 160])
-  //  decorative rings → even slightly faster
-  const ringsY  = useTransform(scrollY, [0, 800], [0, 100])
-  //  product image    → moves UP (−) faster than page = "pops forward"
-  const imageY  = useTransform(scrollY, [0, 800], [0, -90])
-
-  const userLink =
-    'https://photos.google.com/album/AF1QipP3HG_6igBufvLK9z4mqH0zwPXXH_4-XNd60c2C/photo/AF1QipPkHC4J38q40J7zb2oLcegDg8nIev38Rq65e8Gz'
+  const userLink    = 'https://photos.google.com/album/AF1QipP3HG_6igBufvLK9z4mqH0zwPXXH_4-XNd60c2C/photo/AF1QipPkHC4J38q40J7zb2oLcegDg8nIev38Rq65e8Gz'
   const fallbackLink = '/product.jpg'
 
   return (
-    <div id="product" className="relative pt-20 pb-16 md:pt-32 md:pb-28 overflow-hidden">
+    <div id="product" className="bg-[#FAFAF8] pt-24 pb-0 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      {/* Layer 1 – slowest: background grid */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          y: bgGridY,
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
+        {/* ── Top label row ── */}
+        <motion.div
+          className="flex items-center justify-between border-b border-stone-200 pb-5 mb-14"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-stone-400">
+            Pre-Launch · 2026
+          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-stone-400">
+            Made in India
+          </p>
+        </motion.div>
 
-      {/* Layer 2 – static radial vignette */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 30%, #0f1012 80%)' }}
-      />
+        {/* ── Main grid ── */}
+        <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-end">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
-
-          {/* ── Text column – normal scroll speed ── */}
+          {/* ── Text column ── */}
           <motion.div
-            className="lg:col-span-6"
+            className="lg:col-span-5 pb-16"
             variants={container}
             initial="hidden"
             animate="visible"
           >
-            <motion.div
-              variants={item}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-900/30 border border-red-500/30 mb-6"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-red-400 font-semibold tracking-widest uppercase text-xs">
-                Pre-Launch Version Available
-              </span>
-            </motion.div>
+            <motion.p variants={item} className="text-[11px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-6">
+              The Brander Roller
+            </motion.p>
 
             <motion.h1
               variants={item}
-              className="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-none mb-6"
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#111111] leading-[0.95] tracking-tight mb-8"
             >
-              BRANDER
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-400 to-red-700">
-                ROLLER
-              </span>
+              Brand any<br />
+              surface.<br />
+              By hand.
             </motion.h1>
 
-            <motion.p variants={item} className="text-xl text-white font-semibold leading-snug max-w-lg mb-3">
-              Brand any surface. By hand. In seconds.
-            </motion.p>
-            <motion.p variants={item} className="text-base text-gray-400 leading-relaxed max-w-lg">
-              No printer. No minimum order. Just load your custom roll and stamp wood,
-              concrete, cardboard, metal — anything.
-              <span className="block mt-1 text-gray-500 text-sm">15mm print width · industrial grade · rapid swap system.</span>
+            <motion.p variants={item} className="text-base text-stone-500 leading-relaxed max-w-sm mb-10">
+              No printer. No minimum order. Load your custom roll and stamp wood,
+              concrete, cardboard, metal — anything flat. In seconds.
             </motion.p>
 
-            <motion.div variants={item} className="mt-8 flex flex-col sm:flex-row gap-4">
+            <motion.div variants={item} className="flex flex-col sm:flex-row gap-3 mb-8">
               <button
                 onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(220,38,38,0.4)] hover:shadow-[0_0_50px_rgba(220,38,38,0.7)] flex items-center justify-center gap-2"
+                className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#111111] hover:bg-[#333] text-white text-sm font-semibold rounded transition-all"
               >
                 Join the Waitlist — Free
-                <ArrowRight
-                  size={18}
-                  className="group-hover:translate-x-1 transition-transform duration-200"
-                />
+                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
               </button>
               <a
-                href="#video"
-                className="px-8 py-4 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                href="#design-lab"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-stone-300 hover:border-stone-400 text-[#111111] text-sm font-semibold rounded transition-all bg-white"
               >
-                Watch Demo <Youtube size={18} />
+                Design Your Roll →
               </a>
             </motion.div>
 
-            {/* Price anchor */}
-            <motion.p variants={item} className="mt-4 text-sm text-gray-500">
-              🔒 Early bird: <span className="text-white font-semibold">RS 1080/-</span>
-              <span className="text-gray-600"> — price increases at launch.</span>
-            </motion.p>
-
-            {/* Design Lab teaser */}
-            <motion.a
-              variants={item}
-              href="#design-lab"
-              className="mt-3 inline-flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors group"
-            >
-              <span>Design your custom roll before you buy</span>
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
-            </motion.a>
-
-            <motion.div
-              variants={item}
-              className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500"
-            >
-              {tags.map((tag) => (
-                <div key={tag} className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                  {tag}
-                </div>
-              ))}
+            <motion.div variants={item} className="flex items-center gap-2 text-sm text-stone-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#111111]" />
+              Early bird: <span className="text-[#111111] font-semibold ml-1">RS 1080/-</span>
+              <span className="text-stone-300 mx-1">·</span>
+              <span>Price increases at launch</span>
             </motion.div>
           </motion.div>
 
-          {/* ── Image column – multi-layer parallax ── */}
-          <div className="lg:col-span-6 mt-16 lg:mt-0 relative flex justify-center">
-
-            {/* Layer 3 – glow blob, moves with parallax */}
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              style={{ y: glowY }}
-            >
-              <div className="w-[480px] h-[480px] bg-red-600/10 rounded-full blur-3xl glow-pulse" />
-            </motion.div>
-
-            {/* Layer 4 – decorative rings, slightly faster than glow */}
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              style={{ y: ringsY }}
-            >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] border border-red-500/10 rounded-full" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] border border-red-500/10 rounded-full" />
-            </motion.div>
-
-            {/* Layer 5 – product card, fastest (pops forward) */}
-            <motion.div
-              className="relative z-10 w-full max-w-md"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.85, delay: 0.25, ease: 'easeOut' }}
-              style={{ y: imageY }}
-            >
-              {/* float-animation bobbing is on inner div so it composes with the parallax */}
-              <div className="float-animation">
-                <div className="relative aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden group cursor-pointer carbon-pattern glow-pulse">
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-md text-xs text-gray-300 border border-gray-700 z-20 font-mono">
-                    58mm × 116mm Print Area
-                  </div>
-                  <img
-                    src={imgError ? fallbackLink : userLink}
-                    onError={() => setImgError(true)}
-                    alt="Brander Roller"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black via-black/60 to-transparent p-6 text-center z-20">
-                    <p className="text-gray-300 font-mono text-sm tracking-widest uppercase">
-                      Industrial Grade // PLA Fiber
-                    </p>
-                  </div>
+          {/* ── Image column ── */}
+          <motion.div
+            className="lg:col-span-7 relative"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: 'easeOut' }}
+          >
+            {/* Product image — extends to viewport edge on large screens */}
+            <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden rounded-tl-3xl rounded-tr-3xl bg-stone-100">
+              <img
+                src={imgError ? fallbackLink : userLink}
+                onError={() => setImgError(true)}
+                alt="Brander Roller"
+                className="w-full h-full object-cover"
+              />
+              {/* Subtle overlay with spec tag */}
+              <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-sm px-4 py-2.5 rounded-lg border border-stone-200/80 shadow-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 mb-0.5">Print Width</p>
+                <p className="text-sm font-bold text-[#111111]">15 mm · PLA Fiber Body</p>
+              </div>
+              <div className="absolute top-5 right-5 bg-white/90 backdrop-blur-sm px-4 py-2.5 rounded-lg border border-stone-200/80 shadow-sm">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 mb-0.5">Status</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <p className="text-sm font-bold text-[#111111]">Pre-Launch Open</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
 
-          </div>
         </div>
       </div>
     </div>

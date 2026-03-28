@@ -25,24 +25,34 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 bg-[#0f1012]">
+    <section id="features" className="py-28 bg-[#F5F2EE] border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <p className="text-red-500 text-xs font-bold uppercase tracking-widest mb-3">Why Brander</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-5">Engineered for Extremes</h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-            The Brander Roller isn't just a marker—it's a precision instrument designed for
-            workshops, construction sites, and urban artists.
-          </p>
-        </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-4">Why Brander</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#111111] leading-tight">
+              Engineered<br />for Extremes.
+            </h2>
+          </motion.div>
+          <motion.p
+            className="text-stone-500 max-w-xs text-sm leading-relaxed"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            The Brander Roller isn't just a marker — it's a precision instrument designed for
+            workshops, construction sites, and urban artists.
+          </motion.p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-5">
           {features.map((f, i) => (
             <FeatureCard key={f.title} {...f} index={i} />
           ))}

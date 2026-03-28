@@ -17,7 +17,7 @@ export default function App() {
     document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <div className="min-h-screen bg-[#0f1012]">
+    <div className="min-h-screen bg-[#FAFAF8]">
       <Navbar onJoinWaitlist={scrollToWaitlist} />
       <Hero onJoinWaitlist={scrollToWaitlist} />
       <StatsBar />

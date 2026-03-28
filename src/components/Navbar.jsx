@@ -29,24 +29,24 @@ export default function Navbar({ onJoinWaitlist }) {
     <nav
       className={`fixed w-full z-50 transition-all duration-500 ${
         isScrolled
-          ? 'bg-black/90 backdrop-blur-lg border-b border-gray-800/60'
+          ? 'bg-[#FAFAF8]/95 backdrop-blur-md border-b border-stone-200'
           : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-18 py-4">
 
           {/* Logo */}
           <motion.div
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2.5 cursor-pointer"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center shadow-[0_0_14px_rgba(220,38,38,0.6)]">
-              <span className="font-stencil font-bold text-white text-lg leading-none">B</span>
+            <div className="w-7 h-7 bg-[#111111] rounded flex items-center justify-center">
+              <span className="font-stencil font-bold text-white text-sm leading-none">B</span>
             </div>
-            <span className="font-stencil text-2xl tracking-tight text-white">BRANDER</span>
+            <span className="font-stencil text-xl tracking-tight text-[#111111]">BRANDER</span>
           </motion.div>
 
           {/* Desktop links */}
@@ -55,13 +55,13 @@ export default function Navbar({ onJoinWaitlist }) {
               <motion.a
                 key={link.href}
                 href={link.href}
-                className="relative px-3 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors group"
+                className="relative px-3 py-2 text-sm font-medium text-stone-500 hover:text-[#111111] transition-colors group"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * i + 0.1 }}
               >
                 {link.label}
-                <span className="absolute bottom-0.5 left-3 right-3 h-px bg-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <span className="absolute bottom-0.5 left-3 right-3 h-px bg-[#111111] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </motion.a>
             ))}
           </div>
@@ -70,20 +70,19 @@ export default function Navbar({ onJoinWaitlist }) {
           <div className="flex items-center gap-3">
             <motion.button
               onClick={handleWaitlist}
-              className="hidden md:flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-lg transition-all shadow-[0_0_16px_rgba(220,38,38,0.35)] hover:shadow-[0_0_24px_rgba(220,38,38,0.55)]"
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#111111] hover:bg-[#333] text-white text-sm font-semibold rounded transition-all"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               Join Waitlist
             </motion.button>
 
             <button
               onClick={() => setMobileOpen((o) => !o)}
-              className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+              className="md:hidden p-2 text-stone-500 hover:text-[#111111] transition-colors"
             >
-              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
@@ -96,7 +95,7 @@ export default function Navbar({ onJoinWaitlist }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden overflow-hidden bg-black/95 backdrop-blur-md border-b border-gray-800"
+            className="md:hidden overflow-hidden bg-[#FAFAF8] border-b border-stone-200"
           >
             <div className="px-4 pt-2 pb-4 space-y-1">
               {links.map((link) => (
@@ -104,14 +103,14 @@ export default function Navbar({ onJoinWaitlist }) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-3 rounded-lg text-base font-medium text-gray-300 hover:bg-gray-900 hover:text-red-400 transition-all"
+                  className="block px-3 py-3 rounded text-base font-medium text-stone-600 hover:text-[#111111] hover:bg-stone-100 transition-all"
                 >
                   {link.label}
                 </a>
               ))}
               <button
                 onClick={handleWaitlist}
-                className="w-full mt-2 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all text-sm"
+                className="w-full mt-2 py-3 bg-[#111111] hover:bg-[#333] text-white font-semibold rounded transition-all text-sm"
               >
                 Join Waitlist — Free
               </button>
