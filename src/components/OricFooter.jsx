@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 
 const col1 = [
-  { label: 'Home',     to: '/'         },
-  { label: 'Shop',     to: '/shop'     },
-  { label: 'Services', to: '/services' },
+  { label: 'Home',         to: '/'           },
+  { label: 'Shop',         to: '/shop'       },
+  { label: 'Services',     to: '/services'   },
+  { label: 'Lithophanes',  to: '/lithophanes'},
 ]
 
 const col2 = [
@@ -74,7 +75,7 @@ export default function OricFooter() {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 py-6 text-xs text-[#86868B]">
           <p>&copy; {new Date().getFullYear()} ORIC. Made in India.</p>
-          <p>FDM 3D Printing · Print on Demand · +91 83101 94953</p>
+          <p>3D Printing Service · Bangalore, Karnataka · +91 83101 94953</p>
         </div>
       </div>
     </footer>

@@ -77,3 +77,32 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ── Content protection ── */
+/* Prevent text selection on all content (not inputs/textareas) */
+body *:not(input):not(textarea):not([contenteditable]) {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Prevent image dragging */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+/* Allow pointer events on interactive image containers */
+a img, button img, .interactive img {
+  pointer-events: auto;
+}
+
+/* Hide everything when printing */
+@media print {
+  body { display: none !important; }
+}

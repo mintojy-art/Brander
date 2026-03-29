@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../hooks/useProducts'
 import { categories as staticCategories } from '../data/products'
+import { useSEO } from '../hooks/useSEO'
 
 function StarMini({ rating }) {
   return (
@@ -96,6 +97,11 @@ export default function Shop() {
   const [active, setActive] = useState('All')
   const categories = ['All', ...new Set(products.map(p => p.category))]
   const filtered = active === 'All' ? products : products.filter((p) => p.category === active)
+
+  useSEO({
+    title: 'Shop — 3D Printed Products Bangalore',
+    description: 'Browse ORIC\'s shop of 3D printed figurines, prototypes, custom parts, toys and more. Order online and get delivered anywhere in India.',
+  })
 
   return (
     <div className="pt-16 min-h-screen bg-white">

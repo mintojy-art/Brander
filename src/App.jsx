@@ -11,6 +11,7 @@ import BranderRollerPage from './pages/BranderRollerPage'
 import ProductDetail from './pages/ProductDetail'
 import Admin from './pages/Admin'
 import Lithophane from './pages/Lithophane'
+import NotFound from './pages/NotFound'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/services"               element={<Services />}          />
           <Route path="/admin"                  element={<Admin />}             />
           <Route path="/lithophanes"            element={<Lithophane />}        />
+          <Route path="*"                       element={<NotFound />}          />
         </Routes>
         <OricFooter />
       </BrowserRouter>

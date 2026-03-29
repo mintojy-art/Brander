@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useSEO } from '../hooks/useSEO'
 
 const services = [
   {
@@ -85,6 +86,10 @@ const services = [
 ]
 
 export default function Services() {
+  useSEO({
+    title: 'Services — 3D Printing, Prototyping & Manufacturing Bangalore',
+    description: 'ORIC offers 8 professional 3D printing services in Bangalore: small batch manufacturing, custom prints, prototyping, figurines, toys, idols and more.',
+  })
   return (
     <div className="pt-16 min-h-screen bg-white">
 

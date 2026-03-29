@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../hooks/useProducts'
 import PrintConfigurator from '../components/PrintConfigurator'
+import { useSEO } from '../hooks/useSEO'
 
 const services = [
   { icon: '⚙️', title: 'Small Batch Manufacturing', desc: 'From 5 to 500 units — consistent quality, no MOQ.',   href: '/services#manufacturing' },
@@ -81,6 +82,11 @@ function ProductCard({ product }) {
 export default function Home() {
   const { products } = useProducts()
   const featured = products.slice(0, 4)
+
+  useSEO({
+    title: '3D Printing Service in Bangalore — Custom Prints, Figurines & Prototypes',
+    description: 'ORIC is Bangalore\'s premium 3D print-on-demand studio. Custom figurines, prototypes, functional parts, idols & more. FDM precision. Fast delivery across India. No minimum order.',
+  })
 
   return (
     <div className="pt-16">

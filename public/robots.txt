@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Block admin from indexing
+Disallow: /admin
+
+Sitemap: https://oric.in/sitemap.xml

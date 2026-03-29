@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import OrderModal from '../components/OrderModal'
+import { useSEO } from '../hooks/useSEO'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PREVIEW_RES = 130
@@ -473,6 +474,11 @@ function Divider() { return <div className="border-t border-[#E8E8ED] my-4" /> }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Lithophane() {
+  useSEO({
+    title: 'Lithophane Generator — Free 3D Lithophane Maker',
+    description: 'Free online lithophane generator. Turn any photo into a 3D-printable STL lithophane. Plane, cylinder, arc and sphere shapes. Download instantly. Order prints from Bangalore.',
+  })
+
   const [rawImg, setRawImg]           = useState(null)
   const [processedCanvas, setPCanvas] = useState(null)
   const [tab, setTab]                 = useState('upload')
