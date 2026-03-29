@@ -4,19 +4,31 @@ import { motion } from 'framer-motion'
 import { products, categories } from '../data/products'
 import { useCart } from '../context/CartContext'
 
+function StarMini({ rating }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} className="w-3 h-3" viewBox="0 0 20 20" fill={i <= Math.round(rating) ? '#FFA41C' : 'none'} stroke={i <= Math.round(rating) ? 'none' : '#D2D2D7'} strokeWidth="1">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  )
+}
+
 function ProductCard({ product }) {
   const { add } = useCart()
 
   return (
     <motion.div
-      className="group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500"
+      className="group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
     >
       {/* Image */}
-      <div className="aspect-square bg-[#F5F5F7] relative overflow-hidden">
+      <Link to={product.href} className="block aspect-square bg-[#F5F5F7] relative overflow-hidden">
         {product.image ? (
           <img
             src={product.image}
@@ -36,31 +48,40 @@ function ProductCard({ product }) {
             {product.badge}
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Info */}
-      <div className="p-6">
+      <div className="p-5 flex flex-col flex-1">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#86868B] mb-1">{product.category}</p>
-        <h3 className="text-base font-semibold text-[#1D1D1F] mb-1 leading-snug">{product.name}</h3>
-        <p className="text-sm text-[#86868B] leading-relaxed mb-1">{product.tagline}</p>
-        <p className="text-xs text-[#86868B] mb-5">Lead time: {product.lead}</p>
+        <Link to={product.href} className="block">
+          <h3 className="text-sm font-semibold text-[#1D1D1F] mb-1 leading-snug hover:underline underline-offset-2">{product.name}</h3>
+        </Link>
+        <p className="text-xs text-[#86868B] leading-relaxed mb-2 line-clamp-2">{product.tagline}</p>
 
-        <div className="border-t border-[#F5F5F7] pt-4 flex items-center justify-between">
-          <span className="text-lg font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
+        {/* Stars */}
+        {product.rating && (
+          <div className="flex items-center gap-1.5 mb-2">
+            <StarMini rating={product.rating} />
+            <span className="text-xs text-[#86868B]">{product.rating} ({product.reviews})</span>
+          </div>
+        )}
+
+        <p className="text-xs text-[#86868B] mb-4">Lead time: {product.lead}</p>
+
+        <div className="mt-auto border-t border-[#F5F5F7] pt-4 flex items-center justify-between">
+          <span className="text-base font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
           <div className="flex gap-2">
-            {product.href && (
-              <Link
-                to={product.href}
-                className="px-3.5 py-1.5 text-xs font-medium text-[#424245] border border-[#D2D2D7] rounded-full hover:bg-[#F5F5F7] transition-all"
-              >
-                Details
-              </Link>
-            )}
+            <Link
+              to={product.href}
+              className="px-3 py-1.5 text-xs font-medium text-[#424245] border border-[#D2D2D7] rounded-full hover:bg-[#F5F5F7] transition-all"
+            >
+              Details
+            </Link>
             <button
               onClick={() => add(product)}
-              className="px-4 py-1.5 text-xs font-semibold bg-[#1D1D1F] text-white rounded-full hover:bg-[#424245] transition-all"
+              className="px-3.5 py-1.5 text-xs font-semibold bg-[#1D1D1F] text-white rounded-full hover:bg-[#424245] transition-all"
             >
-              {product.price ? 'Add to Cart' : 'Get Quote'}
+              {product.price ? 'Add' : 'Quote'}
             </button>
           </div>
         </div>

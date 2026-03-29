@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import Shop from './pages/Shop'
 import Services from './pages/Services'
 import BranderRollerPage from './pages/BranderRollerPage'
+import ProductDetail from './pages/ProductDetail'
 
 function ScrollToTop() {
   // Simple scroll-to-top on route change
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/"                       element={<Home />}              />
           <Route path="/shop"                   element={<Shop />}              />
           <Route path="/shop/brander-roller"    element={<BranderRollerPage />} />
+          <Route path="/shop/:productId"        element={<ProductDetail />}     />
           <Route path="/services"               element={<Services />}          />
         </Routes>
         <OricFooter />
