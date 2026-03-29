@@ -61,6 +61,7 @@ export default function PrintConfigurator() {
   const [strength, setStrength]   = useState(50)
   const [price, setPrice]         = useState(null)
   const [calculating, setCalc]    = useState(false)
+  const [ordering, setOrdering]   = useState(false)
   const [isDragging, setDrag]     = useState(false)
   const [canvasActive, setCanvasActive] = useState(false)
 
@@ -229,6 +230,31 @@ export default function PrintConfigurator() {
       badge:        'Custom Print',
     })
   }
+
+  const orderPrint = useCallback(async () => {
+    if (!file || ordering) return
+    setOrdering(true)
+    try {
+      const msg = `Hi! I want to order a custom 3D print from ORIC.\nFile: ${file.name}\nMaterial: ${material} · ${printColor} · ${quality} · ${strength}% infill${price ? `\nEstimated price: ₹${price.toLocaleString()}` : ''}`
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text: msg })
+          return
+        } catch (e) {
+          if (e.name === 'AbortError') return
+        }
+      }
+      // Desktop fallback: download file + open WhatsApp
+      const url = URL.createObjectURL(file)
+      const a = document.createElement('a')
+      a.href = url; a.download = file.name; a.style.display = 'none'
+      document.body.appendChild(a); a.click()
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 300)
+      window.open(`https://wa.me/918310194953?text=${encodeURIComponent(msg + '\n(STL downloaded — please attach it to this chat)')}`, '_blank')
+    } finally {
+      setOrdering(false)
+    }
+  }, [file, ordering, material, printColor, quality, strength, price])
 
   // ── UI ──────────────────────────────────────────────────────────────────
   return (
@@ -468,6 +494,21 @@ export default function PrintConfigurator() {
             {calculating ? 'Calculating…' : 'Calculate'}
           </button>
         </div>
+
+        {/* Order via WhatsApp */}
+        <button
+          onClick={orderPrint}
+          disabled={!file || ordering}
+          className={`w-full py-3.5 border-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+            ordering ? 'border-[#86868B] text-[#86868B] cursor-wait'
+            : !file ? 'border-[#D2D2D7] text-[#86868B] cursor-not-allowed'
+            : 'border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#1D1D1F] hover:text-white'
+          }`}
+        >
+          {ordering ? (
+            <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> Preparing…</>
+          ) : <>Order Your Print via WhatsApp →</>}
+        </button>
 
         {/* Model stats */}
         {dims && (

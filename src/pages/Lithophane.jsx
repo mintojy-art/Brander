@@ -244,11 +244,29 @@ function triggerDownload(buf, filename) {
   a.style.display = 'none'
   document.body.appendChild(a)
   a.click()
-  // Revoke and remove after short delay to ensure browser processes the click
   setTimeout(() => {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
   }, 300)
+}
+
+async function shareSTLToWhatsApp(buf, filename) {
+  const msg = 'Hi! I want to order a lithophane print from ORIC.'
+  const stlFile = new File([buf], filename, { type: 'model/stl' })
+  if (navigator.canShare?.({ files: [stlFile] })) {
+    try {
+      await navigator.share({ files: [stlFile], text: msg })
+      return
+    } catch (e) {
+      if (e.name === 'AbortError') return
+    }
+  }
+  // Desktop fallback: download the file, then open WhatsApp with instructions
+  triggerDownload(buf, filename)
+  window.open(
+    `https://wa.me/918310194953?text=${encodeURIComponent(msg + ' (STL file downloaded — please attach it to this chat)')}`,
+    '_blank'
+  )
 }
 
 // ─── Three.js Preview ────────────────────────────────────────────────────────
@@ -331,8 +349,7 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
       const physH = physW / aspect
       const xs = physW / (pW-1), ys = physH / (pH-1)
       for (let y = 0; y < pH; y++) for (let x = 0; x < pW; x++) {
-        // Flip y: image top (y=0) → 3D top (+Y)
-        const hv = hm[(pH-1-y) * pW + x]
+        const hv = hm[y * pW + x]
         addV(x*xs - physW/2, -(y*ys - physH/2), minT + hv*(maxT-minT), 1 - hv)
       }
       for (let y = 0; y < pH-1; y++) for (let x = 0; x < pW-1; x++) {
@@ -460,6 +477,7 @@ export default function Lithophane() {
   const [tab, setTab]                 = useState('upload')
   const [dragging, setDragging]       = useState(false)
   const [generating, setGenerating]   = useState(false)
+  const [ordering, setOrdering]       = useState(false)
   const [genError, setGenError]       = useState('')
   const fileRef                       = useRef(null)
 
@@ -582,6 +600,51 @@ export default function Lithophane() {
       setGenerating(false)
     }
   }, [processedCanvas, generating, shape, planeP, cylP, arcP, sphP, edit])
+
+  const orderPrint = useCallback(async () => {
+    if (!processedCanvas || ordering) return
+    setOrdering(true)
+    setGenError('')
+    await new Promise(r => setTimeout(r, 50))
+    try {
+      const aspect = processedCanvas.width / processedCanvas.height
+      let buf, fname
+      if (shape === 'plane') {
+        const { physW, maxT, minT, mmPerPixel } = planeP
+        const physH = physW / aspect
+        const W = Math.max(2, Math.round(physW / mmPerPixel))
+        const H = Math.max(2, Math.round(physH / mmPerPixel))
+        buf = stlPlane(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { physW, physH, maxT, minT })
+        fname = 'lithophane-plane.stl'
+      } else if (shape === 'cylinder') {
+        const { cylH, outerDiam, maxT, minT, mmPerPixel } = cylP
+        const circ = Math.PI * outerDiam
+        const W = Math.max(2, Math.round(circ / mmPerPixel))
+        const H = Math.max(2, Math.round(cylH / mmPerPixel))
+        buf = stlCylinder(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { cylH, outerDiam, maxT, minT })
+        fname = 'lithophane-cylinder.stl'
+      } else if (shape === 'arc') {
+        const { physW, arcDeg, maxT, minT, mmPerPixel } = arcP
+        const physH = physW / aspect
+        const W = Math.max(2, Math.round(physW / mmPerPixel))
+        const H = Math.max(2, Math.round(physH / mmPerPixel))
+        buf = stlArc(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { physW, physH, arcDeg, maxT, minT })
+        fname = 'lithophane-arc.stl'
+      } else {
+        const { diameter, angH, angW, maxT, minT, mmPerPixel } = sphP
+        const W = Math.max(2, Math.round((angW/360) * Math.PI * diameter / mmPerPixel))
+        const H = Math.max(2, Math.round((angH/180) * Math.PI * (diameter/2) / mmPerPixel))
+        buf = stlSphere(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { diameter, angH, angW, maxT, minT })
+        fname = 'lithophane-sphere.stl'
+      }
+      await shareSTLToWhatsApp(buf, fname)
+    } catch (err) {
+      console.error('Order STL error:', err)
+      setGenError('Could not generate STL. Try Draft quality and try again.')
+    } finally {
+      setOrdering(false)
+    }
+  }, [processedCanvas, ordering, shape, planeP, cylP, arcP, sphP, edit])
 
   // ── Tab content ──────────────────────────────────────────────────────────────
   const renderTab = () => {
@@ -851,13 +914,21 @@ export default function Lithophane() {
           )}
         </button>
 
-        <a
-          href="https://wa.me/918310194953?text=Hi!%20I%20want%20to%20order%20a%20lithophane%20print"
-          target="_blank" rel="noopener noreferrer"
-          className="w-full py-3.5 border-2 border-[#1D1D1F] text-[#1D1D1F] text-sm font-bold rounded-2xl hover:bg-[#1D1D1F] hover:text-white transition-all flex items-center justify-center gap-2"
+        <button
+          onClick={orderPrint}
+          disabled={!processedCanvas || ordering}
+          className={`w-full py-3.5 border-2 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 ${
+            ordering ? 'border-[#86868B] text-[#86868B] cursor-wait'
+            : !processedCanvas ? 'border-[#D2D2D7] text-[#86868B] cursor-not-allowed'
+            : 'border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#1D1D1F] hover:text-white'
+          }`}
         >
-          Order Print via WhatsApp →
-        </a>
+          {ordering ? (
+            <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> Preparing…</>
+          ) : (
+            <>Order Print via WhatsApp →</>
+          )}
+        </button>
 
         <div className="p-4 bg-[#F5F5F7] rounded-xl space-y-2">
           <p className="text-[10px] font-bold text-[#86868B] uppercase tracking-wider mb-2">Slicer Tips</p>
@@ -1004,11 +1075,19 @@ export default function Lithophane() {
                     <>⬇ Download STL</>
                   )}
                 </button>
-                <a href="https://wa.me/918310194953?text=Hi!%20I%20want%20to%20order%20a%20lithophane%20print"
-                  target="_blank" rel="noopener noreferrer"
-                  className="py-3.5 border-2 border-[#1D1D1F] text-[#1D1D1F] text-sm font-bold rounded-2xl hover:bg-[#1D1D1F] hover:text-white transition-all flex items-center justify-center gap-2">
-                  Order Print →
-                </a>
+                <button
+                  onClick={orderPrint}
+                  disabled={!processedCanvas || ordering}
+                  className={`py-3.5 border-2 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 ${
+                    ordering ? 'border-[#86868B] text-[#86868B] cursor-wait'
+                    : !processedCanvas ? 'border-[#D2D2D7] text-[#86868B] cursor-not-allowed'
+                    : 'border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#1D1D1F] hover:text-white'
+                  }`}
+                >
+                  {ordering ? (
+                    <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> Preparing…</>
+                  ) : <>Order Print →</>}
+                </button>
               </div>
 
               {genError && (
