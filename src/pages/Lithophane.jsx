@@ -648,9 +648,7 @@ export default function Lithophane() {
         ]
       }
 
-      // Download the STL on all devices — customer needs it to attach in WhatsApp
-      triggerDownload(buf, fname)
-      // Show the modal with order summary + step-by-step guide
+      // Show the modal — download is triggered inside the modal via direct user tap
       setOrderModal({ open: true, filename: fname, buf, summary: summaryRows })
     } catch (err) {
       console.error('Order STL error:', err)
@@ -981,7 +979,7 @@ export default function Lithophane() {
       filename={orderModal.filename}
       summary={orderModal.summary}
       whatsappMsg={lithoWaMsg}
-      onRedownload={orderModal.buf ? () => triggerDownload(orderModal.buf, orderModal.filename) : null}
+      stlBuf={orderModal.buf}
     />
     <div className="pt-16 bg-white min-h-screen">
 

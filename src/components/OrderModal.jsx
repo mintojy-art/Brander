@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const WA_NUMBER = '918310194953'
@@ -29,7 +29,7 @@ export default function OrderModal({
   summary = [],
   filename = '',
   whatsappMsg = '',      // pre-encoded text for the wa.me link
-  onRedownload = null,   // fn to re-trigger STL download
+  stlBuf = null,         // ArrayBuffer for direct download link inside modal
 }) {
   useEffect(() => {
     const fn = (e) => { if (e.key === 'Escape') onClose() }
@@ -37,14 +37,24 @@ export default function OrderModal({
     return () => window.removeEventListener('keydown', fn)
   }, [isOpen, onClose])
 
+  // Create blob URL only while modal is open — direct user tap = works on mobile
+  const blobUrl = useMemo(() => {
+    if (!stlBuf || !isOpen) return null
+    return URL.createObjectURL(new Blob([stlBuf], { type: 'application/octet-stream' }))
+  }, [stlBuf, isOpen])
+
+  useEffect(() => {
+    return () => { if (blobUrl) URL.revokeObjectURL(blobUrl) }
+  }, [blobUrl])
+
   const isLitho = type === 'lithophane'
 
   const steps = isLitho
     ? [
         {
-          num: 1, done: true,
-          title: 'STL file saved to your device',
-          desc: `"${filename}" was downloaded automatically.`,
+          num: 1, done: false,
+          title: 'Download the STL file',
+          desc: 'Tap the Download button below — you\'ll need it to attach in WhatsApp.',
           icon: '📥',
         },
         {
@@ -144,6 +154,18 @@ export default function OrderModal({
                   {steps.map((s) => <StepRow key={s.num} {...s} />)}
                 </div>
 
+                {/* Step 1 download button for lithophane — direct link, works on mobile */}
+                {isLitho && blobUrl && (
+                  <a
+                    href={blobUrl}
+                    download={filename}
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#1D1D1F] hover:bg-[#424245] active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download STL File
+                  </a>
+                )}
+
                 {/* WhatsApp button — opens directly to owner's chat */}
                 <a
                   href={waUrl}
@@ -156,17 +178,6 @@ export default function OrderModal({
                   </svg>
                   Open WhatsApp to Order
                 </a>
-
-                {/* Re-download */}
-                {onRedownload && (
-                  <button
-                    onClick={onRedownload}
-                    className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-medium text-[#86868B] hover:text-[#1D1D1F] transition-colors"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Re-download STL file
-                  </button>
-                )}
               </div>
             </motion.div>
           </div>
