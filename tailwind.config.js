@@ -8,6 +8,15 @@ export default {
         poppins: ['Poppins', 'sans-serif'],
         stencil: ['"Black Ops One"', 'cursive'],
       },
+      keyframes: {
+        slideIn: {
+          '0%': { opacity: '0', transform: 'translateX(16px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        slideIn: 'slideIn 0.2s ease-out',
+      },
       colors: {
         oric: {
           black:  '#000000',
