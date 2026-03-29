@@ -38,7 +38,7 @@ export const products = [
   },
   {
     id: 'batman-figurine',
-    name: 'Batman Figurine',
+    name: 'Figurine',
     tagline: 'Collector-grade. Fan-approved.',
     description: 'High-detail 3D printed Batman figurine with crisp cape flow, cowl texture, and full costume detailing at 0.1mm layer resolution. Perfect for desk display, gifting, or your collection. Pre-sanded and primed for a premium finish right out of the box.',
     price: 899,
@@ -74,7 +74,7 @@ export const products = [
   },
   {
     id: 'black-panther-mask',
-    name: 'Black Panther Mask',
+    name: 'Panther Mask',
     tagline: 'Wakanda-accurate. Wearable.',
     description: 'Full-scale wearable Black Panther mask with screen-accurate panel lines, claw detailing, and smooth metallic spray finish. Designed for cosplay events, photoshoots, and premium display. Lightweight PLA keeps it comfortable for extended wear.',
     price: 1299,
