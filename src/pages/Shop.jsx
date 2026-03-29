@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { products, categories } from '../data/products'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../hooks/useProducts'
+import { categories as staticCategories } from '../data/products'
 
 function StarMini({ rating }) {
   return (
@@ -91,7 +92,9 @@ function ProductCard({ product }) {
 }
 
 export default function Shop() {
+  const { products, loading } = useProducts()
   const [active, setActive] = useState('All')
+  const categories = ['All', ...new Set(products.map(p => p.category))]
   const filtered = active === 'All' ? products : products.filter((p) => p.category === active)
 
   return (

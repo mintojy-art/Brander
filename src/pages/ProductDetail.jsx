@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { products } from '../data/products'
+import { useProducts } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
 
 // ── Star Rating ───────────────────────────────────────────────────────────────
@@ -44,6 +44,7 @@ function TrustBadge({ icon, text }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function ProductDetail() {
   const { productId } = useParams()
+  const { products } = useProducts()
   const product = products.find((p) => p.id === productId)
   const { add } = useCart()
   const [qty, setQty] = useState(1)

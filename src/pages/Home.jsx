@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { products } from '../data/products'
 import { useCart } from '../context/CartContext'
+import { useProducts } from '../hooks/useProducts'
 import PrintConfigurator from '../components/PrintConfigurator'
 
 const services = [
@@ -79,6 +79,7 @@ function ProductCard({ product }) {
 }
 
 export default function Home() {
+  const { products } = useProducts()
   const featured = products.slice(0, 4)
 
   return (
