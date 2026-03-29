@@ -119,6 +119,40 @@ const Card = ({ children, className = '' }) => (
 )
 const CardTitle = ({ children }) => <p className="text-sm font-bold text-[#202223] mb-4">{children}</p>
 
+// ── Schema Error Banner ───────────────────────────────────────────────────────
+function SchemaErrorBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(SCHEMA_FIX_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Database schema is incomplete</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Your <code className="bg-red-100 px-1 rounded font-mono">products</code> table is missing columns (like <code className="bg-red-100 px-1 rounded font-mono">images</code>, <code className="bg-red-100 px-1 rounded font-mono">highlights</code>, <code className="bg-red-100 px-1 rounded font-mono">specs</code>).
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to add them, then try saving again.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{SCHEMA_FIX_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Delete Modal ──────────────────────────────────────────────────────────────
 function DeleteModal({ product, onConfirm, onCancel }) {
   return (
@@ -165,7 +199,7 @@ function DiscardModal({ onConfirm, onCancel }) {
   )
 }
 
-const BUCKET_SQL = `-- Run this in Supabase → SQL Editor → New query
+const BUCKET_SQL = `-- Run in Supabase → SQL Editor → New query
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true)
 on conflict (id) do nothing;
@@ -176,6 +210,34 @@ create policy "Allow upload" on storage.objects
   for insert to anon with check (bucket_id = 'product-images');
 create policy "Allow delete" on storage.objects
   for delete to anon using (bucket_id = 'product-images');`
+
+const SCHEMA_FIX_SQL = `-- Run in Supabase → SQL Editor → New query
+-- Adds any missing columns to your products table
+alter table products add column if not exists tagline text;
+alter table products add column if not exists description text;
+alter table products add column if not exists price integer;
+alter table products add column if not exists price_display text;
+alter table products add column if not exists category text default 'Custom';
+alter table products add column if not exists image text;
+alter table products add column if not exists images text[];
+alter table products add column if not exists badge text;
+alter table products add column if not exists href text;
+alter table products add column if not exists material text;
+alter table products add column if not exists lead text;
+alter table products add column if not exists rating numeric(2,1);
+alter table products add column if not exists reviews integer;
+alter table products add column if not exists highlights text[];
+alter table products add column if not exists specs jsonb;
+alter table products add column if not exists pre_order boolean default false;
+alter table products add column if not exists active boolean default true;
+alter table products add column if not exists sort_order integer default 0;
+alter table products add column if not exists created_at timestamptz default now();
+
+-- Ensure RLS allows writes
+alter table products enable row level security;
+drop policy if exists "Allow all" on products;
+create policy "Allow all" on products for all to anon
+  using (true) with check (true);`
 
 // ── Image Uploader ────────────────────────────────────────────────────────────
 function ImageUploader({ images, onChange, toast }) {
@@ -458,6 +520,7 @@ function ProductForm({ product, onSave, onBack, toast }) {
   const [form, setForm] = useState(initForm)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+  const [schemaError, setSchemaError] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [showDiscard, setShowDiscard] = useState(false)
 
@@ -523,11 +586,18 @@ function ProductForm({ product, onSave, onBack, toast }) {
 
     setSaving(false)
     if (error) {
-      setErr(error.message)
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('column')) {
+        setSchemaError(true)
+        setErr('')
+      } else {
+        setErr(msg)
+      }
       topRef.current?.scrollIntoView({ behavior: 'smooth' })
-      toast(error.message, 'error')
+      toast('Save failed — see instructions above', 'error')
       return
     }
+    setSchemaError(false)
 
     toast(`"${form.name}" ${isNew ? 'created' : 'saved'} successfully`)
     setIsDirty(false)
@@ -580,7 +650,10 @@ function ProductForm({ product, onSave, onBack, toast }) {
         </div>
       </div>
 
-      {err && (
+      {schemaError && (
+        <SchemaErrorBanner onDismiss={() => setSchemaError(false)} />
+      )}
+      {err && !schemaError && (
         <div className="mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
           <span className="shrink-0 mt-0.5 font-bold">✕</span>
           <span>{err}</span>
