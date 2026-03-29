@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import OrderModal from '../components/OrderModal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PREVIEW_RES = 130
@@ -478,6 +479,7 @@ export default function Lithophane() {
   const [dragging, setDragging]       = useState(false)
   const [generating, setGenerating]   = useState(false)
   const [ordering, setOrdering]       = useState(false)
+  const [orderModal, setOrderModal]   = useState({ open: false, filename: '', buf: null, summary: [] })
   const [genError, setGenError]       = useState('')
   const fileRef                       = useRef(null)
 
@@ -608,7 +610,8 @@ export default function Lithophane() {
     await new Promise(r => setTimeout(r, 50))
     try {
       const aspect = processedCanvas.width / processedCanvas.height
-      let buf, fname
+      let buf, fname, summaryRows
+
       if (shape === 'plane') {
         const { physW, maxT, minT, mmPerPixel } = planeP
         const physH = physW / aspect
@@ -616,28 +619,62 @@ export default function Lithophane() {
         const H = Math.max(2, Math.round(physH / mmPerPixel))
         buf = stlPlane(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { physW, physH, maxT, minT })
         fname = 'lithophane-plane.stl'
+        summaryRows = [
+          { label: 'Shape', value: 'Flat Plane' },
+          { label: 'Size', value: `${physW} × ${Math.round(physH)}mm` },
+          { label: 'Thickness', value: `${minT}–${maxT}mm` },
+        ]
       } else if (shape === 'cylinder') {
-        const { cylH, outerDiam, maxT, minT, mmPerPixel } = cylP
-        const circ = Math.PI * outerDiam
-        const W = Math.max(2, Math.round(circ / mmPerPixel))
-        const H = Math.max(2, Math.round(cylH / mmPerPixel))
+        const { cylH, outerDiam, maxT, minT } = cylP
+        const circ = Math.PI * cylP.outerDiam
+        const W = Math.max(2, Math.round(circ / cylP.mmPerPixel))
+        const H = Math.max(2, Math.round(cylH / cylP.mmPerPixel))
         buf = stlCylinder(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { cylH, outerDiam, maxT, minT })
         fname = 'lithophane-cylinder.stl'
+        summaryRows = [
+          { label: 'Shape', value: 'Cylinder' },
+          { label: 'Diameter × Height', value: `⌀${outerDiam} × ${cylH}mm` },
+          { label: 'Thickness', value: `${minT}–${maxT}mm` },
+        ]
       } else if (shape === 'arc') {
-        const { physW, arcDeg, maxT, minT, mmPerPixel } = arcP
+        const { physW, arcDeg, maxT, minT } = arcP
         const physH = physW / aspect
-        const W = Math.max(2, Math.round(physW / mmPerPixel))
-        const H = Math.max(2, Math.round(physH / mmPerPixel))
+        const W = Math.max(2, Math.round(physW / arcP.mmPerPixel))
+        const H = Math.max(2, Math.round(physH / arcP.mmPerPixel))
         buf = stlArc(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { physW, physH, arcDeg, maxT, minT })
         fname = 'lithophane-arc.stl'
+        summaryRows = [
+          { label: 'Shape', value: 'Arc' },
+          { label: 'Width × Arc', value: `${physW}mm · ${arcDeg}°` },
+          { label: 'Thickness', value: `${minT}–${maxT}mm` },
+        ]
       } else {
-        const { diameter, angH, angW, maxT, minT, mmPerPixel } = sphP
-        const W = Math.max(2, Math.round((angW/360) * Math.PI * diameter / mmPerPixel))
-        const H = Math.max(2, Math.round((angH/180) * Math.PI * (diameter/2) / mmPerPixel))
+        const { diameter, angH, angW, maxT, minT } = sphP
+        const W = Math.max(2, Math.round((angW/360) * Math.PI * diameter / sphP.mmPerPixel))
+        const H = Math.max(2, Math.round((angH/180) * Math.PI * (diameter/2) / sphP.mmPerPixel))
         buf = stlSphere(canvasToHeightMap(processedCanvas, W, H, edit.greyscale, edit.invert), W, H, { diameter, angH, angW, maxT, minT })
         fname = 'lithophane-sphere.stl'
+        summaryRows = [
+          { label: 'Shape', value: 'Sphere' },
+          { label: 'Diameter', value: `⌀${diameter}mm` },
+          { label: 'Thickness', value: `${minT}–${maxT}mm` },
+        ]
       }
-      await shareSTLToWhatsApp(buf, fname)
+
+      // Mobile: Web Share API shares the file directly into WhatsApp
+      const stlFile = new File([buf], fname, { type: 'model/stl' })
+      if (navigator.canShare?.({ files: [stlFile] })) {
+        try {
+          await navigator.share({ files: [stlFile], text: 'Hi! I want to order a lithophane print from ORIC.' })
+          return
+        } catch (e) {
+          if (e.name === 'AbortError') return
+        }
+      }
+
+      // Desktop: download the file then show guided order modal
+      triggerDownload(buf, fname)
+      setOrderModal({ open: true, filename: fname, buf, summary: summaryRows })
     } catch (err) {
       console.error('Order STL error:', err)
       setGenError('Could not generate STL. Try Draft quality and try again.')
@@ -950,7 +987,25 @@ export default function Lithophane() {
   }
 
   // ── Page layout ──────────────────────────────────────────────────────────────
+  const lithoWaMsg = orderModal.summary.length > 0
+    ? encodeURIComponent(
+        `Hi! I want to order a lithophane print from ORIC.\n` +
+        orderModal.summary.map(r => `${r.label}: ${r.value}`).join('\n') +
+        `\n(STL file: ${orderModal.filename} — attached)`
+      )
+    : encodeURIComponent('Hi! I want to order a lithophane print from ORIC.')
+
   return (
+    <>
+    <OrderModal
+      isOpen={orderModal.open}
+      onClose={() => setOrderModal(p => ({ ...p, open: false }))}
+      type="lithophane"
+      filename={orderModal.filename}
+      summary={orderModal.summary}
+      whatsappMsg={lithoWaMsg}
+      onRedownload={orderModal.buf ? () => triggerDownload(orderModal.buf, orderModal.filename) : null}
+    />
     <div className="pt-16 bg-white min-h-screen">
 
       {/* ── HERO ── */}
@@ -1188,6 +1243,7 @@ export default function Lithophane() {
       </section>
 
     </div>
+    </>
   )
 }
 

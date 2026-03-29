@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { useCart } from '../context/CartContext'
+import OrderModal from './OrderModal'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const MATERIALS = [
@@ -62,6 +63,7 @@ export default function PrintConfigurator() {
   const [price, setPrice]         = useState(null)
   const [calculating, setCalc]    = useState(false)
   const [ordering, setOrdering]   = useState(false)
+  const [orderModal, setOrderModal] = useState(false)
   const [isDragging, setDrag]     = useState(false)
   const [canvasActive, setCanvasActive] = useState(false)
 
@@ -235,7 +237,9 @@ export default function PrintConfigurator() {
     if (!file || ordering) return
     setOrdering(true)
     try {
-      const msg = `Hi! I want to order a custom 3D print from ORIC.\nFile: ${file.name}\nMaterial: ${material} · ${printColor} · ${quality} · ${strength}% infill${price ? `\nEstimated price: ₹${price.toLocaleString()}` : ''}`
+      const msg = `Hi! I want to order a custom 3D print from ORIC.\nFile: ${file.name}\nMaterial: ${material} · ${printColor}\nQuality: ${quality}\nInfill: ${strength}%${price ? `\nEstimate: ₹${price.toLocaleString()}` : ''}\n(STL file attached)`
+
+      // Mobile: share the file directly via Web Share API
       if (navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ files: [file], text: msg })
@@ -244,20 +248,39 @@ export default function PrintConfigurator() {
           if (e.name === 'AbortError') return
         }
       }
-      // Desktop fallback: download file + open WhatsApp
-      const url = URL.createObjectURL(file)
-      const a = document.createElement('a')
-      a.href = url; a.download = file.name; a.style.display = 'none'
-      document.body.appendChild(a); a.click()
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 300)
-      window.open(`https://wa.me/918310194953?text=${encodeURIComponent(msg + '\n(STL downloaded — please attach it to this chat)')}`, '_blank')
+
+      // Desktop: show guided order modal (user already has the file on their machine)
+      setOrderModal(true)
     } finally {
       setOrdering(false)
     }
   }, [file, ordering, material, printColor, quality, strength, price])
 
   // ── UI ──────────────────────────────────────────────────────────────────
+  const printSummary = file ? [
+    { label: 'File', value: file.name },
+    { label: 'Material', value: `${material} · ${printColor}` },
+    { label: 'Quality', value: quality },
+    { label: 'Infill', value: `${strength}%` },
+    ...(price ? [{ label: 'Estimate', value: `₹${price.toLocaleString()}` }] : []),
+  ] : []
+
+  const printWaMsg = encodeURIComponent(
+    `Hi! I want to order a custom 3D print from ORIC.\n` +
+    printSummary.map(r => `${r.label}: ${r.value}`).join('\n') +
+    `\n(STL file attached)`
+  )
+
   return (
+    <>
+    <OrderModal
+      isOpen={orderModal}
+      onClose={() => setOrderModal(false)}
+      type="print"
+      filename={file?.name || ''}
+      summary={printSummary}
+      whatsappMsg={printWaMsg}
+    />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
       {/* ════ LEFT PANEL ════ */}
@@ -540,5 +563,6 @@ export default function PrintConfigurator() {
         )}
       </div>
     </div>
+    </>
   )
 }
