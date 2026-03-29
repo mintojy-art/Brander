@@ -485,7 +485,7 @@ export default function Lithophane() {
   const [dragging, setDragging]       = useState(false)
   const [generating, setGenerating]   = useState(false)
   const [ordering, setOrdering]       = useState(false)
-  const [orderModal, setOrderModal]   = useState({ open: false, filename: '', buf: null, summary: [] })
+  const [orderModal, setOrderModal]   = useState({ open: false, filename: '', buf: null, stlFile: null, canShare: false, summary: [] })
   const [genError, setGenError]       = useState('')
   const fileRef                       = useRef(null)
 
@@ -667,20 +667,14 @@ export default function Lithophane() {
         ]
       }
 
-      // Mobile: Web Share API shares the file directly into WhatsApp
       const stlFile = new File([buf], fname, { type: 'model/stl' })
-      if (navigator.canShare?.({ files: [stlFile] })) {
-        try {
-          await navigator.share({ files: [stlFile], text: 'Hi! I want to order a lithophane print from ORIC.' })
-          return
-        } catch (e) {
-          if (e.name === 'AbortError') return
-        }
-      }
+      const canShare = !!(navigator.canShare?.({ files: [stlFile] }))
 
-      // Desktop: download the file then show guided order modal
-      triggerDownload(buf, fname)
-      setOrderModal({ open: true, filename: fname, buf, summary: summaryRows })
+      // Desktop only: auto-download the file so it's ready to attach
+      if (!canShare) triggerDownload(buf, fname)
+
+      // Always show the modal on ALL devices so customers see the summary + steps
+      setOrderModal({ open: true, filename: fname, buf, stlFile, canShare, summary: summaryRows })
     } catch (err) {
       console.error('Order STL error:', err)
       setGenError('Could not generate STL. Try Draft quality and try again.')
@@ -1010,6 +1004,18 @@ export default function Lithophane() {
       filename={orderModal.filename}
       summary={orderModal.summary}
       whatsappMsg={lithoWaMsg}
+      canShareFiles={orderModal.canShare}
+      onWhatsApp={orderModal.stlFile ? async () => {
+        if (orderModal.canShare) {
+          try {
+            await navigator.share({ files: [orderModal.stlFile], text: `Hi! I want to order a lithophane print from ORIC.\n${orderModal.summary.map(r => `${r.label}: ${r.value}`).join('\n')}` })
+          } catch (e) {
+            if (e.name !== 'AbortError') window.open(`https://wa.me/918310194953?text=${lithoWaMsg}`, '_blank')
+          }
+        } else {
+          window.open(`https://wa.me/918310194953?text=${lithoWaMsg}`, '_blank')
+        }
+      } : null}
       onRedownload={orderModal.buf ? () => triggerDownload(orderModal.buf, orderModal.filename) : null}
     />
     <div className="pt-16 bg-white min-h-screen">

@@ -237,24 +237,12 @@ export default function PrintConfigurator() {
     if (!file || ordering) return
     setOrdering(true)
     try {
-      const msg = `Hi! I want to order a custom 3D print from ORIC.\nFile: ${file.name}\nMaterial: ${material} · ${printColor}\nQuality: ${quality}\nInfill: ${strength}%${price ? `\nEstimate: ₹${price.toLocaleString()}` : ''}\n(STL file attached)`
-
-      // Mobile: share the file directly via Web Share API
-      if (navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], text: msg })
-          return
-        } catch (e) {
-          if (e.name === 'AbortError') return
-        }
-      }
-
-      // Desktop: show guided order modal (user already has the file on their machine)
+      // Always show the modal on ALL devices (mobile + desktop)
       setOrderModal(true)
     } finally {
       setOrdering(false)
     }
-  }, [file, ordering, material, printColor, quality, strength, price])
+  }, [file, ordering])
 
   // ── UI ──────────────────────────────────────────────────────────────────
   const printSummary = file ? [
@@ -271,6 +259,8 @@ export default function PrintConfigurator() {
     `\n(STL file attached)`
   )
 
+  const canShareFiles = !!(file && navigator.canShare?.({ files: [file] }))
+
   return (
     <>
     <OrderModal
@@ -280,6 +270,18 @@ export default function PrintConfigurator() {
       filename={file?.name || ''}
       summary={printSummary}
       whatsappMsg={printWaMsg}
+      canShareFiles={canShareFiles}
+      onWhatsApp={file ? async () => {
+        if (canShareFiles) {
+          try {
+            await navigator.share({ files: [file], text: decodeURIComponent(printWaMsg) })
+          } catch (e) {
+            if (e.name !== 'AbortError') window.open(`https://wa.me/918310194953?text=${printWaMsg}`, '_blank')
+          }
+        } else {
+          window.open(`https://wa.me/918310194953?text=${printWaMsg}`, '_blank')
+        }
+      } : null}
     />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
