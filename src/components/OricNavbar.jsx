@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 
 const navLinks = [
-  { to: '/',         label: 'Home'     },
-  { to: '/shop',     label: 'Shop'     },
-  { to: '/services', label: 'Services' },
+  { to: '/',             label: 'Home'        },
+  { to: '/shop',         label: 'Shop'        },
+  { to: '/services',     label: 'Services'    },
+  { to: '/lithophanes',  label: 'Lithophanes' },
 ]
 
 export default function OricNavbar() {
