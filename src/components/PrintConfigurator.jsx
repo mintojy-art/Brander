@@ -233,15 +233,16 @@ export default function PrintConfigurator() {
     })
   }
 
-  const orderPrint = useCallback(async () => {
+  const orderPrint = useCallback(() => {
     if (!file || ordering) return
-    setOrdering(true)
-    try {
-      // Always show the modal on ALL devices (mobile + desktop)
-      setOrderModal(true)
-    } finally {
-      setOrdering(false)
-    }
+    // Re-download the file so it's fresh in Downloads and easy to attach in WhatsApp
+    const url = URL.createObjectURL(file)
+    const a = document.createElement('a')
+    a.href = url; a.download = file.name; a.style.display = 'none'
+    document.body.appendChild(a); a.click()
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 300)
+    // Show the guided modal
+    setOrderModal(true)
   }, [file, ordering])
 
   // ── UI ──────────────────────────────────────────────────────────────────
@@ -259,8 +260,6 @@ export default function PrintConfigurator() {
     `\n(STL file attached)`
   )
 
-  const canShareFiles = !!(file && navigator.canShare?.({ files: [file] }))
-
   return (
     <>
     <OrderModal
@@ -270,18 +269,6 @@ export default function PrintConfigurator() {
       filename={file?.name || ''}
       summary={printSummary}
       whatsappMsg={printWaMsg}
-      canShareFiles={canShareFiles}
-      onWhatsApp={file ? async () => {
-        if (canShareFiles) {
-          try {
-            await navigator.share({ files: [file], text: decodeURIComponent(printWaMsg) })
-          } catch (e) {
-            if (e.name !== 'AbortError') window.open(`https://wa.me/918310194953?text=${printWaMsg}`, '_blank')
-          }
-        } else {
-          window.open(`https://wa.me/918310194953?text=${printWaMsg}`, '_blank')
-        }
-      } : null}
     />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
