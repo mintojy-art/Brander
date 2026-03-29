@@ -3,6 +3,8 @@ import { supabase, isConfigured } from '../lib/supabase'
 import { products as staticProducts } from '../data/products'
 
 function mapRow(row) {
+  const imgs = (row.images || []).filter(Boolean)
+  if (!imgs.length && row.image) imgs.push(row.image)
   return {
     id: row.id,
     name: row.name,
@@ -11,7 +13,8 @@ function mapRow(row) {
     price: row.price || null,
     priceDisplay: row.price_display || (row.price ? `₹${Number(row.price).toLocaleString('en-IN')}` : 'Get Quote'),
     category: row.category || 'Custom',
-    image: row.image || null,
+    image: imgs[0] || null,
+    images: imgs,
     badge: row.badge || null,
     href: row.href || `/shop/${row.id}`,
     material: row.material || '',
@@ -24,10 +27,15 @@ function mapRow(row) {
   }
 }
 
+// Ensure static products have an images array
+const staticWithImages = staticProducts.map(p => ({
+  ...p,
+  images: p.images || (p.image ? [p.image] : []),
+}))
+
 export function useProducts() {
-  const [products, setProducts] = useState(staticProducts)
+  const [products, setProducts] = useState(staticWithImages)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!isConfigured) return
@@ -38,11 +46,10 @@ export function useProducts() {
       .eq('active', true)
       .order('sort_order', { ascending: true })
       .then(({ data, error }) => {
-        if (error) { setError(error.message) }
-        else if (data?.length) { setProducts(data.map(mapRow)) }
+        if (!error && data?.length) setProducts(data.map(mapRow))
         setLoading(false)
       })
   }, [])
 
-  return { products, loading, error }
+  return { products, loading }
 }

@@ -49,6 +49,7 @@ export default function ProductDetail() {
   const { add } = useCart()
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
+  const [activeImg, setActiveImg] = useState(0)
 
   if (!product) {
     return (
@@ -103,8 +104,15 @@ export default function ProductDetail() {
             transition={{ duration: 0.5 }}
           >
             <div className="sticky top-24">
+              {/* Main image */}
               <div className="aspect-square rounded-3xl overflow-hidden bg-[#F5F5F7] border border-[#D2D2D7]">
-                {product.image ? (
+                {product.images?.length > 0 ? (
+                  <img
+                    src={product.images[activeImg]}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-opacity duration-200"
+                  />
+                ) : product.image ? (
                   <img
                     src={product.image}
                     alt={product.name}
@@ -117,6 +125,26 @@ export default function ProductDetail() {
                   </div>
                 )}
               </div>
+
+              {/* Thumbnail strip — only shown if product has 2+ images */}
+              {product.images?.length > 1 && (
+                <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+                  {product.images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-150 ${
+                        i === activeImg
+                          ? 'border-[#1D1D1F] ring-1 ring-[#1D1D1F]'
+                          : 'border-[#D2D2D7] hover:border-[#86868B]'
+                      }`}
+                    >
+                      <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {product.badge && (
                 <div className="mt-3">
                   <span className="inline-flex items-center px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
