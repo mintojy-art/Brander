@@ -1059,6 +1059,14 @@ export default function Admin() {
           </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
+          {/* Add product — always visible in sidebar */}
+          <button
+            onClick={() => { setEditProduct({ _new: true }); setView('form') }}
+            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3"
+          >
+            {Ico.plus} Add product
+          </button>
+
           <button onClick={() => setView('list')}
             className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
             <span className="flex items-center gap-2">📦 Products</span>
