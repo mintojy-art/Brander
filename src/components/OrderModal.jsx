@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const WA_NUMBER = '918310194953'
@@ -37,15 +37,19 @@ export default function OrderModal({
     return () => window.removeEventListener('keydown', fn)
   }, [isOpen, onClose])
 
-  // Create blob URL only while modal is open — direct user tap = works on mobile
-  const blobUrl = useMemo(() => {
-    if (!stlBuf || !isOpen) return null
-    return URL.createObjectURL(new Blob([stlBuf], { type: 'application/octet-stream' }))
-  }, [stlBuf, isOpen])
-
-  useEffect(() => {
-    return () => { if (blobUrl) URL.revokeObjectURL(blobUrl) }
-  }, [blobUrl])
+  // Download handler: create blob + click synchronously inside user gesture (works on all mobile browsers)
+  const handleDownload = () => {
+    if (!stlBuf) return
+    const url = URL.createObjectURL(new Blob([stlBuf], { type: 'application/octet-stream' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 300)
+  }
 
   const isLitho = type === 'lithophane'
 
@@ -154,16 +158,15 @@ export default function OrderModal({
                   {steps.map((s) => <StepRow key={s.num} {...s} />)}
                 </div>
 
-                {/* Step 1 download button for lithophane — direct link, works on mobile */}
-                {isLitho && blobUrl && (
-                  <a
-                    href={blobUrl}
-                    download={filename}
+                {/* Step 1 download button for lithophane — synchronous onClick preserves user gesture on all browsers */}
+                {isLitho && stlBuf && (
+                  <button
+                    onClick={handleDownload}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-[#1D1D1F] hover:bg-[#424245] active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Download STL File
-                  </a>
+                  </button>
                 )}
 
                 {/* WhatsApp button — opens directly to owner's chat */}
