@@ -14,7 +14,12 @@ export async function uploadImage(file) {
   const { error } = await supabase.storage
     .from('product-images')
     .upload(name, file, { cacheControl: '3600', upsert: false })
-  if (error) throw error
+  if (error) {
+    if (error.message?.toLowerCase().includes('bucket') || error.statusCode === '404' || error.error === 'Bucket not found') {
+      throw new Error('BUCKET_MISSING')
+    }
+    throw error
+  }
   const { data } = supabase.storage.from('product-images').getPublicUrl(name)
   return data.publicUrl
 }

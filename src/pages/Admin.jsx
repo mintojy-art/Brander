@@ -165,17 +165,32 @@ function DiscardModal({ onConfirm, onCancel }) {
   )
 }
 
+const BUCKET_SQL = `-- Run this in Supabase → SQL Editor → New query
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do nothing;
+
+create policy "Public read images" on storage.objects
+  for select using (bucket_id = 'product-images');
+create policy "Allow upload" on storage.objects
+  for insert to anon with check (bucket_id = 'product-images');
+create policy "Allow delete" on storage.objects
+  for delete to anon using (bucket_id = 'product-images');`
+
 // ── Image Uploader ────────────────────────────────────────────────────────────
 function ImageUploader({ images, onChange, toast }) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [drag, setDrag] = useState(false)
+  const [bucketMissing, setBucketMissing] = useState(false)
+  const [sqlCopied, setSqlCopied] = useState(false)
   const inputRef = useRef(null)
 
   const handleFiles = async (files) => {
     if (!files?.length) return
     setUploading(true)
     setProgress(0)
+    setBucketMissing(false)
     const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'))
     const urls = []
     for (let i = 0; i < fileArr.length; i++) {
@@ -184,12 +199,25 @@ function ImageUploader({ images, onChange, toast }) {
         urls.push(url)
         setProgress(Math.round(((i + 1) / fileArr.length) * 100))
       } catch (e) {
+        if (e.message === 'BUCKET_MISSING') {
+          setBucketMissing(true)
+          toast?.('Storage bucket not set up yet — see instructions below', 'warn')
+          setUploading(false)
+          setProgress(0)
+          return
+        }
         toast?.('Upload failed: ' + e.message, 'error')
       }
     }
     if (urls.length) onChange([...images, ...urls])
     setUploading(false)
     setProgress(0)
+  }
+
+  const copySql = () => {
+    navigator.clipboard.writeText(BUCKET_SQL)
+    setSqlCopied(true)
+    setTimeout(() => setSqlCopied(false), 2000)
   }
 
   const handleRemove = async (idx) => {
@@ -236,6 +264,29 @@ function ImageUploader({ images, onChange, toast }) {
           </div>
         )}
       </div>
+
+      {/* Bucket missing — show fix instructions inline */}
+      {bucketMissing && (
+        <div className="mt-4 border border-amber-200 bg-amber-50 rounded-xl overflow-hidden">
+          <div className="flex items-start gap-3 p-4">
+            <span className="text-amber-500 shrink-0 mt-0.5">{Ico.warn}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-800">Storage bucket not created yet</p>
+              <p className="text-xs text-amber-700 mt-1 mb-3">
+                Go to <strong>Supabase → SQL Editor → New query</strong>, paste the SQL below, and click Run.
+                Then try uploading again.
+              </p>
+              <div className="relative">
+                <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre">{BUCKET_SQL}</pre>
+                <button onClick={copySql}
+                  className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+                  {sqlCopied ? <>{Ico.check} Copied</> : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {images.length > 0 && (
         <div className="mt-4 grid grid-cols-3 gap-3">
