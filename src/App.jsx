@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, ScrollRestoration } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
 import OricNavbar from './components/OricNavbar'
 import OricFooter from './components/OricFooter'
@@ -11,7 +12,8 @@ import ProductDetail from './pages/ProductDetail'
 import Admin from './pages/Admin'
 
 function ScrollToTop() {
-  // Simple scroll-to-top on route change
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
   return null
 }
 
@@ -19,6 +21,7 @@ export default function App() {
   return (
     <CartProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <OricNavbar />
         <CartSidebar />
         <Routes>

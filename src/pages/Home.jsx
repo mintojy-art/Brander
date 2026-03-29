@@ -323,25 +323,19 @@ export default function Home() {
             FDM printing with precision-tuned profiles. Post-processed and quality-checked before dispatch. No exceptions.
           </motion.p>
           <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex justify-center"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.3 }}
           >
-            <Link
-              to="/shop"
-              className="px-8 py-4 bg-white text-[#1D1D1F] text-sm font-semibold rounded-full hover:bg-[#F5F5F7] transition-all"
-            >
-              Start Your Order
-            </Link>
             <a
               href="https://wa.me/918310194953"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-4 border border-[#424245] text-white text-sm font-semibold rounded-full hover:border-white transition-all"
+              className="px-8 py-4 bg-white text-[#1D1D1F] text-sm font-semibold rounded-full hover:bg-[#F5F5F7] transition-all"
             >
-              Talk to Us
+              Start Your Order →
             </a>
           </motion.div>
         </div>

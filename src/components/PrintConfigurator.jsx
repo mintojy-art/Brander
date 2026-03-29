@@ -62,6 +62,7 @@ export default function PrintConfigurator() {
   const [price, setPrice]         = useState(null)
   const [calculating, setCalc]    = useState(false)
   const [isDragging, setDrag]     = useState(false)
+  const [canvasActive, setCanvasActive] = useState(false)
 
   const mountRef    = useRef(null)
   const rendererRef = useRef(null)
@@ -110,6 +111,7 @@ export default function PrintConfigurator() {
     controls.dampingFactor = 0.08
     controls.minDistance   = 5
     controls.maxDistance   = 3000
+    controls.enabled       = false   // disabled until user clicks canvas
     controlsRef.current    = controls
 
     const animate = () => {
@@ -289,20 +291,45 @@ export default function PrintConfigurator() {
             <span className="px-2.5 py-1 bg-[#F5F5F7] text-[#86868B] text-[10px] font-semibold tracking-wider rounded-full">STL</span>
           </div>
 
-          <div className="relative">
+          <div
+            className="relative"
+            onClick={() => {
+              if (!canvasActive) {
+                setCanvasActive(true)
+                if (controlsRef.current) controlsRef.current.enabled = true
+              }
+            }}
+            onMouseLeave={() => {
+              setCanvasActive(false)
+              if (controlsRef.current) controlsRef.current.enabled = false
+            }}
+          >
             {/* Three.js mount */}
             <div ref={mountRef} style={{ width: '100%', height: '300px' }} />
-            {/* Empty state overlay — hides when file loaded */}
+
+            {/* Empty state overlay */}
             {!file && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none" style={{ background: '#F5F5F7' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D2D2D7" strokeWidth="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 <p className="text-xs text-[#86868B]">Upload an STL to preview</p>
               </div>
             )}
+
+            {/* Click-to-interact overlay — shown when file loaded but canvas not active */}
+            {file && !canvasActive && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-black/50 text-white text-xs font-medium rounded-full backdrop-blur-sm">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 11V6a2 2 0 00-2-2v0a2 2 0 00-2 2v0M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v0M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v3"/><path d="M18 11a2 2 0 114 0v3a8 8 0 01-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 012.83-2.82L7 15"/></svg>
+                  Click to interact
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="px-5 py-2.5 border-t border-[#F5F5F7]">
-            <p className="text-[10px] text-[#86868B] text-center">Drag to rotate · Scroll to zoom</p>
+            <p className="text-[10px] text-[#86868B] text-center">
+              {canvasActive ? 'Drag to rotate · Scroll to zoom · Move away to release' : 'Click the preview to rotate & zoom'}
+            </p>
           </div>
         </div>
       </div>
