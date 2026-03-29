@@ -37,7 +37,7 @@ export default function OrderModal({
     return () => window.removeEventListener('keydown', fn)
   }, [isOpen, onClose])
 
-  // Download handler: create blob + click synchronously inside user gesture (works on all mobile browsers)
+  // Download handler: create blob + click synchronously inside user gesture (works on all real browsers)
   const handleDownload = () => {
     if (!stlBuf) return
     const url = URL.createObjectURL(new Blob([stlBuf], { type: 'application/octet-stream' }))
@@ -50,6 +50,11 @@ export default function OrderModal({
     document.body.removeChild(a)
     setTimeout(() => URL.revokeObjectURL(url), 300)
   }
+
+  // Detect in-app browsers (Google app, Instagram, Facebook, etc.) — WebViews block downloads
+  const isInAppBrowser = /GSA\/|FBAN|FBAV|Instagram|LinkedInApp|Twitter|Line\/|MicroMessenger|Snapchat/i.test(
+    typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  )
 
   const isLitho = type === 'lithophane'
 
@@ -158,15 +163,27 @@ export default function OrderModal({
                   {steps.map((s) => <StepRow key={s.num} {...s} />)}
                 </div>
 
-                {/* Step 1 download button for lithophane — synchronous onClick preserves user gesture on all browsers */}
+                {/* Step 1 download button for lithophane */}
                 {isLitho && stlBuf && (
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#1D1D1F] hover:bg-[#424245] active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Download STL File
-                  </button>
+                  isInAppBrowser ? (
+                    <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-4 py-3.5 flex gap-3 items-start">
+                      <span className="text-lg flex-shrink-0">⚠️</span>
+                      <div>
+                        <p className="text-xs font-semibold text-[#92400E]">Open in Chrome or Safari</p>
+                        <p className="text-xs text-[#B45309] mt-0.5 leading-relaxed">
+                          This browser can't download files. Tap the <strong>⋮ menu → Open in Chrome</strong> (Android) or <strong>Open in Safari</strong> (iPhone) to download your STL.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleDownload}
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-[#1D1D1F] hover:bg-[#424245] active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      Download STL File
+                    </button>
+                  )
                 )}
 
                 {/* WhatsApp button — opens directly to owner's chat */}
