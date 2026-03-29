@@ -88,7 +88,7 @@ export default function Home() {
       {/* ── HERO ── */}
       <section className="relative bg-[#1D1D1F] min-h-[92vh] flex items-center overflow-hidden">
         {/* Subtle grid */}
-        <div className="absolute inset-0 opacity-[0.04]"
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{ backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)', backgroundSize: '80px 80px' }} />
 
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 w-full py-28">
