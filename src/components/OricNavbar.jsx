@@ -8,7 +8,7 @@ const navLinks = [
   { to: '/shop',         label: 'Shop'        },
   { to: '/services',     label: 'Services'    },
   { to: '/about',        label: 'About'       },
-  { to: '/lithophanes',  label: 'Photo to 3D' },
+  { to: '/lithophanes',  label: 'Lithophane' },
 ]
 
 export default function OricNavbar() {

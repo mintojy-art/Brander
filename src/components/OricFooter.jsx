@@ -5,7 +5,7 @@ const col1 = [
   { label: 'Shop',         to: '/shop'       },
   { label: 'Services',     to: '/services'   },
   { label: 'About',        to: '/about'      },
-  { label: 'Photo to 3D',  to: '/lithophanes'},
+  { label: 'Lithophane',   to: '/lithophanes'},
 ]
 
 const col2 = [
