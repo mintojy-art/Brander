@@ -1128,6 +1128,15 @@ export default function Lithophane() {
         </div>
       </section>
 
+      {/* ── FULL-WIDTH IMAGE ── */}
+      <section className="bg-white">
+        <img
+          src="/Lithophanesection.jpg"
+          alt="Lithophane showcase"
+          className="w-full block object-cover"
+        />
+      </section>
+
       {/* ── GALLERY ── */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
