@@ -984,8 +984,13 @@ export default function Lithophane() {
     <div className="pt-16 bg-white min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="bg-[#1D1D1F] py-20 px-5 overflow-hidden">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="relative bg-[#1D1D1F] py-20 px-5 overflow-hidden">
+        {/* Background image with reduced opacity */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: 'url(/Lithophanesection.jpg)', opacity: 0.18 }}
+        />
+        <div className="relative max-w-3xl mx-auto text-center">
           <motion.p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
             Free Tool · No Sign-up · Instant STL
@@ -1005,6 +1010,7 @@ export default function Lithophane() {
           </motion.a>
         </div>
       </section>
+
 
       {/* ── GENERATOR APP ── */}
       <section id="generator" className="py-10 bg-[#F5F5F7] min-h-screen">
