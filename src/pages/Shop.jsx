@@ -60,11 +60,10 @@ function ProductCard({ product }) {
         </Link>
         <p className="text-xs text-[#86868B] leading-relaxed mb-2 line-clamp-2">{product.tagline}</p>
 
-        {/* Stars */}
-        {product.rating && (
+        {/* First reviewer nudge for pre-order items */}
+        {product.preOrder && (
           <div className="flex items-center gap-1.5 mb-2">
-            <StarMini rating={product.rating} />
-            <span className="text-xs text-[#86868B]">{product.rating} ({product.reviews})</span>
+            <span className="text-[10px] font-semibold text-[#86868B] bg-[#F5F5F7] px-2 py-0.5 rounded-full">Be our first reviewer</span>
           </div>
         )}
 
@@ -151,9 +150,44 @@ export default function Shop() {
           ))}
         </div>
 
+        {/* 'Got a photo?' banner */}
+        <motion.div
+          className="mb-8 rounded-3xl overflow-hidden border border-[#D2D2D7] flex flex-col sm:flex-row items-stretch"
+          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        >
+          <div className="flex-1 bg-[#FFF7ED] px-7 py-7 flex flex-col justify-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#EA580C]">Most Popular Request</span>
+            <h3 className="text-lg font-bold text-[#1D1D1F] leading-snug">Have a photo?<br />We'll turn it into a 3D figurine.</h3>
+            <p className="text-sm text-[#424245]">Send us any image on WhatsApp — pet, person, character, idol — and we'll quote within 24 hours. No STL file needed.</p>
+            <a
+              href="https://wa.me/918310194953"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 self-start inline-flex items-center gap-2 px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all"
+            >
+              Send Your Photo →
+            </a>
+          </div>
+          <div className="bg-[#FEF3C7] flex items-center justify-center px-8 py-6 sm:py-0">
+            <span className="text-6xl">🖼️</span>
+          </div>
+        </motion.div>
+
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+
+        {/* Shipping info banner */}
+        <div className="mt-14 mb-2 rounded-2xl bg-[#F5F5F7] border border-[#D2D2D7] px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+          <div className="flex items-start gap-3">
+            <svg className="mt-0.5 flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <div>
+              <p className="text-sm font-semibold text-[#1D1D1F]">Shipping across India</p>
+              <p className="text-xs text-[#86868B] mt-0.5">Bangalore: ₹40–80 · Rest of India: ₹80–150 · Delivered via Shiprocket / Delhivery</p>
+            </div>
+          </div>
+          <p className="text-xs text-[#86868B] sm:text-right">Print time + 2–4 days transit.<br />Exact cost confirmed at order.</p>
         </div>
 
         {/* Custom order CTA */}

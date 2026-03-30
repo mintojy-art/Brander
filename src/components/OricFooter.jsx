@@ -4,7 +4,8 @@ const col1 = [
   { label: 'Home',         to: '/'           },
   { label: 'Shop',         to: '/shop'       },
   { label: 'Services',     to: '/services'   },
-  { label: 'Lithophanes',  to: '/lithophanes'},
+  { label: 'About',        to: '/about'      },
+  { label: 'Photo to 3D',  to: '/lithophanes'},
 ]
 
 const col2 = [
@@ -75,7 +76,11 @@ export default function OricFooter() {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 py-6 text-xs text-[#86868B]">
           <p>&copy; {new Date().getFullYear()} ORIC. Made in India.</p>
-          <p>3D Printing Service · Bangalore, Karnataka · +91 83101 94953</p>
+          <div className="flex items-center gap-4 flex-wrap justify-center">
+            <Link to="/about" className="hover:text-[#1D1D1F] transition-colors">About</Link>
+            <Link to="/refund-policy" className="hover:text-[#1D1D1F] transition-colors">Refund Policy</Link>
+            <p>3D Printing Service · Bangalore, Karnataka · +91 83101 94953</p>
+          </div>
         </div>
       </div>
     </footer>

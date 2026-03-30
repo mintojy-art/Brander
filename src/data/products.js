@@ -13,8 +13,6 @@ export const products = [
     href: '/shop/brander-roller',
     material: 'PLA Fiber',
     lead: '7–10 business days',
-    rating: 4.8,
-    reviews: 12,
     highlights: [
       '15mm rubber roller with laser-etched custom pattern',
       'Works on 6+ surface types: cardboard, fabric, wood, plastic, painted walls, kraft paper',
@@ -38,9 +36,9 @@ export const products = [
   },
   {
     id: 'batman-figurine',
-    name: 'Figurine',
-    tagline: 'Collector-grade. Fan-approved.',
-    description: 'High-detail 3D printed Batman figurine with crisp cape flow, cowl texture, and full costume detailing at 0.1mm layer resolution. Perfect for desk display, gifting, or your collection. Pre-sanded and primed for a premium finish right out of the box.',
+    name: 'Dark Knight Figurine — Fan Art Print',
+    tagline: 'Collector-grade detail. Fan-made with pride.',
+    description: 'High-detail 3D printed fan art figurine with crisp cape flow, cowl texture, and full costume detailing at 0.1mm layer resolution. Perfect for desk display, gifting, or your collection. Pre-sanded and primed for a premium finish. Fan-made, unofficial product — not affiliated with DC Comics.',
     price: 899,
     priceDisplay: '₹899',
     category: 'Figurines',
@@ -49,8 +47,6 @@ export const products = [
     href: '/shop/batman-figurine',
     material: 'PLA',
     lead: '5–7 business days',
-    rating: 4.9,
-    reviews: 28,
     highlights: [
       'Fine 0.1mm layer height for maximum surface detail',
       'Pre-sanded, primed, and hand-finished surface',
@@ -74,9 +70,9 @@ export const products = [
   },
   {
     id: 'black-panther-mask',
-    name: 'Panther Mask',
-    tagline: 'Wakanda-accurate. Wearable.',
-    description: 'Full-scale wearable Black Panther mask with screen-accurate panel lines, claw detailing, and smooth metallic spray finish. Designed for cosplay events, photoshoots, and premium display. Lightweight PLA keeps it comfortable for extended wear.',
+    name: 'Vibranium Warrior Mask — Fan Art Cosplay Prop',
+    tagline: 'Wearable cosplay prop. Fan-made.',
+    description: 'Full-scale wearable fan art cosplay mask with detailed panel lines, claw detailing, and smooth metallic spray finish. Designed for cosplay events, photoshoots, and premium display. Lightweight PLA keeps it comfortable for extended wear. Fan-made, unofficial product — not affiliated with Marvel Entertainment.',
     price: 1299,
     priceDisplay: '₹1,299',
     category: 'Cosplay',
@@ -85,8 +81,6 @@ export const products = [
     href: '/shop/black-panther-mask',
     material: 'PLA + Metallic finish',
     lead: '7–10 business days',
-    rating: 4.7,
-    reviews: 19,
     highlights: [
       'Full-scale wearable fit — adjustable elastic strap included',
       'Smooth sanded exterior with metallic spray finish',
@@ -121,8 +115,6 @@ export const products = [
     href: '/shop/microgreen-container',
     material: 'PLA (food-safe grade)',
     lead: '3–5 business days',
-    rating: 4.6,
-    reviews: 34,
     highlights: [
       'Food-safe PLA — BPA-free, non-toxic, safe for edible crops',
       'Built-in drainage grid prevents root rot and overwatering',
@@ -157,8 +149,6 @@ export const products = [
     href: '/shop/unicycle-stand',
     material: 'PETG',
     lead: '3–5 business days',
-    rating: 4.5,
-    reviews: 8,
     highlights: [
       'Compatible with 16", 20", and 24" wheel sizes',
       'PETG material — strong, impact-resistant, won\'t crack under load',

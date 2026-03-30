@@ -7,11 +7,11 @@ import OrderModal from './OrderModal'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const MATERIALS = [
-  { id: 'PLA',  label: 'PLA',  ppg: 1.5,  density: 1.24, note: 'General purpose'   },
-  { id: 'PETG', label: 'PETG', ppg: 2.0,  density: 1.27, note: 'Strong & flexible' },
-  { id: 'TPU',  label: 'TPU',  ppg: 3.0,  density: 1.21, note: 'Flexible'          },
-  { id: 'ABS',  label: 'ABS',  ppg: 1.8,  density: 1.05, note: 'Heat resistant'    },
-  { id: 'ASA',  label: 'ASA',  ppg: 2.5,  density: 1.07, note: 'UV resistant'      },
+  { id: 'PLA',  label: 'PLA',  ppg: 1.5,  density: 1.24, note: 'Best for most orders — gifts, figurines, decor, general use' },
+  { id: 'PETG', label: 'PETG', ppg: 2.0,  density: 1.27, note: 'Durable & food-safe — functional parts, water-resistant items' },
+  { id: 'TPU',  label: 'TPU',  ppg: 3.0,  density: 1.21, note: 'Flexible rubber-like — ideal for grips, phone cases, wearables' },
+  { id: 'ABS',  label: 'ABS',  ppg: 1.8,  density: 1.05, note: 'Heat resistant — good for mechanical parts, higher temperatures' },
+  { id: 'ASA',  label: 'ASA',  ppg: 2.5,  density: 1.07, note: 'Outdoor grade — UV resistant, ideal for parts used outside' },
 ]
 
 const COLORS_LIST = [
@@ -317,6 +317,20 @@ export default function PrintConfigurator() {
               <input type="file" accept=".stl" className="hidden" onChange={(e) => { if (e.target.files[0]) handleFile(e.target.files[0]) }} />
             </label>
           )}
+          {/* No-file escape hatch */}
+          {!file && (
+            <p className="text-xs text-[#86868B] text-center mt-3">
+              Don't have a file?{' '}
+              <a
+                href="https://wa.me/918310194953"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-[#1D1D1F] transition-colors"
+              >
+                Describe your idea or send a reference photo — we'll handle the design.
+              </a>
+            </p>
+          )}
         </div>
 
         {/* 3D Preview */}
@@ -489,7 +503,7 @@ export default function PrintConfigurator() {
         </div>
 
         {/* Action buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <button
             onClick={handleAddToCart}
             disabled={!file}
@@ -497,13 +511,6 @@ export default function PrintConfigurator() {
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
             Add to Cart
-          </button>
-          <button
-            onClick={calcPrice}
-            disabled={!file || calculating}
-            className="py-3.5 bg-[#1D1D1F] hover:bg-[#424245] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all"
-          >
-            {calculating ? 'Calculating…' : 'Calculate'}
           </button>
         </div>
 

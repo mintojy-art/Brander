@@ -259,6 +259,22 @@ export default function Home() {
             </Link>
           </div>
 
+          {/* 'Got a photo?' banner */}
+          <motion.a
+            href="https://wa.me/918310194953"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:bg-[#FEF3C7] transition-colors"
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          >
+            <span className="text-3xl flex-shrink-0">🖼️</span>
+            <div className="flex-1 text-center sm:text-left">
+              <p className="text-sm font-bold text-[#1D1D1F]">Have a photo? We'll turn it into a 3D figurine.</p>
+              <p className="text-xs text-[#424245] mt-0.5">Send any image on WhatsApp — pet, person, character, idol. Quote in 24 hours. No file needed.</p>
+            </div>
+            <span className="text-xs font-semibold text-[#EA580C] flex-shrink-0">Send Your Photo →</span>
+          </motion.a>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {featured.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
