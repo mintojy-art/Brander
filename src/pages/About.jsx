@@ -47,11 +47,8 @@ export default function About() {
             </p>
           </div>
 
-          {/* Workshop photo placeholder */}
-          <div className="bg-[#F5F5F7] rounded-3xl aspect-square flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#D2D2D7]">
-            {/* ADD WORKSHOP PHOTO HERE */}
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D2D2D7" strokeWidth="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <p className="text-xs text-[#86868B] font-medium">Workshop photo coming soon</p>
+          <div className="rounded-3xl aspect-square overflow-hidden">
+            <img src="/profile.jpg" alt="ORIC founder" className="w-full h-full object-cover" />
           </div>
         </section>
 
