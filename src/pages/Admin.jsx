@@ -363,15 +363,15 @@ function ImageUploader({ images, onChange, toast }) {
                 </div>
               )}
 
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-2">
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 active:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-2">
                 {idx !== 0 && (
                   <button onClick={() => makePrimary(idx)}
-                    className="w-full py-1 bg-white text-[#202223] text-[10px] font-semibold rounded-lg hover:bg-[#F6F6F7] transition-colors">
-                    Set as primary
+                    className="w-full py-1.5 bg-white text-[#202223] text-[10px] font-semibold rounded-lg hover:bg-[#F6F6F7] transition-colors">
+                    Set primary
                   </button>
                 )}
                 <button onClick={() => handleRemove(idx)}
-                  className="w-full py-1 bg-red-500 text-white text-[10px] font-semibold rounded-lg hover:bg-red-600 transition-colors">
+                  className="w-full py-1.5 bg-red-500 text-white text-[10px] font-semibold rounded-lg hover:bg-red-600 transition-colors">
                   Remove
                 </button>
               </div>
@@ -661,7 +661,7 @@ function ProductForm({ product, onSave, onBack, toast }) {
       )}
 
       {/* Body */}
-      <div className="flex-1 px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
 
         {/* ── Left column ── */}
         <div className="lg:col-span-2 space-y-5">
@@ -838,8 +838,8 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
         />
       )}
 
-      {/* Header */}
-      <div className="bg-white border-b border-[#E1E3E5] px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+      {/* Header — hidden on mobile (handled by top bar) */}
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
         <h1 className="text-lg font-bold text-[#202223]">Products</h1>
         <div className="flex items-center gap-2">
           <button onClick={onRefresh} title="Refresh" disabled={loading}
@@ -857,7 +857,7 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
         </div>
       </div>
 
-      <div className="flex-1 px-6 py-5">
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-5">
           {[
@@ -875,8 +875,8 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
         {/* Table */}
         <div className="bg-white border border-[#E1E3E5] rounded-xl overflow-hidden">
           {/* Toolbar */}
-          <div className="px-4 py-3 border-b border-[#E1E3E5] flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <div className="px-3 sm:px-4 py-3 border-b border-[#E1E3E5] flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[140px] max-w-xs">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6D7175]">{Ico.search}</span>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products…"
                 className="w-full pl-9 pr-3 py-2 text-sm border border-[#C9CCCF] rounded-lg outline-none focus:border-[#1D1D1F] bg-white text-[#202223]" />
@@ -918,84 +918,124 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px]">
-                <thead>
-                  <tr className="bg-[#F6F6F7] border-b border-[#E1E3E5]">
-                    {['Product', 'Category', 'Price', 'Images', 'Status', ''].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6D7175] uppercase tracking-wider">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F1F1F1]">
-                  {filtered.map(p => {
-                    const imgs = (p.images || []).filter(Boolean)
-                    return (
-                      <tr key={p.id} className="hover:bg-[#F9F9F9] transition-colors group">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0">
-                              {imgs[0]
-                                ? <img src={imgs[0]} alt={p.name} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
-                                : <div className="w-full h-full flex items-center justify-center text-base">🖨️</div>
+            <>
+              {/* Mobile card list */}
+              <div className="md:hidden divide-y divide-[#F1F1F1]">
+                {filtered.map(p => {
+                  const imgs = (p.images || []).filter(Boolean)
+                  return (
+                    <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0">
+                        {imgs[0]
+                          ? <img src={imgs[0]} alt={p.name} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                          : <div className="w-full h-full flex items-center justify-center text-lg">🖨️</div>
+                        }
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#202223] truncate">{p.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-[#6D7175]">{p.price_display || (p.price ? `₹${Number(p.price).toLocaleString('en-IN')}` : 'Get Quote')}</span>
+                          <span className="text-[#C9CCCF]">·</span>
+                          <button onClick={() => onToggleActive(p)} className="flex items-center gap-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${p.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                            <span className={`text-xs ${p.active ? 'text-green-700' : 'text-[#6D7175]'}`}>{p.active ? 'Active' : 'Hidden'}</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => onEdit(p)}
+                          className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                          {Ico.edit}
+                        </button>
+                        <button onClick={() => setDeleteTarget(p)}
+                          className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 active:bg-red-50 hover:text-red-600 active:text-red-600 transition-colors">
+                          {Ico.trash}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[640px]">
+                  <thead>
+                    <tr className="bg-[#F6F6F7] border-b border-[#E1E3E5]">
+                      {['Product', 'Category', 'Price', 'Images', 'Status', ''].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6D7175] uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F1F1]">
+                    {filtered.map(p => {
+                      const imgs = (p.images || []).filter(Boolean)
+                      return (
+                        <tr key={p.id} className="hover:bg-[#F9F9F9] transition-colors group">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0">
+                                {imgs[0]
+                                  ? <img src={imgs[0]} alt={p.name} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                                  : <div className="w-full h-full flex items-center justify-center text-base">🖨️</div>
+                                }
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-[#202223] truncate">{p.name}</p>
+                                <p className="text-xs text-[#6D7175] truncate max-w-[200px]">{p.tagline || <span className="italic opacity-50">No tagline</span>}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs px-2.5 py-1 bg-[#F1F1F1] text-[#6D7175] rounded-full font-medium whitespace-nowrap">{p.category}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold text-[#202223] whitespace-nowrap">
+                              {p.price_display || (p.price ? `₹${Number(p.price).toLocaleString('en-IN')}` : 'Get Quote')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              {imgs.length === 0
+                                ? <span className="text-xs text-[#C9CCCF]">None</span>
+                                : <>
+                                    {imgs.slice(0, 3).map((img, i) => (
+                                      <div key={i} className="w-7 h-7 rounded-lg overflow-hidden border border-[#E1E3E5] bg-[#F6F6F7]">
+                                        <img src={img} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                                      </div>
+                                    ))}
+                                    {imgs.length > 3 && <span className="text-xs text-[#6D7175] ml-1">+{imgs.length - 3}</span>}
+                                  </>
                               }
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-[#202223] truncate">{p.name}</p>
-                              <p className="text-xs text-[#6D7175] truncate max-w-[200px]">{p.tagline || <span className="italic opacity-50">No tagline</span>}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button onClick={() => onToggleActive(p)} className="flex items-center gap-1.5 group/toggle">
+                              <span className={`w-2 h-2 rounded-full transition-colors ${p.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                              <span className={`text-xs font-medium transition-colors ${p.active ? 'text-green-700 group-hover/toggle:text-green-900' : 'text-[#6D7175] group-hover/toggle:text-[#202223]'}`}>
+                                {p.active ? 'Active' : 'Hidden'}
+                              </span>
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => onEdit(p)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                                {Ico.edit} Edit
+                              </button>
+                              <button onClick={() => setDeleteTarget(p)}
+                                className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
+                                {Ico.trash}
+                              </button>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-xs px-2.5 py-1 bg-[#F1F1F1] text-[#6D7175] rounded-full font-medium whitespace-nowrap">{p.category}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-sm font-semibold text-[#202223] whitespace-nowrap">
-                            {p.price_display || (p.price ? `₹${Number(p.price).toLocaleString('en-IN')}` : 'Get Quote')}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
-                            {imgs.length === 0
-                              ? <span className="text-xs text-[#C9CCCF]">None</span>
-                              : <>
-                                  {imgs.slice(0, 3).map((img, i) => (
-                                    <div key={i} className="w-7 h-7 rounded-lg overflow-hidden border border-[#E1E3E5] bg-[#F6F6F7]">
-                                      <img src={img} alt="" className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
-                                    </div>
-                                  ))}
-                                  {imgs.length > 3 && <span className="text-xs text-[#6D7175] ml-1">+{imgs.length - 3}</span>}
-                                </>
-                            }
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <button onClick={() => onToggleActive(p)}
-                            className="flex items-center gap-1.5 group/toggle">
-                            <span className={`w-2 h-2 rounded-full transition-colors ${p.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
-                            <span className={`text-xs font-medium transition-colors ${p.active ? 'text-green-700 group-hover/toggle:text-green-900' : 'text-[#6D7175] group-hover/toggle:text-[#202223]'}`}>
-                              {p.active ? 'Active' : 'Hidden'}
-                            </span>
-                          </button>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => onEdit(p)}
-                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
-                              {Ico.edit} Edit
-                            </button>
-                            <button onClick={() => setDeleteTarget(p)}
-                              className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
-                              {Ico.trash}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -1043,13 +1083,12 @@ export default function Admin() {
 
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />
 
-  return (
-    <div className="min-h-screen flex bg-[#F6F6F7]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-      <Toasts toasts={toasts} />
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-      {/* Sidebar */}
-      <div className="w-56 bg-[#1D1D1F] flex flex-col fixed h-full z-20">
-        <div className="px-4 py-5 border-b border-white/10">
+  const SidebarContent = () => (
+    <>
+      <div className="px-4 py-5 border-b border-white/10">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-[#1D1D1F] font-black text-sm">O</div>
             <div>
@@ -1057,40 +1096,75 @@ export default function Admin() {
               <p className="text-white/40 text-[10px] mt-0.5">Admin Dashboard</p>
             </div>
           </div>
-        </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {/* Add product — always visible in sidebar */}
-          <button
-            onClick={() => { setEditProduct({ _new: true }); setView('form') }}
-            className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3"
-          >
-            {Ico.plus} Add product
-          </button>
-
-          <button onClick={() => setView('list')}
-            className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-            <span className="flex items-center gap-2">📦 Products</span>
-            {products.length > 0 && (
-              <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">
-                {products.length}
-              </span>
-            )}
-          </button>
-          <a href="/" target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
-            {Ico.store} View store ↗
-          </a>
-        </nav>
-        <div className="px-3 py-4 border-t border-white/10">
-          <button onClick={() => { sessionStorage.removeItem('oric_admin'); setAuthed(false) }}
-            className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
-            {Ico.logout} Sign out
+          <button onClick={() => setMobileOpen(false)} className="md:hidden text-white/60 hover:text-white p-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       </div>
+      <nav className="flex-1 px-3 py-4 space-y-1">
+        <button
+          onClick={() => { setEditProduct({ _new: true }); setView('form'); setMobileOpen(false) }}
+          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3"
+        >
+          {Ico.plus} Add product
+        </button>
+        <button onClick={() => { setView('list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">📦 Products</span>
+          {products.length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{products.length}</span>
+          )}
+        </button>
+        <a href="/" target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+          {Ico.store} View store ↗
+        </a>
+      </nav>
+      <div className="px-3 py-4 border-t border-white/10">
+        <button onClick={() => { sessionStorage.removeItem('oric_admin'); setAuthed(false) }}
+          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
+          {Ico.logout} Sign out
+        </button>
+      </div>
+    </>
+  )
+
+  return (
+    <div className="min-h-screen flex bg-[#F6F6F7]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <Toasts toasts={toasts} />
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setMobileOpen(false)} />
+      )}
+
+      {/* Sidebar — fixed on desktop, slide-in drawer on mobile */}
+      <div className={`w-56 bg-[#1D1D1F] flex flex-col fixed h-full z-40 transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        <SidebarContent />
+      </div>
 
       {/* Main content */}
-      <div className="flex-1 ml-56 flex flex-col min-h-screen">
+      <div className="flex-1 md:ml-56 flex flex-col min-h-screen">
+
+        {/* Mobile top bar */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#1D1D1F] sticky top-0 z-20">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#1D1D1F] font-black text-xs">O</div>
+            <p className="text-white text-sm font-bold">ORIC Admin</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setEditProduct({ _new: true }); setView('form') }}
+              className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#1D1D1F] text-xs font-bold rounded-lg"
+            >
+              {Ico.plus} Add
+            </button>
+            <button onClick={() => setMobileOpen(true)} className="text-white p-1.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
         {!isConfigured ? <SetupGuide /> :
          view === 'list' ? (
            <ProductsList
