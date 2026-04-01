@@ -133,10 +133,6 @@
       fbq('init', '919514127746755');
       fbq('track', 'PageView');
     </script>
-    <noscript><img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=919514127746755&ev=PageView&noscript=1"
-    /></noscript>
-
     <!-- ── Fonts ── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -149,6 +145,10 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
+    <!-- Meta Pixel noscript fallback (must be in body) -->
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=919514127746755&ev=PageView&noscript=1"
+    /></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
