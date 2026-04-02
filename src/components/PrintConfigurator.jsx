@@ -88,6 +88,7 @@ export default function PrintConfigurator() {
     renderer.setSize(w, h)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setClearColor(0xF5F5F7)
+    renderer.domElement.style.touchAction = 'pan-y'
     el.appendChild(renderer.domElement)
     rendererRef.current = renderer
 
@@ -345,6 +346,7 @@ export default function PrintConfigurator() {
 
           <div
             className="relative"
+            style={{ touchAction: canvasActive ? 'none' : 'pan-y' }}
             onClick={() => {
               if (!canvasActive) {
                 setCanvasActive(true)
@@ -352,6 +354,10 @@ export default function PrintConfigurator() {
               }
             }}
             onMouseLeave={() => {
+              setCanvasActive(false)
+              if (controlsRef.current) controlsRef.current.enabled = false
+            }}
+            onTouchEnd={() => {
               setCanvasActive(false)
               if (controlsRef.current) controlsRef.current.enabled = false
             }}
