@@ -101,7 +101,7 @@ export default function PreviewTool() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.15 }}
           >
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-24">
               <div className="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl flex flex-col aspect-video">
                 {/* Title bar */}
                 <div className="bg-gray-950 px-4 py-2.5 border-b border-gray-800 flex justify-between items-center shrink-0">
