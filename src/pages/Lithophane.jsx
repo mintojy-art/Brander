@@ -253,7 +253,8 @@ function triggerDownload(buf, filename) {
 }
 
 // ─── Three.js Preview ────────────────────────────────────────────────────────
-function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, maxT, minT, greyscale, invert }) {
+function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, maxT, minT, greyscale, invert,
+  physW, cylH, outerDiam, arcDeg, diameter, angH, angW, mmPerPixel }) {
   const mountRef = useRef(null)
   const r3 = useRef({})
   const [hasModel, setHasModel] = useState(false)
@@ -432,7 +433,8 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
     camera.position.copy(center).add(new THREE.Vector3(0, 0, dist))
     camera.lookAt(center)
     if (controls) { controls.target.copy(center); controls.update() }
-  }, [processedCanvas, shape, shapeParams, backlight, maxT, minT, greyscale, invert])
+  }, [processedCanvas, shape, backlight, maxT, minT, greyscale, invert,
+      physW, cylH, outerDiam, arcDeg, diameter, angH, angW, mmPerPixel])
 
   return (
     <>
@@ -1153,6 +1155,14 @@ export default function Lithophane() {
                   minT={curP.minT}
                   greyscale={edit.greyscale}
                   invert={edit.invert}
+                  physW={curP.physW}
+                  cylH={curP.cylH}
+                  outerDiam={curP.outerDiam}
+                  arcDeg={curP.arcDeg}
+                  diameter={curP.diameter}
+                  angH={curP.angH}
+                  angW={curP.angW}
+                  mmPerPixel={curP.mmPerPixel}
                 />
               </div>
 
