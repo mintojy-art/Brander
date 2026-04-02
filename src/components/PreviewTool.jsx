@@ -118,6 +118,7 @@ export default function PreviewTool() {
                 {/* Surface */}
                 <div
                   className={`flex-1 relative overflow-hidden flex items-center transition-colors duration-500 ${cur.bg}`}
+                  style={{ touchAction: 'pan-y' }}
                 >
                   {/* Texture overlay */}
                   <div

@@ -27,16 +27,19 @@
   display: inline-flex;
   animation: roll 28s linear infinite;
   will-change: transform;
+  touch-action: pan-y;
 }
 .rolling-text-reverse {
   display: inline-flex;
   animation: roll 28s linear infinite reverse;
   will-change: transform;
+  touch-action: pan-y;
 }
 .rolling-text-slow {
   display: inline-flex;
   animation: roll 20s linear infinite;
   will-change: transform;
+  touch-action: pan-y;
 }
 
 /* ── Carbon dot pattern (Brander page) ── */
