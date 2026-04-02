@@ -354,23 +354,22 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
     }
 
     if (shape === 'plane') {
-      const physW = shapeParams.physW || 100
-      const physH = physW / aspect
-      const xs = physW / (pW-1), ys = physH / (pH-1)
+      const pW2 = physW || 100
+      const physH = pW2 / aspect
+      const xs = pW2 / (pW-1), ys = physH / (pH-1)
       for (let y = 0; y < pH; y++) for (let x = 0; x < pW; x++) {
         const hv = hm[y * pW + x]
-        addV(x*xs - physW/2, -(y*ys - physH/2), minT + hv*(maxT-minT), 1 - hv)
+        addV(x*xs - pW2/2, -(y*ys - physH/2), minT + hv*(maxT-minT), 1 - hv)
       }
       for (let y = 0; y < pH-1; y++) for (let x = 0; x < pW-1; x++) {
         const i = y*pW+x; quad(i, i+1, i+pW, i+pW+1)
       }
     } else if (shape === 'cylinder') {
-      const { cylH = 100, outerDiam = 80 } = shapeParams
-      const R = outerDiam / 2
+      const cH = cylH || 100
+      const R = (outerDiam || 80) / 2
       for (let y = 0; y < pH; y++) for (let x = 0; x < pW; x++) {
         const θ = (x / (pW-1)) * 2 * Math.PI
-        // Flip: y=0 (image top) → +Y (3D top)
-        const yp = cylH/2 - (y / (pH-1)) * cylH
+        const yp = cH/2 - (y / (pH-1)) * cH
         const hv = hm[y * pW + x]
         const r = R - (minT + hv*(maxT-minT))
         addV(r * Math.cos(θ), yp, r * Math.sin(θ), 1 - hv)
@@ -379,13 +378,12 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
         const i = y*pW+x; quad(i, i+1, i+pW, i+pW+1, true)
       }
     } else if (shape === 'arc') {
-      const { physW: aW = 100, arcDeg = 60 } = shapeParams
+      const aW = physW || 100
       const aH = aW / aspect
-      const arcR2 = arcDeg * Math.PI / 180
+      const arcR2 = (arcDeg || 60) * Math.PI / 180
       const R2 = aW / arcR2
       for (let y = 0; y < pH; y++) for (let x = 0; x < pW; x++) {
         const θ = ((x / (pW-1)) - 0.5) * arcR2
-        // Flip: y=0 (image top) → +Y (3D top)
         const yp = aH/2 - (y / (pH-1)) * aH
         const hv = hm[y * pW + x]
         const r = R2 + (minT + hv*(maxT-minT))
@@ -395,8 +393,9 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
         const i = y*pW+x; quad(i, i+1, i+pW, i+pW+1)
       }
     } else if (shape === 'sphere') {
-      const { diameter = 100, angH: sAH = 120, angW: sAW = 240 } = shapeParams
-      const R = diameter / 2
+      const R = (diameter || 100) / 2
+      const sAH = angH || 120
+      const sAW = angW || 240
       const φ0 = (Math.PI - sAH*Math.PI/180) / 2
       const φ1 = Math.PI - φ0
       const θR2 = sAW * Math.PI / 180
