@@ -66,6 +66,8 @@ export default function PrintConfigurator() {
   const [orderModal, setOrderModal] = useState(false)
   const [isDragging, setDrag]     = useState(false)
   const [canvasActive, setCanvasActive] = useState(false)
+  const [isMobile, setIsMobile]         = useState(false)
+  const [mobileViewOpen, setMobileViewOpen] = useState(false)
 
   const mountRef    = useRef(null)
   const rendererRef = useRef(null)
@@ -76,6 +78,30 @@ export default function PrintConfigurator() {
   const meshRef     = useRef(null)
 
   const { add } = useCart()
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    const renderer = rendererRef.current; const camera = cameraRef.current
+    if (!renderer || !camera || !isMobile) return
+    if (mobileViewOpen) {
+      setTimeout(() => {
+        const el = mountRef.current; if (!el) return
+        const nw = el.clientWidth, nh = el.clientHeight; if (!nw || !nh) return
+        camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh)
+        setCanvasActive(true)
+        if (controlsRef.current) controlsRef.current.enabled = true
+      }, 50)
+    } else {
+      setCanvasActive(false)
+      if (controlsRef.current) controlsRef.current.enabled = false
+    }
+  }, [mobileViewOpen, isMobile])
 
   // ── Init Three.js ──
   useEffect(() => {
@@ -344,37 +370,55 @@ export default function PrintConfigurator() {
             <span className="px-2.5 py-1 bg-[#F5F5F7] text-[#86868B] text-[10px] font-semibold tracking-wider rounded-full">STL</span>
           </div>
 
-          <div
-            className="relative"
-            style={{ touchAction: canvasActive ? 'none' : 'pan-y' }}
-            onClick={() => {
-              if (!canvasActive) {
-                setCanvasActive(true)
-                if (controlsRef.current) controlsRef.current.enabled = true
-              }
-            }}
-            onMouseLeave={() => {
-              setCanvasActive(false)
-              if (controlsRef.current) controlsRef.current.enabled = false
-            }}
-            onTouchEnd={() => {
-              setCanvasActive(false)
-              if (controlsRef.current) controlsRef.current.enabled = false
-            }}
-          >
-            {/* Three.js mount */}
-            <div ref={mountRef} style={{ width: '100%', height: '300px' }} />
+          {/* Mobile: tap-to-open button */}
+          {isMobile && (
+            <div
+              className="relative flex items-center justify-center bg-[#F5F5F7] cursor-pointer"
+              style={{ height: 220 }}
+              onClick={() => setMobileViewOpen(true)}
+            >
+              {!file && (
+                <div className="flex flex-col items-center gap-2 text-center px-4">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D2D2D7" strokeWidth="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  <p className="text-xs text-[#86868B]">Upload an STL to preview</p>
+                </div>
+              )}
+              {file && (
+                <div className="flex flex-col items-center gap-2 px-5 py-3 bg-[#1D1D1F]/10 rounded-2xl border border-[#1D1D1F]/20">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  <span className="text-[#1D1D1F] text-sm font-medium">Tap to view in 3D</span>
+                </div>
+              )}
+            </div>
+          )}
 
-            {/* Empty state overlay */}
-            {!file && (
+          {/* Three.js mount — always in DOM. Off-screen on mobile when closed, fullscreen when open, inline on desktop */}
+          <div
+            className={
+              isMobile && mobileViewOpen
+                ? 'fixed inset-0 z-50 flex flex-col bg-[#F5F5F7]'
+                : !isMobile ? 'relative' : ''
+            }
+            style={isMobile && !mobileViewOpen ? { position: 'fixed', top: 0, left: '-200vw', width: '100vw', height: '100vh', pointerEvents: 'none' } : {}}
+            onClick={!isMobile ? () => { if (!canvasActive) { setCanvasActive(true); if (controlsRef.current) controlsRef.current.enabled = true } } : undefined}
+            onMouseLeave={!isMobile ? () => { setCanvasActive(false); if (controlsRef.current) controlsRef.current.enabled = false } : undefined}
+          >
+            {isMobile && mobileViewOpen && (
+              <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-[#E1E3E5] shrink-0">
+                <span className="text-sm font-semibold text-[#1D1D1F]">3D Preview</span>
+                <button onClick={() => setMobileViewOpen(false)} className="text-[#86868B] p-1.5">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            )}
+            <div ref={mountRef} style={{ width: '100%', height: isMobile && mobileViewOpen ? 'calc(100vh - 100px)' : isMobile ? '0' : '300px' }} />
+            {!file && !isMobile && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none" style={{ background: '#F5F5F7' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D2D2D7" strokeWidth="1"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 <p className="text-xs text-[#86868B]">Upload an STL to preview</p>
               </div>
             )}
-
-            {/* Click-to-interact overlay — shown when file loaded but canvas not active */}
-            {file && !canvasActive && (
+            {file && !canvasActive && !isMobile && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-black/50 text-white text-xs font-medium rounded-full backdrop-blur-sm">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 11V6a2 2 0 00-2-2v0a2 2 0 00-2 2v0M14 10V4a2 2 0 00-2-2v0a2 2 0 00-2 2v0M10 10.5V6a2 2 0 00-2-2v0a2 2 0 00-2 2v3"/><path d="M18 11a2 2 0 114 0v3a8 8 0 01-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 012.83-2.82L7 15"/></svg>
@@ -382,13 +426,18 @@ export default function PrintConfigurator() {
                 </div>
               </div>
             )}
+            {isMobile && mobileViewOpen && (
+              <p className="text-center text-[#86868B] text-[10px] py-3 shrink-0">Drag to rotate · Pinch to zoom</p>
+            )}
           </div>
 
-          <div className="px-5 py-2.5 border-t border-[#F5F5F7]">
-            <p className="text-[10px] text-[#86868B] text-center">
-              {canvasActive ? 'Drag to rotate · Scroll to zoom · Move away to release' : 'Click the preview to rotate & zoom'}
-            </p>
-          </div>
+          {!isMobile && (
+            <div className="px-5 py-2.5 border-t border-[#F5F5F7]">
+              <p className="text-[10px] text-[#86868B] text-center">
+                {canvasActive ? 'Drag to rotate · Scroll to zoom · Move away to release' : 'Click the preview to rotate & zoom'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

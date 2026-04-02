@@ -257,6 +257,31 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
   const mountRef = useRef(null)
   const r3 = useRef({})
   const [hasModel, setHasModel] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Resize renderer when mobile modal opens
+  useEffect(() => {
+    const { renderer, camera } = r3.current
+    if (!renderer || !isMobile) return
+    if (mobileOpen) {
+      setTimeout(() => {
+        const el = mountRef.current; if (!el) return
+        const nw = el.clientWidth, nh = el.clientHeight; if (!nw || !nh) return
+        camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh)
+        if (r3.current.controls) r3.current.controls.enabled = true
+      }, 50)
+    } else {
+      if (r3.current.controls) r3.current.controls.enabled = false
+    }
+  }, [mobileOpen, isMobile])
 
   // Init renderer once
   useEffect(() => {
@@ -410,24 +435,61 @@ function LithophanePreview({ processedCanvas, shape, shapeParams, backlight, max
   }, [processedCanvas, shape, shapeParams, backlight, maxT, minT, greyscale, invert])
 
   return (
-    <div
-      className="relative w-full h-full rounded-2xl overflow-hidden bg-[#0f0f0f] cursor-grab active:cursor-grabbing select-none"
-      onClick={() => { if (r3.current.controls) r3.current.controls.enabled = true }}
-      onMouseLeave={() => { if (r3.current.controls) r3.current.controls.enabled = false }}
-    >
-      <div ref={mountRef} className="w-full h-full" />
-      {!processedCanvas && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
-          <div className="text-5xl opacity-10">🪨</div>
-          <p className="text-[#444] text-sm">Upload an image to preview</p>
+    <>
+      {/* Mobile tap-to-open button (Three.js canvas is off-screen, not blocking scroll) */}
+      {isMobile && (
+        <div
+          className="relative w-full h-full rounded-2xl overflow-hidden bg-[#0f0f0f] flex items-center justify-center cursor-pointer"
+          onClick={() => setMobileOpen(true)}
+        >
+          {processedCanvas && (
+            <img src={processedCanvas.toDataURL('image/jpeg', 0.4)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-25 pointer-events-none" />
+          )}
+          <div className="relative flex flex-col items-center gap-2 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span className="text-white text-sm font-medium">{processedCanvas ? 'Tap to view in 3D' : 'Upload image to preview'}</span>
+          </div>
         </div>
       )}
-      {hasModel && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 text-white/60 text-[10px] rounded-full pointer-events-none whitespace-nowrap">
-          Click · Drag to rotate · Scroll to zoom
-        </div>
-      )}
-    </div>
+
+      {/* Three.js canvas — always mounted. Off-screen on mobile when closed, fullscreen when open, inline on desktop */}
+      <div
+        className={
+          isMobile && mobileOpen
+            ? 'fixed inset-0 z-50 flex flex-col bg-[#0f0f0f]'
+            : !isMobile
+            ? 'relative w-full h-full rounded-2xl overflow-hidden bg-[#0f0f0f] cursor-grab active:cursor-grabbing select-none'
+            : ''
+        }
+        style={isMobile && !mobileOpen ? { position: 'fixed', top: 0, left: '-200vw', width: '100vw', height: '100vh', pointerEvents: 'none' } : {}}
+        onClick={!isMobile ? () => { if (r3.current.controls) r3.current.controls.enabled = true } : undefined}
+        onMouseLeave={!isMobile ? () => { if (r3.current.controls) r3.current.controls.enabled = false } : undefined}
+      >
+        {isMobile && mobileOpen && (
+          <div className="flex items-center justify-between px-4 py-3 bg-[#111] border-b border-white/10 shrink-0">
+            <span className="text-white text-sm font-semibold">3D Preview</span>
+            <button onClick={() => setMobileOpen(false)} className="text-white/60 p-1.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        )}
+        <div ref={mountRef} className={isMobile && mobileOpen ? 'flex-1 w-full' : 'w-full h-full'} />
+        {!processedCanvas && !isMobile && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+            <div className="text-5xl opacity-10">🪨</div>
+            <p className="text-[#444] text-sm">Upload an image to preview</p>
+          </div>
+        )}
+        {hasModel && !isMobile && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 text-white/60 text-[10px] rounded-full pointer-events-none whitespace-nowrap">
+            Click · Drag to rotate · Scroll to zoom
+          </div>
+        )}
+        {isMobile && mobileOpen && (
+          <p className="text-center text-white/40 text-[10px] py-2 shrink-0">Drag to rotate · Pinch to zoom</p>
+        )}
+      </div>
+    </>
   )
 }
 
