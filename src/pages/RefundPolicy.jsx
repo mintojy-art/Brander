@@ -96,7 +96,8 @@ export default function RefundPolicy() {
         <div className="bg-[#1D1D1F] rounded-2xl px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
           <div>
             <p className="text-white text-sm font-semibold">Have an issue with your order?</p>
-            <p className="text-[#86868B] text-xs mt-0.5">We're on WhatsApp — fastest response guaranteed.</p>
+            <p className="text-[#86868B] text-xs mt-0.5">WhatsApp or email us — fastest response guaranteed.</p>
+            <a href="mailto:support@oric3d.com" className="text-[#86868B] text-xs hover:text-white transition-colors">support@oric3d.com</a>
           </div>
           <a
             href="https://wa.me/918310194953"

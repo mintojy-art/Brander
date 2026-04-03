@@ -79,6 +79,7 @@ export default function OricFooter() {
           <div className="flex items-center gap-4 flex-wrap justify-center">
             <Link to="/about" className="hover:text-[#1D1D1F] transition-colors">About</Link>
             <Link to="/refund-policy" className="hover:text-[#1D1D1F] transition-colors">Refund Policy</Link>
+            <a href="mailto:support@oric3d.com" className="hover:text-[#1D1D1F] transition-colors">support@oric3d.com</a>
             <p>3D Printing Service · Bangalore, Karnataka · +91 83101 94953</p>
           </div>
         </div>
