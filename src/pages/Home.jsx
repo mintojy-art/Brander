@@ -95,17 +95,17 @@ export default function Home() {
       <section className="relative bg-[#1D1D1F] min-h-[92vh] flex items-center overflow-hidden">
         {/* Background video */}
         <video
-          className="absolute inset-0 w-full h-full object-cover"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
           src="/3DPRINTING.mp4"
           autoPlay
           loop
           muted
           playsInline
         />
-        {/* Dark overlay so text stays readable */}
-        <div className="absolute inset-0 bg-[#1D1D1F]/70" />
+        {/* Dark overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(29,29,31,0.65)', zIndex: 1 }} />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 w-full py-28">
+        <div style={{ position: 'relative', zIndex: 2 }} className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 w-full py-28">
           <div className="max-w-4xl">
             <motion.p
               className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-8"
