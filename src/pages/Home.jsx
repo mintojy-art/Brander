@@ -95,7 +95,7 @@ export default function Home() {
       <section className="relative bg-[#1D1D1F] min-h-[92vh] flex items-center overflow-hidden">
         {/* Background video — centered on subject */}
         <video
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '20% center', zIndex: 0 }}
           src="/3DPRINTING.mp4"
           autoPlay
           loop
