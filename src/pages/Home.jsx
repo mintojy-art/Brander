@@ -93,9 +93,9 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section className="relative bg-[#1D1D1F] min-h-[92vh] flex items-center overflow-hidden">
-        {/* Background video */}
+        {/* Background video — centered on subject */}
         <video
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
           src="/3DPRINTING.mp4"
           autoPlay
           loop
@@ -103,12 +103,12 @@ export default function Home() {
           playsInline
         />
         {/* Dark overlay */}
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(29,29,31,0.65)', zIndex: 1 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(29,29,31,0.70)', zIndex: 1 }} />
 
-        <div style={{ position: 'relative', zIndex: 2 }} className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 w-full py-28">
-          <div className="max-w-4xl">
+        <div style={{ position: 'relative', zIndex: 2 }} className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 w-full py-20 sm:py-28">
+          <div className="max-w-4xl mx-auto sm:mx-0 text-center sm:text-left">
             <motion.p
-              className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-8"
+              className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-5 sm:mb-8"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -117,7 +117,7 @@ export default function Home() {
             </motion.p>
 
             <motion.h1
-              className="text-6xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.92] tracking-tight mb-8"
+              className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.92] tracking-tight mb-6 sm:mb-8"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.75, delay: 0.1 }}
@@ -128,7 +128,7 @@ export default function Home() {
             </motion.h1>
 
             <motion.p
-              className="text-lg md:text-xl text-[#86868B] leading-relaxed max-w-xl mb-12"
+              className="text-base sm:text-lg md:text-xl text-[#86868B] leading-relaxed max-w-xl mb-8 sm:mb-12 mx-auto sm:mx-0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -138,14 +138,14 @@ export default function Home() {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
             >
               <Link
                 to="/shop"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-[#F5F5F7] text-[#1D1D1F] text-sm font-semibold rounded-full transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-[#F5F5F7] text-[#1D1D1F] text-sm font-semibold rounded-full transition-all"
               >
                 Browse Shop →
               </Link>
@@ -153,7 +153,7 @@ export default function Home() {
                 href="https://wa.me/918310194953"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-[#424245] hover:border-white text-white text-sm font-semibold rounded-full transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 border border-[#424245] hover:border-white text-white text-sm font-semibold rounded-full transition-all"
               >
                 Get a Quote
               </a>
