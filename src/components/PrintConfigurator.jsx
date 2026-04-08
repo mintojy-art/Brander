@@ -33,19 +33,25 @@ const QUALITIES = [
 ]
 
 // ── Price estimation ────────────────────────────────────────────────────────
-function estimatePrice(dims, strength, materialId, qualityId) {
-  const mat  = MATERIALS.find((m) => m.id === materialId) || MATERIALS[0]
-  const qual = QUALITIES.find((q) => q.id === qualityId) || QUALITIES[1]
+function estimatePrice(dims, strength, materialId, qualityId, scale = 1) {
+  const mat    = MATERIALS.find((m) => m.id === materialId) || MATERIALS[0]
+  const qual   = QUALITIES.find((q) => q.id === qualityId)  || QUALITIES[1]
   const infill = strength / 100
 
-  const bboxVol     = (dims.x * dims.y * dims.z) / 1000        // mm³ → cm³
-  const filamentVol = bboxVol * (0.018 + infill * 0.05)        // realistic shell+infill fraction
-  const weight      = filamentVol * mat.density                 // grams
-  const matCost     = weight * mat.ppg
-  const timeCost    = (filamentVol / 15) * 50 * qual.timeMul   // ₹50/hr print rate
-  const base        = 65                                        // handling fee
+  const sx = dims.x * scale, sy = dims.y * scale, sz = dims.z * scale
+  const bboxVol     = (sx * sy * sz) / 1000                   // mm³ → cm³
+  const fillFrac    = 0.12 + infill * 0.28                     // 12% at 0% infill → 40% at 100%
+  const filamentVol = bboxVol * fillFrac
+  const weight      = filamentVol * mat.density                // grams
+  const matCost     = weight * mat.ppg                         // material ₹
 
-  return Math.max(Math.round(base + matCost + timeCost), 150)
+  // Print time: base cm³/hr * quality multiplier, charged at ₹80/hr
+  const printHrs    = (bboxVol / 12) * qual.timeMul
+  const printCost   = printHrs * 80
+
+  const base = 80                                              // handling + setup
+
+  return Math.max(Math.round(base + matCost + printCost), 149)
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -65,6 +71,7 @@ export default function PrintConfigurator() {
   const [ordering, setOrdering]   = useState(false)
   const [orderModal, setOrderModal] = useState(false)
   const [isDragging, setDrag]     = useState(false)
+  const [scale, setScale]               = useState(1)
   const [canvasActive, setCanvasActive] = useState(false)
   const [isMobile, setIsMobile]         = useState(false)
   const [mobileViewOpen, setMobileViewOpen] = useState(false)
@@ -228,6 +235,7 @@ export default function PrintConfigurator() {
     setFile(null)
     setDims(null)
     setPrice(null)
+    setScale(1)
     if (meshRef.current && sceneRef.current) {
       sceneRef.current.remove(meshRef.current)
       meshRef.current.geometry.dispose()
@@ -236,11 +244,22 @@ export default function PrintConfigurator() {
     }
   }
 
+  // Apply scale to 3D mesh when scale changes
+  useEffect(() => {
+    if (!meshRef.current) return
+    meshRef.current.scale.set(scale, scale, scale)
+    const maxDim = Math.max(dims?.x ?? 50, dims?.y ?? 50, dims?.z ?? 50) * scale
+    const dist   = maxDim * 2.2
+    cameraRef.current?.position.set(dist * 0.8, dist * 0.6, dist)
+    cameraRef.current?.lookAt(0, 0, 0)
+    controlsRef.current?.update()
+  }, [scale, dims])
+
   const calcPrice = () => {
     if (!dims) return
     setCalc(true)
     setTimeout(() => {
-      setPrice(estimatePrice(dims, strength, material, quality))
+      setPrice(estimatePrice(dims, strength, material, quality, scale))
       setCalc(false)
     }, 700)
   }
@@ -278,6 +297,8 @@ export default function PrintConfigurator() {
     { label: 'Material', value: `${material} · ${printColor}` },
     { label: 'Quality', value: quality },
     { label: 'Infill', value: `${strength}%` },
+    { label: 'Scale', value: `${scale.toFixed(1)}×` },
+    ...(dims ? [{ label: 'Size', value: `${(dims.x*scale).toFixed(0)}×${(dims.y*scale).toFixed(0)}×${(dims.z*scale).toFixed(0)} mm` }] : []),
     ...(price ? [{ label: 'Estimate', value: `₹${price.toLocaleString()}` }] : []),
   ] : []
 
@@ -525,6 +546,33 @@ export default function PrintConfigurator() {
             <span className="text-[10px] text-[#86868B]">Light (10%)</span>
             <span className="text-[10px] text-[#86868B]">Medium (50%)</span>
             <span className="text-[10px] text-[#86868B]">Solid (100%)</span>
+          </div>
+        </div>
+
+        {/* Scale slider */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#86868B]">Scale</label>
+            <span className="text-sm font-bold text-[#1D1D1F]">{scale.toFixed(1)}×
+              {dims && (
+                <span className="text-[10px] font-normal text-[#86868B] ml-1.5">
+                  {(dims.x * scale).toFixed(0)}×{(dims.y * scale).toFixed(0)}×{(dims.z * scale).toFixed(0)} mm
+                </span>
+              )}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0.5} max={3} step={0.1}
+            value={scale}
+            onChange={(e) => { setScale(+e.target.value); setPrice(null) }}
+            className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+            style={{ background: `linear-gradient(to right, #1D1D1F ${(scale-0.5)/2.5*100}%, #D2D2D7 ${(scale-0.5)/2.5*100}%)` }}
+          />
+          <div className="flex justify-between mt-1.5">
+            <span className="text-[10px] text-[#86868B]">0.5×</span>
+            <span className="text-[10px] text-[#86868B]">1.0× (original)</span>
+            <span className="text-[10px] text-[#86868B]">3.0×</span>
           </div>
         </div>
 
