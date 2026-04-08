@@ -91,82 +91,67 @@ export default function Home() {
   return (
     <div className="pt-16">
 
-      {/* ── HERO ── */}
-      <section className="relative bg-[#1D1D1F] min-h-[92vh] flex items-center overflow-hidden">
-        {/* Desktop video */}
+      {/* ── HERO MOBILE: video on top, text below ── */}
+      <div className="block sm:hidden bg-[#1D1D1F]" style={{ paddingTop: 64 }}>
+        <video className="w-full block" src="/3DPRINTING02.mp4" autoPlay loop muted playsInline />
+        <div className="px-6 py-10">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-4">
+            ORIC · 3D Print on Demand · Made in India
+          </p>
+          <h1 className="text-5xl font-bold text-white leading-[0.92] tracking-tight mb-5">
+            Print.<br />Create.<br /><span className="text-[#86868B]">Deliver.</span>
+          </h1>
+          <p className="text-base text-[#86868B] leading-relaxed mb-8">
+            From figurines to functional parts — we 3D print what you imagine.
+            FDM precision. Fast turnaround. No minimum order.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link to="/shop" className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#1D1D1F] text-sm font-semibold rounded-full">
+              Browse Shop →
+            </Link>
+            <a href="https://wa.me/918310194953" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-8 py-4 border border-[#424245] text-white text-sm font-semibold rounded-full">
+              Get a Quote
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── HERO DESKTOP: video background + overlay + text on top ── */}
+      <section className="hidden sm:flex relative bg-[#1D1D1F] min-h-[92vh] items-center overflow-hidden">
         <video
-          className="hidden sm:block"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
           src="/3DPRINTING.mp4"
           autoPlay loop muted playsInline
         />
-        {/* Mobile video (cropped version) */}
-        <video
-          className="block sm:hidden"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
-          src="/3DPRINTING02.mp4"
-          autoPlay loop muted playsInline
-        />
-        {/* Dark overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(29,29,31,0.70)', zIndex: 1 }} />
-
-        <div style={{ position: 'relative', zIndex: 2 }} className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 w-full py-20 sm:py-28">
-          <div className="max-w-4xl mx-auto sm:mx-0 text-center sm:text-left">
-            <motion.p
-              className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-5 sm:mb-8"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
+        <div style={{ position: 'relative', zIndex: 2 }} className="max-w-7xl mx-auto px-8 lg:px-10 w-full py-28">
+          <div className="max-w-4xl">
+            <motion.p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-8"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               ORIC · 3D Print on Demand · Made in India
             </motion.p>
-
-            <motion.h1
-              className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.92] tracking-tight mb-6 sm:mb-8"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.75, delay: 0.1 }}
-            >
-              Print.<br />
-              Create.<br />
-              <span className="text-[#86868B]">Deliver.</span>
+            <motion.h1 className="text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.92] tracking-tight mb-8"
+              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: 0.1 }}>
+              Print.<br />Create.<br /><span className="text-[#86868B]">Deliver.</span>
             </motion.h1>
-
-            <motion.p
-              className="text-base sm:text-lg md:text-xl text-[#86868B] leading-relaxed max-w-xl mb-8 sm:mb-12 mx-auto sm:mx-0"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
+            <motion.p className="text-lg md:text-xl text-[#86868B] leading-relaxed max-w-xl mb-12"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
               From figurines to functional parts — we 3D print what you imagine.
               FDM precision. Fast turnaround. No minimum order.
             </motion.p>
-
-            <motion.div
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center sm:items-start"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-            >
-              <Link
-                to="/shop"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-[#F5F5F7] text-[#1D1D1F] text-sm font-semibold rounded-full transition-all"
-              >
+            <motion.div className="flex flex-row gap-4"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
+              <Link to="/shop" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-[#F5F5F7] text-[#1D1D1F] text-sm font-semibold rounded-full transition-all">
                 Browse Shop →
               </Link>
-              <a
-                href="https://wa.me/918310194953"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 border border-[#424245] hover:border-white text-white text-sm font-semibold rounded-full transition-all"
-              >
+              <a href="https://wa.me/918310194953" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-[#424245] hover:border-white text-white text-sm font-semibold rounded-full transition-all">
                 Get a Quote
               </a>
             </motion.div>
           </div>
         </div>
-
-
       </section>
 
       {/* ── 3D PRINT CONFIGURATOR ── */}
