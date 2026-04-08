@@ -38,7 +38,7 @@ export default function OricNavbar() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center select-none">
-            <img src="/oriclogo1.svg" alt="ORIC" className="h-9 w-auto object-contain" />
+            <img src="/oriclogo1.svg" alt="ORIC" className="h-8 w-auto" style={{ display: 'block' }} />
           </Link>
 
           {/* Desktop nav */}
