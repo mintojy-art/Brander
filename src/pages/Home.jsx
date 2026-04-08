@@ -105,7 +105,7 @@ export default function Home() {
         {/* Dark overlay so text stays readable */}
         <div className="absolute inset-0 bg-[#1D1D1F]/70" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 w-full py-28">
+        <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 w-full py-28">
           <div className="max-w-4xl">
             <motion.p
               className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-8"
