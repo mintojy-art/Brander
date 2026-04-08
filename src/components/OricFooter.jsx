@@ -26,7 +26,7 @@ export default function OricFooter() {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="mb-4">
-              <img src="/oriclogo1.png" alt="ORIC" className="h-10 w-auto object-contain" />
+              <img src="/oriclogo1.svg" alt="ORIC" className="h-10 w-auto object-contain" />
             </div>
             <p className="text-[#86868B] text-sm leading-relaxed max-w-xs">
               3D print on demand — figurines, prototypes, custom parts, idols, and more.
