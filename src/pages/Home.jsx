@@ -92,7 +92,7 @@ export default function Home() {
     <div className="pt-16">
 
       {/* ── HERO MOBILE: video on top, text below ── */}
-      <div className="block sm:hidden bg-[#1D1D1F]" style={{ paddingTop: 64 }}>
+      <div className="block sm:hidden bg-[#1D1D1F]">
         <video className="w-full block" src="/3DPRINTING02.mp4" autoPlay loop muted playsInline />
         <div className="px-6 py-10">
           <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-4">
