@@ -93,14 +93,19 @@ export default function Home() {
 
       {/* ── HERO ── */}
       <section className="relative bg-[#1D1D1F] min-h-[92vh] flex items-center overflow-hidden">
-        {/* Background video — centered on subject */}
+        {/* Desktop video */}
         <video
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: '20% center', zIndex: 0 }}
+          className="hidden sm:block"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
           src="/3DPRINTING.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay loop muted playsInline
+        />
+        {/* Mobile video (cropped version) */}
+        <video
+          className="block sm:hidden"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
+          src="/3DPRINTING02.mp4"
+          autoPlay loop muted playsInline
         />
         {/* Dark overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(29,29,31,0.70)', zIndex: 1 }} />
