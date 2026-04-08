@@ -1090,7 +1090,7 @@ export default function Admin() {
       <div className="px-4 py-5 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/oriclogo1.svg" alt="ORIC" className="h-8 w-auto object-contain brightness-0 invert" />
+            <img src="/oriclogo1.svg" alt="ORIC" className="h-8 w-auto" style={{ display: 'block', filter: 'brightness(0) invert(1)' }} />
             <p className="text-white/40 text-[10px]">Admin Dashboard</p>
           </div>
           <button onClick={() => setMobileOpen(false)} className="md:hidden text-white/60 hover:text-white p-1">
@@ -1146,7 +1146,7 @@ export default function Admin() {
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#1D1D1F] sticky top-0 z-20">
           <div className="flex items-center gap-2.5">
-            <img src="/oriclogo1.svg" alt="ORIC" className="h-7 w-auto object-contain brightness-0 invert" />
+            <img src="/oriclogo1.svg" alt="ORIC" className="h-7 w-auto" style={{ display: 'block', filter: 'brightness(0) invert(1)' }} />
             <p className="text-white text-sm font-bold">Admin</p>
           </div>
           <div className="flex items-center gap-2">
