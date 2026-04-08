@@ -25,9 +25,8 @@ export default function OricFooter() {
 
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-0.5 mb-4">
-              <span className="text-2xl font-bold tracking-tight text-[#1D1D1F]">ORIC</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F] mt-1 ml-0.5" />
+            <div className="mb-4">
+              <img src="/oriclogo1.png" alt="ORIC" className="h-10 w-auto object-contain" />
             </div>
             <p className="text-[#86868B] text-sm leading-relaxed max-w-xs">
               3D print on demand — figurines, prototypes, custom parts, idols, and more.

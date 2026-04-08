@@ -37,9 +37,8 @@ export default function OricNavbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-0.5 select-none">
-            <span className="text-2xl font-bold tracking-tight text-[#1D1D1F]">ORIC</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1D1D1F] mt-1 ml-0.5" />
+          <Link to="/" className="flex items-center select-none">
+            <img src="/oriclogo1.png" alt="ORIC" className="h-9 w-auto object-contain" />
           </Link>
 
           {/* Desktop nav */}
