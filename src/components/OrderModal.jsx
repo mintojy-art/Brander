@@ -30,6 +30,7 @@ export default function OrderModal({
   filename = '',
   whatsappMsg = '',      // pre-encoded text for the wa.me link
   stlBuf = null,         // ArrayBuffer for direct download link inside modal
+  imageFile = null,      // original File uploaded by user (lithophane only)
 }) {
   useEffect(() => {
     const fn = (e) => { if (e.key === 'Escape') onClose() }
@@ -51,6 +52,19 @@ export default function OrderModal({
     setTimeout(() => URL.revokeObjectURL(url), 300)
   }
 
+  const handleDownloadPhoto = () => {
+    if (!imageFile) return
+    const url = URL.createObjectURL(imageFile)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = imageFile.name || 'lithophane-photo'
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 300)
+  }
+
   // Detect in-app browsers (Google app, Instagram, Facebook, etc.) — WebViews block downloads
   const isInAppBrowser = /GSA\/|FBAN|FBAV|Instagram|LinkedInApp|Twitter|Line\/|MicroMessenger|Snapchat/i.test(
     typeof navigator !== 'undefined' ? navigator.userAgent : ''
@@ -62,8 +76,8 @@ export default function OrderModal({
     ? [
         {
           num: 1, done: false,
-          title: 'Download the STL file',
-          desc: 'Tap the Download button below — you\'ll need it to attach in WhatsApp.',
+          title: 'Download the STL file & your photo',
+          desc: 'Tap both download buttons below — you\'ll attach them in WhatsApp.',
           icon: '📥',
         },
         {
@@ -74,8 +88,8 @@ export default function OrderModal({
         },
         {
           num: 3, done: false,
-          title: 'Attach the STL file and send',
-          desc: 'In WhatsApp tap the 📎 icon → Files / Downloads → select the STL → Send.',
+          title: 'Attach the STL + photo and send',
+          desc: 'In WhatsApp tap 📎 → Files → select both the STL and the photo → Send.',
           icon: '📎',
         },
       ]
@@ -163,7 +177,7 @@ export default function OrderModal({
                   {steps.map((s) => <StepRow key={s.num} {...s} />)}
                 </div>
 
-                {/* Step 1 download button for lithophane */}
+                {/* Step 1 download buttons for lithophane */}
                 {isLitho && stlBuf && (
                   isInAppBrowser ? (
                     <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-4 py-3.5 flex gap-3 items-start">
@@ -171,18 +185,29 @@ export default function OrderModal({
                       <div>
                         <p className="text-xs font-semibold text-[#92400E]">Open in Chrome or Safari</p>
                         <p className="text-xs text-[#B45309] mt-0.5 leading-relaxed">
-                          This browser can't download files. Tap the <strong>⋮ menu → Open in Chrome</strong> (Android) or <strong>Open in Safari</strong> (iPhone) to download your STL.
+                          This browser can't download files. Tap the <strong>⋮ menu → Open in Chrome</strong> (Android) or <strong>Open in Safari</strong> (iPhone) to download your STL and photo.
                         </p>
                       </div>
                     </div>
                   ) : (
-                    <button
-                      onClick={handleDownload}
-                      className="flex items-center justify-center gap-2 w-full py-3 bg-[#1D1D1F] hover:bg-[#424245] active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                      Download STL File
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleDownload}
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-[#1D1D1F] hover:bg-[#424245] active:scale-[0.98] text-white text-sm font-semibold rounded-2xl transition-all"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download STL File
+                      </button>
+                      {imageFile && (
+                        <button
+                          onClick={handleDownloadPhoto}
+                          className="flex items-center justify-center gap-2 w-full py-3 bg-[#F5F5F7] hover:bg-[#E8E8ED] active:scale-[0.98] text-[#1D1D1F] text-sm font-semibold rounded-2xl transition-all border border-[#D2D2D7]"
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          Download Photo
+                        </button>
+                      )}
+                    </div>
                   )
                 )}
 

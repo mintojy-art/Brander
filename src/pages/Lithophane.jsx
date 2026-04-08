@@ -524,12 +524,13 @@ export default function Lithophane() {
   })
 
   const [rawImg, setRawImg]           = useState(null)
+  const [rawFile, setRawFile]         = useState(null)
   const [processedCanvas, setPCanvas] = useState(null)
   const [tab, setTab]                 = useState('upload')
   const [dragging, setDragging]       = useState(false)
   const [generating, setGenerating]   = useState(false)
   const [ordering, setOrdering]       = useState(false)
-  const [orderModal, setOrderModal]   = useState({ open: false, filename: '', buf: null, summary: [] })
+  const [orderModal, setOrderModal]   = useState({ open: false, filename: '', buf: null, summary: [], imageFile: null })
   const [genError, setGenError]       = useState('')
   const fileRef                       = useRef(null)
 
@@ -583,6 +584,7 @@ export default function Lithophane() {
   // Load image from file
   const loadFile = useCallback((file) => {
     if (!file?.type.startsWith('image/')) return
+    setRawFile(file)
     const url = URL.createObjectURL(file)
     const img = new Image()
     img.crossOrigin = 'anonymous'
@@ -712,7 +714,7 @@ export default function Lithophane() {
       }
 
       // Show the modal — download is triggered inside the modal via direct user tap
-      setOrderModal({ open: true, filename: fname, buf, summary: summaryRows })
+      setOrderModal({ open: true, filename: fname, buf, summary: summaryRows, imageFile: rawFile })
     } catch (err) {
       console.error('Order STL error:', err)
       setGenError('Could not generate STL. Try Draft quality and try again.')
@@ -1043,6 +1045,7 @@ export default function Lithophane() {
       summary={orderModal.summary}
       whatsappMsg={lithoWaMsg}
       stlBuf={orderModal.buf}
+      imageFile={orderModal.imageFile}
     />
     <div className="pt-16 bg-white min-h-screen">
 
