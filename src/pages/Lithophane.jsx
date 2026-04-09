@@ -1225,27 +1225,18 @@ export default function Lithophane() {
             <h2 className="text-4xl md:text-5xl font-bold text-[#1D1D1F]">Gallery</h2>
             <p className="text-[#86868B] text-base mt-3 max-w-md mx-auto">Portraits, pets, landscapes — lithophanes come to life when backlit.</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { title: 'Portrait',  bg: 'linear-gradient(135deg,#e0cba8,#c4a06a)', desc: 'Family & friends' },
-              { title: 'Pet',       bg: 'linear-gradient(135deg,#b8d4e0,#7aa8c0)', desc: 'Cats, dogs, birds' },
-              { title: 'Landscape', bg: 'linear-gradient(135deg,#c0dab0,#88b878)', desc: 'Mountains, sunsets' },
-              { title: 'Baby',      bg: 'linear-gradient(135deg,#f0d0e0,#d8a0c0)', desc: 'Newborn memories' },
-              { title: 'Logo',      bg: 'linear-gradient(135deg,#d0d0e8,#9090c0)', desc: 'Business branding' },
-              { title: 'Wedding',   bg: 'linear-gradient(135deg,#f8e8c0,#e0c080)', desc: 'Special moments' },
+              { src: '/lithophane01.jpg', title: 'Portrait' },
+              { src: '/lithophane02.jpg', title: 'Landscape' },
+              { src: '/lithophane03.jpg', title: 'Custom' },
             ].map((g, i) => (
               <motion.div key={g.title}
-                className="rounded-2xl overflow-hidden aspect-[3/4] flex flex-col items-center justify-end p-4 relative"
-                style={{ background: g.bg }}
+                className="rounded-2xl overflow-hidden aspect-[3/4] relative"
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.07 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
               >
-                <div className="absolute inset-0 opacity-20"
-                  style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.25) 3px,rgba(255,255,255,0.25) 4px)' }} />
-                <div className="relative text-center">
-                  <p className="text-sm font-bold text-white drop-shadow-sm">{g.title}</p>
-                  <p className="text-[10px] text-white/70">{g.desc}</p>
-                </div>
+                <img src={g.src} alt={g.title} className="w-full h-full object-cover" />
               </motion.div>
             ))}
           </div>
