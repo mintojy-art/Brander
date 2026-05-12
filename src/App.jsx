@@ -11,6 +11,7 @@ import BranderRollerPage from './pages/BranderRollerPage'
 import ProductDetail from './pages/ProductDetail'
 import Admin from './pages/Admin'
 import Lithophane from './pages/Lithophane'
+import Careers from './pages/Careers'
 import About from './pages/About'
 import RefundPolicy from './pages/RefundPolicy'
 import NotFound from './pages/NotFound'
@@ -37,6 +38,7 @@ function Layout() {
         <Route path="/services"               element={<Services />}          />
         <Route path="/admin"                  element={<Admin />}             />
         <Route path="/lithophanes"            element={<Lithophane />}        />
+        <Route path="/careers"               element={<Careers />}           />
         <Route path="/about"                  element={<About />}             />
         <Route path="/refund-policy"          element={<RefundPolicy />}      />
         <Route path="*"                       element={<NotFound />}          />
