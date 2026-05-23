@@ -202,25 +202,20 @@ export default function Home() {
       <section className="py-28 bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-6">
-            <div>
-              <motion.p
-                className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
-                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-              >
-                From Our Workshop
-              </motion.p>
-              <motion.h2
-                className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                Featured Products
-              </motion.h2>
-            </div>
-            <Link to="/shop" className="text-sm font-medium text-[#424245] hover:text-[#1D1D1F] transition-colors underline underline-offset-4">
-              Shop all →
-            </Link>
+          <div className="mb-14">
+            <motion.p
+              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            >
+              From Our Workshop
+            </motion.p>
+            <motion.h2
+              className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Featured Products
+            </motion.h2>
           </div>
 
           {/* 'Got a photo?' banner */}
@@ -241,6 +236,29 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {featured.map((p) => <ProductCard key={p.id} product={p} />)}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+            >
+              <Link
+                to="/shop"
+                className="group flex flex-col items-center justify-center gap-5 bg-[#1D1D1F] rounded-3xl border-2 border-[#1D1D1F] hover:bg-[#2D2D2F] transition-all duration-300 cursor-pointer h-full min-h-[280px] p-8 text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+                  <span className="text-2xl">🛍️</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 mb-2">Browse Everything</p>
+                  <p className="text-xl font-bold text-white leading-snug">Shop All Products</p>
+                  <p className="text-sm text-white/60 mt-2">View our full catalogue of 3D printed creations</p>
+                </div>
+                <div className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#1D1D1F] text-xs font-semibold rounded-full group-hover:bg-[#F5F5F7] transition-all duration-300">
+                  View All <span className="text-base leading-none">→</span>
+                </div>
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>
