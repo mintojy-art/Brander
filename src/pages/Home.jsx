@@ -24,57 +24,52 @@ const process = [
 
 function ProductCard({ product }) {
   const { add } = useCart()
+  const CardWrapper = product.href ? Link : 'div'
   return (
     <motion.div
-      className="group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-xl transition-all duration-500"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
     >
-      {/* Image */}
-      <div className="aspect-square bg-[#F5F5F7] relative overflow-hidden">
-        {product.image ? (
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-            <span className="text-6xl">🖨️</span>
-            <span className="text-xs font-medium text-[#86868B] uppercase tracking-widest">Custom Order</span>
-          </div>
-        )}
-        {product.badge && (
-          <div className="absolute top-4 left-4 px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
-            {product.badge}
-          </div>
-        )}
-      </div>
+      <CardWrapper
+        to={product.href}
+        className="group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-xl transition-all duration-500 block cursor-pointer"
+      >
+        {/* Image */}
+        <div className="aspect-square bg-[#F5F5F7] relative overflow-hidden">
+          {product.image ? (
+            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+              <span className="text-6xl">🖨️</span>
+              <span className="text-xs font-medium text-[#86868B] uppercase tracking-widest">Custom Order</span>
+            </div>
+          )}
+          {product.badge && (
+            <div className="absolute top-4 left-4 px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
+              {product.badge}
+            </div>
+          )}
+        </div>
 
-      {/* Info */}
-      <div className="p-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#86868B] mb-1">{product.category}</p>
-        <h3 className="text-base font-semibold text-[#1D1D1F] leading-snug mb-1">{product.name}</h3>
-        <p className="text-sm text-[#86868B] mb-4 leading-relaxed">{product.tagline}</p>
+        {/* Info */}
+        <div className="p-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#86868B] mb-1">{product.category}</p>
+          <h3 className="text-base font-semibold text-[#1D1D1F] leading-snug mb-1">{product.name}</h3>
+          <p className="text-sm text-[#86868B] mb-4 leading-relaxed">{product.tagline}</p>
 
-        <div className="flex items-center justify-between">
-          <span className="text-base font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
-          <div className="flex gap-2">
-            {product.href && (
-              <Link
-                to={product.href}
-                className="px-3 py-1.5 text-xs font-medium text-[#424245] border border-[#D2D2D7] rounded-full hover:bg-[#F5F5F7] transition-all"
-              >
-                Details
-              </Link>
-            )}
+          <div className="flex items-center justify-between">
+            <span className="text-base font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
             <button
-              onClick={() => add(product)}
+              onClick={(e) => { e.preventDefault(); add(product) }}
               className="px-3 py-1.5 text-xs font-medium bg-[#1D1D1F] text-white rounded-full hover:bg-[#424245] transition-all"
             >
               {product.price ? 'Add to Cart' : 'Get Quote'}
             </button>
           </div>
         </div>
-      </div>
+      </CardWrapper>
     </motion.div>
   )
 }
