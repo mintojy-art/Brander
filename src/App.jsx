@@ -10,6 +10,7 @@ import Services from './pages/Services'
 import BranderRollerPage from './pages/BranderRollerPage'
 import ProductDetail from './pages/ProductDetail'
 import Admin from './pages/Admin'
+import MorningAssistant from './pages/MorningAssistant'
 import Lithophane from './pages/Lithophane'
 import Careers from './pages/Careers'
 import About from './pages/About'
@@ -24,7 +25,7 @@ function ScrollToTop() {
 
 function Layout() {
   const { pathname } = useLocation()
-  const isAdmin = pathname === '/admin'
+  const isAdmin = pathname === '/admin' || pathname === '/morning'
   return (
     <>
       <ScrollToTop />
@@ -37,6 +38,7 @@ function Layout() {
         <Route path="/shop/:productId"        element={<ProductDetail />}     />
         <Route path="/services"               element={<Services />}          />
         <Route path="/admin"                  element={<Admin />}             />
+        <Route path="/morning"               element={<MorningAssistant />}  />
         <Route path="/lithophanes"            element={<Lithophane />}        />
         <Route path="/careers"               element={<Careers />}           />
         <Route path="/about"                  element={<About />}             />
