@@ -2,28 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase, isConfigured, uploadImage, deleteImage } from '../lib/supabase'
 import { products as STATIC_PRODUCTS } from '../data/products'
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'oric@admin'
-const CATEGORIES   = ['Tools', 'Figurines', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
-const JOB_TYPES    = ['Full-time', 'Part-time', 'Contract', 'Internship']
-const DEPARTMENTS  = ['Engineering', 'Design', 'Marketing', 'Operations', 'Sales', 'HR', 'Finance', 'Other']
-
-const JOBS_SCHEMA_SQL = `create table public.jobs (
-  id uuid default gen_random_uuid() primary key,
-  title text not null,
-  department text default '',
-  location text default 'Bangalore',
-  type text default 'Full-time',
-  experience text default '',
-  description text default '',
-  responsibilities text[] default '{}',
-  requirements text[] default '{}',
-  active boolean default true,
-  sort_order int default 0,
-  created_at timestamptz default now()
-);
-alter table public.jobs enable row level security;
-create policy "read" on public.jobs for select using (true);
-create policy "write" on public.jobs for all using (true) with check (true);`
+const CATEGORIES = ['Tools', 'Figurines', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
 
 // ── utils ─────────────────────────────────────────────────────────────────────
 const slugify = (s) => s.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
@@ -227,9 +206,9 @@ on conflict (id) do nothing;
 create policy "Public read images" on storage.objects
   for select using (bucket_id = 'product-images');
 create policy "Allow upload" on storage.objects
-  for insert to anon with check (bucket_id = 'product-images');
+  for insert to authenticated with check (bucket_id = 'product-images');
 create policy "Allow delete" on storage.objects
-  for delete to anon using (bucket_id = 'product-images');`
+  for delete to authenticated using (bucket_id = 'product-images');`
 
 const SCHEMA_FIX_SQL = `-- Run in Supabase → SQL Editor → New query
 -- Adds any missing columns to your products table
@@ -256,8 +235,12 @@ alter table products add column if not exists created_at timestamptz default now
 -- Ensure RLS allows writes
 alter table products enable row level security;
 drop policy if exists "Allow all" on products;
-create policy "Allow all" on products for all to anon
-  using (true) with check (true);`
+drop policy if exists "Public read products" on products;
+drop policy if exists "Admin write products" on products;
+create policy "Public read products" on products
+  for select using (true);
+create policy "Admin write products" on products
+  for all to authenticated using (true) with check (true);`
 
 // ── Image Uploader ────────────────────────────────────────────────────────────
 function ImageUploader({ images, onChange, toast }) {
@@ -412,15 +395,57 @@ function ImageUploader({ images, onChange, toast }) {
 }
 
 // ── Login ─────────────────────────────────────────────────────────────────────
+const MAX_LOGIN_ATTEMPTS = 5
+const LOCKOUT_MS = 15 * 60 * 1000
+
 function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
   const [err, setErr] = useState('')
   const [show, setShow] = useState(false)
-  const submit = (e) => {
-    e.preventDefault()
-    if (pw === ADMIN_PASSWORD) { sessionStorage.setItem('oric_admin', '1'); onLogin() }
-    else { setErr('Incorrect password'); setPw('') }
+  const [busy, setBusy] = useState(false)
+
+  const getLock = () => {
+    try { return JSON.parse(localStorage.getItem('oric_login') || '{"n":0,"t":0}') }
+    catch { return { n: 0, t: 0 } }
   }
+  const [lock, setLock] = useState(getLock)
+  const locked = lock.t > Date.now()
+  const [secs, setSecs] = useState(() => Math.max(0, Math.ceil((lock.t - Date.now()) / 1000)))
+
+  useEffect(() => {
+    if (!locked) return
+    setSecs(Math.max(0, Math.ceil((lock.t - Date.now()) / 1000)))
+    const id = setInterval(() => {
+      const s = Math.max(0, Math.ceil((lock.t - Date.now()) / 1000))
+      setSecs(s)
+      if (s === 0) { setLock({ n: 0, t: 0 }); localStorage.removeItem('oric_login'); clearInterval(id) }
+    }, 1000)
+    return () => clearInterval(id)
+  }, [lock.t, locked])
+
+  const submit = async (e) => {
+    e.preventDefault()
+    if (locked || busy || !supabase) return
+    setBusy(true); setErr('')
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw })
+    setBusy(false)
+    if (error) {
+      const prev = getLock()
+      const n = prev.n + 1
+      const t = n >= MAX_LOGIN_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0
+      const next = { n, t }
+      localStorage.setItem('oric_login', JSON.stringify(next))
+      setLock(next)
+      if (t) setErr('Too many failed attempts. Locked for 15 minutes.')
+      else setErr(`Wrong credentials — ${MAX_LOGIN_ATTEMPTS - n} attempt${MAX_LOGIN_ATTEMPTS - n !== 1 ? 's' : ''} left.`)
+      setPw('')
+    } else {
+      localStorage.removeItem('oric_login')
+      onLogin()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-sm border border-[#E1E3E5] w-full max-w-sm p-8">
@@ -429,21 +454,32 @@ function LoginScreen({ onLogin }) {
           <h1 className="text-xl font-bold text-[#202223]">ORIC Admin</h1>
           <p className="text-sm text-[#6D7175] mt-1">Sign in to manage your shop</p>
         </div>
-        <form onSubmit={submit} className="space-y-3">
-          <div className="relative">
-            <Input type={show ? 'text' : 'password'} value={pw}
-              onChange={e => { setPw(e.target.value); setErr('') }}
-              placeholder="Password" autoFocus className="pr-10" />
-            <button type="button" onClick={() => setShow(s => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6D7175] hover:text-[#202223] text-xs font-medium">
-              {show ? 'Hide' : 'Show'}
-            </button>
+        {locked ? (
+          <div className="text-center py-4 space-y-2">
+            <p className="text-sm font-semibold text-red-600">Account temporarily locked</p>
+            <p className="text-sm text-[#6D7175]">
+              Try again in {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, '0')}
+            </p>
           </div>
-          {err && <p className="text-xs text-red-500 flex items-center gap-1">✕ {err}</p>}
-          <button className="w-full py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
-            Sign in
-          </button>
-        </form>
+        ) : (
+          <form onSubmit={submit} className="space-y-3">
+            <Input type="email" value={email} onChange={e => { setEmail(e.target.value); setErr('') }}
+              placeholder="Admin email" autoFocus autoComplete="email" />
+            <div className="relative">
+              <Input type={show ? 'text' : 'password'} value={pw}
+                onChange={e => { setPw(e.target.value); setErr('') }}
+                placeholder="Password" className="pr-10" autoComplete="current-password" />
+              <button type="button" onClick={() => setShow(s => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6D7175] hover:text-[#202223] text-xs font-medium">
+                {show ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {err && <p className="text-xs text-red-500 flex items-center gap-1">✕ {err}</p>}
+            <button disabled={busy} className="w-full py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {busy ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Signing in…</> : 'Sign in'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )
@@ -467,8 +503,12 @@ create table if not exists products (
 );
 alter table products enable row level security;
 drop policy if exists "Allow all" on products;
-create policy "Allow all" on products for all to anon
-  using (true) with check (true);
+drop policy if exists "Public read products" on products;
+drop policy if exists "Admin write products" on products;
+create policy "Public read products" on products
+  for select using (true);
+create policy "Admin write products" on products
+  for all to authenticated using (true) with check (true);
 
 -- 2. Image storage bucket
 insert into storage.buckets (id, name, public)
@@ -478,9 +518,9 @@ on conflict (id) do nothing;
 create policy "Public read images" on storage.objects
   for select using (bucket_id = 'product-images');
 create policy "Allow upload" on storage.objects
-  for insert to anon with check (bucket_id = 'product-images');
+  for insert to authenticated with check (bucket_id = 'product-images');
 create policy "Allow delete" on storage.objects
-  for delete to anon using (bucket_id = 'product-images');`
+  for delete to authenticated using (bucket_id = 'product-images');`
 
   const copy = () => {
     navigator.clipboard.writeText(sql)
@@ -1063,234 +1103,29 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
   )
 }
 
-// ── JobsList ──────────────────────────────────────────────────────────────────
-function JobsList({ jobs, loading, toast, onAdd, onEdit, onToggleActive, onRefresh }) {
-  const [deletingId, setDeletingId] = useState(null)
-
-  const handleDelete = async (job) => {
-    if (!window.confirm(`Delete "${job.title}"?`)) return
-    setDeletingId(job.id)
-    const { error } = await supabase.from('jobs').delete().eq('id', job.id)
-    if (error) toast('Delete failed: ' + error.message, 'error')
-    else { toast(`"${job.title}" deleted`); onRefresh() }
-    setDeletingId(null)
-  }
-
-  return (
-    <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-[#1D1D1F]">Job Postings</h1>
-          <p className="text-xs text-[#86868B] mt-0.5">{jobs.length} posting{jobs.length !== 1 ? 's' : ''} total</p>
-        </div>
-        <button onClick={onAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1D1D1F] text-white text-sm font-semibold rounded-xl hover:bg-[#424245] transition-colors">
-          {Ico.plus} Post a Job
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : jobs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-5xl mb-4">💼</p>
-          <h3 className="text-lg font-semibold text-[#1D1D1F] mb-2">No job postings yet</h3>
-          <p className="text-sm text-[#86868B] mb-6 max-w-xs">Add your first job posting and it will appear on the public Careers page.</p>
-          <button onClick={onAdd} className="px-6 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-xl hover:bg-[#424245] transition-colors">
-            Post a Job
-          </button>
-          <div className="mt-8 p-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl max-w-lg text-left">
-            <p className="text-xs font-bold text-[#92400E] mb-2">⚠ First-time setup — run this SQL in Supabase editor</p>
-            <pre className="text-[10px] text-[#92400E] whitespace-pre-wrap leading-relaxed">{JOBS_SCHEMA_SQL}</pre>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden">
-          <div className="hidden md:grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-4 px-5 py-3 border-b border-[#F0F0F2] text-[10px] font-bold uppercase tracking-wider text-[#86868B]">
-            <span>Title</span><span>Department</span><span>Location</span><span>Type</span><span>Status</span><span>Actions</span>
-          </div>
-          {jobs.map((job, i) => (
-            <div key={job.id}
-              className={`flex flex-col md:grid md:grid-cols-[1fr_auto_auto_auto_auto_auto] md:items-center gap-2 md:gap-4 px-5 py-4 ${i > 0 ? 'border-t border-[#F0F0F2]' : ''}`}>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#1D1D1F] truncate">{job.title}</p>
-                {job.experience && <p className="text-[11px] text-[#86868B]">{job.experience}</p>}
-              </div>
-              <span className="text-xs text-[#424245] whitespace-nowrap">{job.department || '—'}</span>
-              <span className="text-xs text-[#424245] whitespace-nowrap">{job.location || '—'}</span>
-              <span className="text-[10px] font-medium px-2 py-0.5 bg-[#F5F5F7] rounded-full whitespace-nowrap">{job.type || '—'}</span>
-              <button onClick={() => onToggleActive(job)} title={job.active ? 'Hide' : 'Activate'}
-                className={`w-9 h-5 rounded-full transition-colors flex-shrink-0 relative ${job.active ? 'bg-[#22C55E]' : 'bg-[#D2D2D7]'}`}>
-                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${job.active ? 'translate-x-4' : 'translate-x-0.5'}`} />
-              </button>
-              <div className="flex items-center gap-1">
-                <button onClick={() => onEdit(job)}
-                  className="p-1.5 text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors">{Ico.edit}</button>
-                <button onClick={() => handleDelete(job)} disabled={deletingId === job.id}
-                  className="p-1.5 text-[#86868B] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40">{Ico.trash}</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── JobForm ───────────────────────────────────────────────────────────────────
-function JobForm({ job, toast, onSave, onBack }) {
-  const isNew = !job?.id
-  const [form, setForm] = useState({
-    title:            job?.title            || '',
-    department:       job?.department       || 'Engineering',
-    location:         job?.location         || 'Bangalore',
-    type:             job?.type             || 'Full-time',
-    experience:       job?.experience       || '',
-    description:      job?.description      || '',
-    responsibilities: serializeLines(job?.responsibilities),
-    requirements:     serializeLines(job?.requirements),
-    active:           job?.active !== false,
-    sort_order:       job?.sort_order       ?? 0,
-  })
-  const [saving, setSaving] = useState(false)
-  const [err, setErr]       = useState('')
-
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
-  const handleSave = async () => {
-    if (!form.title.trim()) { setErr('Job title is required.'); return }
-    setSaving(true); setErr('')
-    const payload = {
-      title:            form.title.trim(),
-      department:       form.department,
-      location:         form.location.trim(),
-      type:             form.type,
-      experience:       form.experience.trim(),
-      description:      form.description.trim(),
-      responsibilities: parseLines(form.responsibilities),
-      requirements:     parseLines(form.requirements),
-      active:           form.active,
-      sort_order:       parseInt(form.sort_order) || 0,
-    }
-    const { error } = isNew
-      ? await supabase.from('jobs').insert(payload)
-      : await supabase.from('jobs').update(payload).eq('id', job.id)
-    setSaving(false)
-    if (error) { setErr(error.message); return }
-    toast(isNew ? 'Job posted!' : 'Job updated!')
-    onSave()
-  }
-
-  const Field = ({ label, children }) => (
-    <div>
-      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#86868B] mb-1.5">{label}</label>
-      {children}
-    </div>
-  )
-  const inputCls = 'w-full px-4 py-2.5 border border-[#D2D2D7] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1D1D1F]/20 bg-white'
-
-  return (
-    <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={onBack} className="p-2 rounded-xl hover:bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F] transition-colors">{Ico.back}</button>
-        <div>
-          <h1 className="text-xl font-bold text-[#1D1D1F]">{isNew ? 'New Job Posting' : 'Edit Job'}</h1>
-          <p className="text-xs text-[#86868B]">{isNew ? 'Fill in the details below' : job.title}</p>
-        </div>
-      </div>
-
-      {err && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{err}</div>}
-
-      <div className="max-w-2xl space-y-5">
-        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-6 space-y-5">
-
-          <Field label="Job Title *">
-            <input value={form.title} onChange={e => set('title', e.target.value)} className={inputCls} placeholder="e.g. 3D Print Operator" />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Department">
-              <select value={form.department} onChange={e => set('department', e.target.value)} className={inputCls}>
-                {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-              </select>
-            </Field>
-            <Field label="Job Type">
-              <select value={form.type} onChange={e => set('type', e.target.value)} className={inputCls}>
-                {JOB_TYPES.map(t => <option key={t}>{t}</option>)}
-              </select>
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Location">
-              <input value={form.location} onChange={e => set('location', e.target.value)} className={inputCls} placeholder="Bangalore / Remote / Hybrid" />
-            </Field>
-            <Field label="Experience">
-              <input value={form.experience} onChange={e => set('experience', e.target.value)} className={inputCls} placeholder="e.g. 1–2 years / Fresher" />
-            </Field>
-          </div>
-
-          <Field label="Job Description">
-            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={5}
-              className={`${inputCls} resize-y`} placeholder="Describe the role and what the candidate will do..." />
-          </Field>
-
-          <Field label="Responsibilities (one per line)">
-            <textarea value={form.responsibilities} onChange={e => set('responsibilities', e.target.value)} rows={5}
-              className={`${inputCls} resize-y font-mono text-[12px]`}
-              placeholder={"Operate FDM 3D printers daily\nMonitor and ensure print quality\nPost-process printed parts"} />
-          </Field>
-
-          <Field label="Requirements (one per line)">
-            <textarea value={form.requirements} onChange={e => set('requirements', e.target.value)} rows={5}
-              className={`${inputCls} resize-y font-mono text-[12px]`}
-              placeholder={"Experience with FDM printing\nKnowledge of slicing software\nStrong attention to detail"} />
-          </Field>
-
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => set('active', !form.active)}
-                className={`w-11 h-6 rounded-full transition-colors relative ${form.active ? 'bg-[#22C55E]' : 'bg-[#D2D2D7]'}`}>
-                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.active ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
-              <span className="text-sm text-[#424245]">{form.active ? 'Active — visible on Careers page' : 'Hidden from public'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button onClick={onBack} className="px-5 py-2.5 text-sm text-[#86868B] hover:text-[#1D1D1F] transition-colors">Cancel</button>
-          <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-xl hover:bg-[#424245] transition-colors disabled:opacity-50">
-            {saving
-              ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
-              : isNew ? 'Post Job' : 'Save Changes'}
-          </button>
-        </div>
-
-        <div className="p-4 bg-[#F5F5F7] rounded-xl">
-          <p className="text-[10px] font-bold text-[#86868B] uppercase tracking-wider mb-2">Supabase — Run this SQL once to create the jobs table</p>
-          <pre className="text-[10px] text-[#424245] whitespace-pre-wrap leading-relaxed">{JOBS_SCHEMA_SQL}</pre>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Admin() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem('oric_admin') === '1')
+  const [authed, setAuthed] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [seeding, setSeeding] = useState(false)
-  const [view, setView] = useState('list')   // 'list' | 'form' | 'jobs' | 'jobs_form'
+  const [view, setView] = useState('list')
   const [editProduct, setEditProduct] = useState(null)
-  const [jobs, setJobs] = useState([])
-  const [loadingJobs, setLoadingJobs] = useState(false)
-  const [editJob, setEditJob] = useState(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const { toasts, toast } = useToast()
+
+  useEffect(() => {
+    if (!supabase) { setAuthLoading(false); return }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthed(!!session)
+      setAuthLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const fetchProducts = useCallback(async () => {
     if (!supabase) return
@@ -1302,17 +1137,6 @@ export default function Admin() {
   }, [toast])
 
   useEffect(() => { if (authed && isConfigured) fetchProducts() }, [authed, fetchProducts])
-
-  const fetchJobs = useCallback(async () => {
-    if (!supabase) return
-    setLoadingJobs(true)
-    const { data, error } = await supabase.from('jobs').select('*').order('sort_order', { ascending: true })
-    if (error) toast('Failed to load jobs: ' + error.message, 'error')
-    setJobs(data || [])
-    setLoadingJobs(false)
-  }, [toast])
-
-  useEffect(() => { if (authed && isConfigured && view === 'jobs') fetchJobs() }, [authed, view, fetchJobs])
 
   const handleSeed = async () => {
     setSeeding(true)
@@ -1331,16 +1155,8 @@ export default function Admin() {
     fetchProducts()
   }
 
-  const handleToggleJobActive = async (job) => {
-    const { error } = await supabase.from('jobs').update({ active: !job.active }).eq('id', job.id)
-    if (error) { toast('Update failed: ' + error.message, 'error'); return }
-    toast(`"${job.title}" ${!job.active ? 'activated' : 'hidden'}`)
-    fetchJobs()
-  }
-
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#F6F6F7]"><div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin" /></div>
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />
-
-  const [mobileOpen, setMobileOpen] = useState(false)
 
   const SidebarContent = () => (
     <>
@@ -1369,20 +1185,13 @@ export default function Admin() {
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{products.length}</span>
           )}
         </button>
-        <button onClick={() => { setView('jobs'); setMobileOpen(false) }}
-          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'jobs' || view === 'jobs_form' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
-          <span className="flex items-center gap-2">💼 Job Postings</span>
-          {jobs.length > 0 && (
-            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{jobs.length}</span>
-          )}
-        </button>
         <a href="/" target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
           {Ico.store} View store ↗
         </a>
       </nav>
       <div className="px-3 py-4 border-t border-white/10">
-        <button onClick={() => { sessionStorage.removeItem('oric_admin'); setAuthed(false) }}
+        <button onClick={() => supabase.auth.signOut()}
           className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
           {Ico.logout} Sign out
         </button>
@@ -1439,29 +1248,12 @@ export default function Admin() {
              onRefresh={fetchProducts}
              onSeed={handleSeed}
            />
-         ) : view === 'form' ? (
+         ) : (
            <ProductForm
              product={editProduct}
              toast={toast}
              onSave={() => { setView('list'); fetchProducts() }}
              onBack={() => setView('list')}
-           />
-         ) : view === 'jobs' ? (
-           <JobsList
-             jobs={jobs}
-             loading={loadingJobs}
-             toast={toast}
-             onAdd={() => { setEditJob(null); setView('jobs_form') }}
-             onEdit={j => { setEditJob(j); setView('jobs_form') }}
-             onToggleActive={handleToggleJobActive}
-             onRefresh={fetchJobs}
-           />
-         ) : (
-           <JobForm
-             job={editJob}
-             toast={toast}
-             onSave={() => { setView('jobs'); fetchJobs() }}
-             onBack={() => setView('jobs')}
            />
          )
         }

@@ -4,13 +4,28 @@ import { motion } from 'framer-motion'
 export default function Contact() {
   const [status, setStatus] = useState('idle')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setStatus('submitting')
-    setTimeout(() => {
-      setStatus('success')
-      setTimeout(() => setStatus('idle'), 3000)
-    }, 1500)
+    try {
+      const res = await fetch('https://formsubmit.co/ajax/mintojy@gmail.com', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(e.target),
+      })
+      const json = await res.json()
+      if (json.success === 'true' || json.success === true) {
+        setStatus('success')
+        e.target.reset()
+        setTimeout(() => setStatus('idle'), 5000)
+      } else {
+        setStatus('error')
+        setTimeout(() => setStatus('idle'), 4000)
+      }
+    } catch {
+      setStatus('error')
+      setTimeout(() => setStatus('idle'), 4000)
+    }
   }
 
   return (
@@ -41,9 +56,9 @@ export default function Contact() {
         >
           <div className="grid md:grid-cols-2 gap-4">
             {[
-              { label: 'Name',  type: 'text',  placeholder: 'Your name'       },
-              { label: 'Email', type: 'email', placeholder: 'your@email.com'  },
-            ].map(({ label, type, placeholder }) => (
+              { label: 'Name',  type: 'text',  placeholder: 'Your name',      name: 'name'  },
+              { label: 'Email', type: 'email', placeholder: 'your@email.com', name: 'email' },
+            ].map(({ label, type, placeholder, name }) => (
               <div key={label}>
                 <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1.5">
                   {label}
@@ -51,6 +66,7 @@ export default function Contact() {
                 <input
                   required
                   type={type}
+                  name={name}
                   placeholder={placeholder}
                   className="w-full bg-gray-800/80 border border-gray-700 focus:border-red-500 rounded-lg px-4 py-3 text-white outline-none transition-colors placeholder:text-gray-600 text-sm"
                 />
@@ -65,6 +81,7 @@ export default function Contact() {
             <textarea
               required
               rows="4"
+              name="message"
               placeholder="Describe your project or paste an SVG link..."
               className="w-full bg-gray-800/80 border border-gray-700 focus:border-red-500 rounded-lg px-4 py-3 text-white outline-none transition-colors placeholder:text-gray-600 text-sm resize-none"
             />
@@ -76,6 +93,8 @@ export default function Contact() {
             className={`w-full py-4 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
               status === 'success'
                 ? 'bg-green-600 text-white cursor-default'
+                : status === 'error'
+                ? 'bg-red-600 text-white cursor-default'
                 : status === 'submitting'
                 ? 'bg-gray-700 text-gray-400 cursor-wait'
                 : 'bg-white text-black hover:bg-gray-100 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)]'
@@ -85,6 +104,7 @@ export default function Contact() {
             {status === 'idle'       && 'Send Inquiry'}
             {status === 'submitting' && 'Processing…'}
             {status === 'success'    && '✓  Message Sent!'}
+            {status === 'error'      && '✕  Failed — Try Again'}
           </motion.button>
         </motion.form>
       </div>
