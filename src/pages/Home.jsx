@@ -83,21 +83,33 @@ export default function Home() {
   const [videoActive, setVideoActive] = useState(false)
 
   useEffect(() => {
-    const el = heroRef.current
-    if (!el) return
+    const hero = heroRef.current
+    const video = videoRef.current
+    if (!hero || !video) return
+
     const obs = new IntersectionObserver(
       ([entry]) => setVideoActive(!entry.isIntersecting),
       { threshold: 0 }
     )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
+    obs.observe(hero)
 
-  useEffect(() => {
-    if (!videoRef.current) return
-    if (videoActive) videoRef.current.play().catch(() => {})
-    else videoRef.current.pause()
-  }, [videoActive])
+    const handleScroll = () => {
+      if (!video.duration) return
+      const heroBottom = hero.offsetTop + hero.offsetHeight
+      const scrollY = window.scrollY
+      if (scrollY <= heroBottom) return
+      const pageHeight = document.documentElement.scrollHeight - window.innerHeight
+      const scrollableAfterHero = Math.max(1, pageHeight - heroBottom)
+      const progress = Math.min(1, (scrollY - heroBottom) / scrollableAfterHero)
+      video.currentTime = progress * video.duration
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      obs.disconnect()
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   useSEO({
     title: '3D Printing Service in Bangalore — Custom Prints, Figurines & Prototypes',
@@ -120,10 +132,9 @@ export default function Home() {
           ref={videoRef}
           src="/Timelapse.mp4"
           muted
-          loop
           playsInline
           preload="auto"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
         />
       </div>
 
