@@ -17,7 +17,7 @@ const col2 = [
 
 export default function OricFooter() {
   return (
-    <footer className="bg-[#F5F5F7] border-t border-[#D2D2D7]">
+    <footer className="bg-white/80 backdrop-blur-sm border-t border-[#D2D2D7]" style={{ position: 'relative', zIndex: 2 }}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
         {/* Top */}
