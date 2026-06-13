@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
@@ -77,6 +78,26 @@ function ProductCard({ product }) {
 export default function Home() {
   const { products } = useProducts()
   const featured = products.slice(0, 4)
+  const heroRef = useRef(null)
+  const videoRef = useRef(null)
+  const [videoActive, setVideoActive] = useState(false)
+
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => setVideoActive(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!videoRef.current) return
+    if (videoActive) videoRef.current.play().catch(() => {})
+    else videoRef.current.pause()
+  }, [videoActive])
 
   useSEO({
     title: '3D Printing Service in Bangalore — Custom Prints, Figurines & Prototypes',
@@ -85,6 +106,29 @@ export default function Home() {
 
   return (
     <div className="pt-16">
+
+      {/* Timelapse video background — fades in after hero scrolls out */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none',
+          opacity: videoActive ? 1 : 0,
+          transition: 'opacity 1.2s ease',
+        }}
+      >
+        <video
+          ref={videoRef}
+          src="/Timelapse.mp4"
+          muted
+          loop
+          playsInline
+          preload="auto"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3 }}
+        />
+      </div>
+
+      {/* Hero — scroll sentinel */}
+      <div ref={heroRef}>
 
       {/* ── HERO MOBILE: video on top, text below ── */}
       <div className="block sm:hidden bg-[#1D1D1F]">
@@ -148,9 +192,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </div>{/* end hero sentinel */}
+
+      {/* All post-hero content — sits above the fixed video */}
+      <div style={{ position: 'relative', zIndex: 2 }}>
 
       {/* ── SERVICES GRID ── */}
-      <section className="py-28 bg-white">
+      <section className="py-28 bg-white/80">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
@@ -199,7 +247,7 @@ export default function Home() {
       </section>
 
       {/* ── FEATURED PRODUCTS ── */}
-      <section className="py-28 bg-[#F5F5F7]">
+      <section className="py-28 bg-[#F5F5F7]/80">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
           <div className="mb-14">
@@ -264,7 +312,7 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-28 bg-white">
+      <section className="py-28 bg-white/80">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="text-center mb-16">
             <motion.p
@@ -304,7 +352,7 @@ export default function Home() {
       </section>
 
       {/* ── 3D PRINT CONFIGURATOR ── */}
-      <section className="py-20 bg-[#F5F5F7] border-b border-[#D2D2D7]">
+      <section className="py-20 bg-[#F5F5F7]/80 border-b border-[#D2D2D7]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="mb-12">
             <motion.p
@@ -372,6 +420,8 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      </div>{/* end post-hero */}
 
     </div>
   )
