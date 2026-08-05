@@ -399,11 +399,13 @@ const MAX_LOGIN_ATTEMPTS = 5
 const LOCKOUT_MS = 15 * 60 * 1000
 
 function LoginScreen({ onLogin }) {
+  const [mode, setMode] = useState('login') // 'login' | 'reset' | 'reset-sent'
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
   const [err, setErr] = useState('')
   const [show, setShow] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [resetBusy, setResetBusy] = useState(false)
 
   const getLock = () => {
     try { return JSON.parse(localStorage.getItem('oric_login') || '{"n":0,"t":0}') }
@@ -446,13 +448,27 @@ function LoginScreen({ onLogin }) {
     }
   }
 
+  const submitReset = async (e) => {
+    e.preventDefault()
+    if (resetBusy || !supabase || !email.trim()) return
+    setResetBusy(true); setErr('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/admin/reset-password`,
+    })
+    setResetBusy(false)
+    if (error) setErr(error.message)
+    else setMode('reset-sent')
+  }
+
   return (
     <div className="min-h-screen bg-[#F6F6F7] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-sm border border-[#E1E3E5] w-full max-w-sm p-8">
         <div className="text-center mb-8">
           <div className="w-12 h-12 bg-[#1D1D1F] rounded-xl flex items-center justify-center mx-auto mb-4 text-white font-black text-xl">O</div>
           <h1 className="text-xl font-bold text-[#202223]">ORIC Admin</h1>
-          <p className="text-sm text-[#6D7175] mt-1">Sign in to manage your shop</p>
+          <p className="text-sm text-[#6D7175] mt-1">
+            {mode === 'login' ? 'Sign in to manage your shop' : 'Reset your password'}
+          </p>
         </div>
         {locked ? (
           <div className="text-center py-4 space-y-2">
@@ -461,6 +477,35 @@ function LoginScreen({ onLogin }) {
               Try again in {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, '0')}
             </p>
           </div>
+        ) : mode === 'reset-sent' ? (
+          <div className="text-center py-2 space-y-4">
+            <p className="text-sm text-[#202223]">
+              If an account exists for <span className="font-semibold">{email.trim()}</span>, we've sent a password reset link — check your inbox.
+            </p>
+            <button
+              onClick={() => { setMode('login'); setErr('') }}
+              className="text-sm font-semibold text-[#1D1D1F] hover:underline underline-offset-2"
+            >
+              ← Back to sign in
+            </button>
+          </div>
+        ) : mode === 'reset' ? (
+          <form onSubmit={submitReset} className="space-y-3">
+            <Input type="email" value={email} onChange={e => { setEmail(e.target.value); setErr('') }}
+              placeholder="Admin email" autoFocus autoComplete="email" />
+            {err && <p className="text-xs text-red-500 flex items-center gap-1">✕ {err}</p>}
+            <button disabled={resetBusy} className="w-full py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {resetBusy ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Sending…</> : 'Send reset link'}
+            </button>
+            <button
+              type="button"
+              disabled={resetBusy}
+              onClick={() => { setMode('login'); setErr('') }}
+              className="w-full text-center text-sm font-medium text-[#6D7175] hover:text-[#202223] transition-colors disabled:opacity-40"
+            >
+              ← Back to sign in
+            </button>
+          </form>
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <Input type="email" value={email} onChange={e => { setEmail(e.target.value); setErr('') }}
@@ -477,6 +522,13 @@ function LoginScreen({ onLogin }) {
             {err && <p className="text-xs text-red-500 flex items-center gap-1">✕ {err}</p>}
             <button disabled={busy} className="w-full py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
               {busy ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Signing in…</> : 'Sign in'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('reset'); setErr(''); setPw('') }}
+              className="w-full text-center text-sm font-medium text-[#6D7175] hover:text-[#202223] transition-colors"
+            >
+              Forgot password?
             </button>
           </form>
         )}

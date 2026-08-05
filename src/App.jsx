@@ -11,6 +11,7 @@ import Services from './pages/Services'
 import BranderRollerPage from './pages/BranderRollerPage'
 import ProductDetail from './pages/ProductDetail'
 import Admin from './pages/Admin'
+import AdminResetPassword from './pages/AdminResetPassword'
 import Lithophane from './pages/Lithophane'
 import About from './pages/About'
 import RefundPolicy from './pages/RefundPolicy'
@@ -24,7 +25,7 @@ function ScrollToTop() {
 
 function Layout() {
   const { pathname } = useLocation()
-  const isAdmin = pathname === '/admin'
+  const isAdmin = pathname.startsWith('/admin')
   return (
     <>
       <ScrollToTop />
@@ -38,6 +39,7 @@ function Layout() {
         <Route path="/shop/:productId"        element={<ProductDetail />}     />
         <Route path="/services"               element={<Services />}          />
         <Route path="/admin"                  element={<Admin />}             />
+        <Route path="/admin/reset-password"   element={<AdminResetPassword />} />
         <Route path="/lithophanes"            element={<Lithophane />}        />
         <Route path="/about"                  element={<About />}             />
         <Route path="/refund-policy"          element={<RefundPolicy />}      />
