@@ -8,7 +8,7 @@ export default function About() {
   })
 
   return (
-    <div className="pt-16 min-h-screen bg-white">
+    <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
       <div className="bg-[#1D1D1F]">

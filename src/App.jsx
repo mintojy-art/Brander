@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { CartProvider } from './context/CartContext'
+import AnnouncementBar from './components/AnnouncementBar'
 import OricNavbar from './components/OricNavbar'
 import OricFooter from './components/OricFooter'
 import CartSidebar from './components/CartSidebar'
@@ -27,6 +28,7 @@ function Layout() {
   return (
     <>
       <ScrollToTop />
+      {!isAdmin && <AnnouncementBar />}
       {!isAdmin && <OricNavbar />}
       {!isAdmin && <CartSidebar />}
       <Routes>

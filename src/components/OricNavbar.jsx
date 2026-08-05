@@ -2,18 +2,21 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '../context/CartContext'
+import { categories, categoryIcons } from '../data/products'
 
 const navLinks = [
-  { to: '/',             label: 'Home'        },
-  { to: '/shop',         label: 'Shop'        },
   { to: '/services',     label: 'Services'    },
   { to: '/about',        label: 'About'       },
   { to: '/lithophanes',  label: 'Lithophane' },
 ]
 
+const shopCategories = categories.filter((c) => c !== 'All')
+
 export default function OricNavbar() {
-  const [scrolled, setScrolled]   = useState(false)
-  const [mobileOpen, setMobile]   = useState(false)
+  const [scrolled, setScrolled]     = useState(false)
+  const [mobileOpen, setMobile]     = useState(false)
+  const [shopMenuOpen, setShopMenu] = useState(false)
+  const [mobileShopOpen, setMShop]  = useState(false)
   const { count, setIsOpen }      = useCart()
   const location                  = useLocation()
 
@@ -29,7 +32,7 @@ export default function OricNavbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-9 left-0 right-0 z-40 transition-all duration-300 ${
         scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-[#D2D2D7]' : 'bg-white/70 backdrop-blur-md'
       }`}
     >
@@ -43,6 +46,78 @@ export default function OricNavbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
+            <Link
+              key="/"
+              to="/"
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                isActive('/')
+                  ? 'bg-[#1D1D1F] text-white'
+                  : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-[#F5F5F7]'
+              }`}
+            >
+              Home
+            </Link>
+
+            {/* Shop mega-menu trigger */}
+            <div
+              className="relative"
+              onMouseEnter={() => setShopMenu(true)}
+              onMouseLeave={() => setShopMenu(false)}
+            >
+              <Link
+                to="/shop"
+                className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                  isActive('/shop')
+                    ? 'bg-[#1D1D1F] text-white'
+                    : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-[#F5F5F7]'
+                }`}
+              >
+                Shop
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </Link>
+
+              <AnimatePresence>
+                {shopMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-[560px]"
+                  >
+                    <div className="bg-white rounded-2xl border border-[#D2D2D7] shadow-xl p-5">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#86868B] mb-3 px-1">
+                        Shop by Category
+                      </p>
+                      <div className="grid grid-cols-3 gap-1.5 mb-3">
+                        {shopCategories.map((cat) => (
+                          <Link
+                            key={cat}
+                            to={`/shop?cat=${encodeURIComponent(cat)}`}
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F5F5F7] transition-colors"
+                          >
+                            <span className="text-lg">{categoryIcons[cat] || '🖨️'}</span>
+                            <span className="text-sm text-[#1D1D1F] font-medium">{cat}</span>
+                          </Link>
+                        ))}
+                      </div>
+                      <a
+                        href="https://wa.me/918310194953"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl hover:bg-[#E8E8ED] transition-colors"
+                      >
+                        <span className="text-xl">🖼️</span>
+                        <span className="flex-1 text-sm text-[#1D1D1F]">
+                          <span className="font-semibold">Have a photo?</span> Get a custom quote →
+                        </span>
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {navLinks.map((link) => (
               <Link
                 key={link.to}
@@ -111,6 +186,66 @@ export default function OricNavbar() {
             className="md:hidden overflow-hidden bg-white border-b border-[#D2D2D7]"
           >
             <div className="px-5 pt-2 pb-5 space-y-1">
+              <Link
+                to="/"
+                className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  isActive('/')
+                    ? 'bg-[#1D1D1F] text-white'
+                    : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
+                }`}
+              >
+                Home
+              </Link>
+
+              {/* Shop — expandable category list */}
+              <div>
+                <div className="flex items-center">
+                  <Link
+                    to="/shop"
+                    className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      isActive('/shop')
+                        ? 'bg-[#1D1D1F] text-white'
+                        : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
+                    }`}
+                  >
+                    Shop
+                  </Link>
+                  <button
+                    onClick={() => setMShop((o) => !o)}
+                    className="p-3 text-[#86868B]"
+                    aria-label="Toggle shop categories"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                      style={{ transform: mobileShopOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {mobileShopOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden pl-4"
+                    >
+                      <div className="grid grid-cols-2 gap-1 py-1">
+                        {shopCategories.map((cat) => (
+                          <Link
+                            key={cat}
+                            to={`/shop?cat=${encodeURIComponent(cat)}`}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors"
+                          >
+                            <span>{categoryIcons[cat] || '🖨️'}</span>
+                            {cat}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {navLinks.map((link) => (
                 <Link
                   key={link.to}

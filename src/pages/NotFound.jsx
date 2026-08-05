@@ -6,7 +6,7 @@ export default function NotFound() {
   useSEO({ title: 'Page Not Found' })
 
   return (
-    <div className="pt-16 min-h-screen bg-[#F5F5F7] flex items-center justify-center px-5">
+    <div className="pt-[100px] min-h-screen bg-[#F5F5F7] flex items-center justify-center px-5">
       <motion.div
         className="text-center max-w-md"
         initial={{ opacity: 0, y: 24 }}

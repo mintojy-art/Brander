@@ -75,7 +75,7 @@ export default function ProductDetail() {
   )
 
   return (
-    <div className="pt-16 min-h-screen bg-white">
+    <div className="pt-[100px] min-h-screen bg-white">
 
       {/* ── Breadcrumb ── */}
       <div className="bg-[#F5F5F7] border-b border-[#D2D2D7]">

@@ -3,6 +3,10 @@ import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../hooks/useProducts'
 import PrintConfigurator from '../components/PrintConfigurator'
+import ProductCarousel from '../components/ProductCarousel'
+import TrustBadgeRow from '../components/TrustBadgeRow'
+import Testimonials from '../components/Testimonials'
+import FAQSection from '../components/FAQSection'
 import { useSEO } from '../hooks/useSEO'
 
 const services = [
@@ -74,9 +78,30 @@ function ProductCard({ product }) {
   )
 }
 
+function ShopAllCard() {
+  return (
+    <Link
+      to="/shop"
+      className="group flex flex-col items-center justify-center gap-4 bg-[#1D1D1F] rounded-3xl border-2 border-[#1D1D1F] hover:bg-[#2D2D2F] transition-all duration-300 cursor-pointer h-full min-h-[280px] p-6 text-center"
+    >
+      <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
+        <span className="text-xl">🛍️</span>
+      </div>
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 mb-2">Browse Everything</p>
+        <p className="text-lg font-bold text-white leading-snug">Shop All Products</p>
+      </div>
+      <div className="flex items-center gap-2 px-4 py-2 bg-white text-[#1D1D1F] text-xs font-semibold rounded-full group-hover:bg-[#F5F5F7] transition-all duration-300">
+        View All <span className="text-base leading-none">→</span>
+      </div>
+    </Link>
+  )
+}
+
 export default function Home() {
   const { products } = useProducts()
-  const featured = products.slice(0, 4)
+  const bestSellers = products.filter((p) => p.badge === 'Popular')
+  const newArrivals  = products.filter((p) => p.badge === 'New')
 
   useSEO({
     title: '3D Printing Service in Bangalore — Custom Prints, Figurines & Prototypes',
@@ -84,7 +109,7 @@ export default function Home() {
   })
 
   return (
-    <div className="pt-16">
+    <div className="pt-[100px]">
 
       {/* ── HERO MOBILE: video on top, text below ── */}
       <div className="block sm:hidden bg-[#1D1D1F]">
@@ -149,6 +174,8 @@ export default function Home() {
         </div>
       </section>
 
+      <TrustBadgeRow />
+
       {/* ── SERVICES GRID ── */}
       <section className="py-28 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
@@ -198,7 +225,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FEATURED PRODUCTS ── */}
+      {/* ── BEST SELLERS + NEW ARRIVALS ── */}
       <section className="py-28 bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
@@ -214,7 +241,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              Featured Products
+              Best Sellers
             </motion.h2>
           </div>
 
@@ -234,32 +261,27 @@ export default function Home() {
             <span className="text-xs font-semibold text-[#EA580C] flex-shrink-0">Send Your Photo →</span>
           </motion.a>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {featured.map((p) => <ProductCard key={p.id} product={p} />)}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              <Link
-                to="/shop"
-                className="group flex flex-col items-center justify-center gap-5 bg-[#1D1D1F] rounded-3xl border-2 border-[#1D1D1F] hover:bg-[#2D2D2F] transition-all duration-300 cursor-pointer h-full min-h-[280px] p-8 text-center"
+          {bestSellers.length > 0 && (
+            <ProductCarousel>
+              {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
+              <ShopAllCard />
+            </ProductCarousel>
+          )}
+
+          {newArrivals.length > 0 && (
+            <div className="mt-20">
+              <motion.h3
+                className="text-2xl font-bold text-[#1D1D1F] mb-6"
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               >
-                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
-                  <span className="text-2xl">🛍️</span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 mb-2">Browse Everything</p>
-                  <p className="text-xl font-bold text-white leading-snug">Shop All Products</p>
-                  <p className="text-sm text-white/60 mt-2">View our full catalogue of 3D printed creations</p>
-                </div>
-                <div className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#1D1D1F] text-xs font-semibold rounded-full group-hover:bg-[#F5F5F7] transition-all duration-300">
-                  View All <span className="text-base leading-none">→</span>
-                </div>
-              </Link>
-            </motion.div>
-          </div>
+                New Arrivals
+              </motion.h3>
+              <ProductCarousel>
+                {newArrivals.map((p) => <ProductCard key={p.id} product={p} />)}
+                <ShopAllCard />
+              </ProductCarousel>
+            </div>
+          )}
         </div>
       </section>
 
@@ -331,6 +353,10 @@ export default function Home() {
           <PrintConfigurator />
         </div>
       </section>
+
+      <Testimonials />
+
+      <FAQSection />
 
       {/* ── STATEMENT BANNER ── */}
       <section className="py-28 bg-[#1D1D1F]">

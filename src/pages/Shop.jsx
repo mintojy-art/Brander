@@ -1,9 +1,8 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../hooks/useProducts'
-import { categories as staticCategories } from '../data/products'
+import { categoryIcons } from '../data/products'
 import { useSEO } from '../hooks/useSEO'
 
 function StarMini({ rating }) {
@@ -93,7 +92,12 @@ function ProductCard({ product }) {
 
 export default function Shop() {
   const { products, loading } = useProducts()
-  const [active, setActive] = useState('All')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const active = searchParams.get('cat') || 'All'
+  const setActive = (cat) => {
+    if (cat === 'All') setSearchParams({})
+    else setSearchParams({ cat })
+  }
   const categories = ['All', ...new Set(products.map(p => p.category))]
   const filtered = active === 'All' ? products : products.filter((p) => p.category === active)
 
@@ -103,7 +107,7 @@ export default function Shop() {
   })
 
   return (
-    <div className="pt-16 min-h-screen bg-white">
+    <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
       <div className="bg-[#F5F5F7] border-b border-[#D2D2D7]">
@@ -132,6 +136,41 @@ export default function Shop() {
       </div>
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-12">
+
+        {/* Popular categories */}
+        <div className="mb-10">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#86868B] mb-4">
+            Popular Categories
+          </p>
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+            {categories.filter((c) => c !== 'All').map((cat) => {
+              const itemCount = products.filter((p) => p.category === cat).length
+              return (
+                <motion.button
+                  key={cat}
+                  onClick={() => setActive(cat)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-3xl border transition-all ${
+                    active === cat
+                      ? 'bg-[#1D1D1F] border-[#1D1D1F]'
+                      : 'bg-white border-[#D2D2D7] hover:border-[#86868B]'
+                  }`}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <span className="text-2xl">{categoryIcons[cat] || '🖨️'}</span>
+                  <span className={`text-xs font-semibold ${active === cat ? 'text-white' : 'text-[#1D1D1F]'}`}>
+                    {cat}
+                  </span>
+                  <span className={`text-[10px] ${active === cat ? 'text-white/60' : 'text-[#86868B]'}`}>
+                    {itemCount} item{itemCount !== 1 ? 's' : ''}
+                  </span>
+                </motion.button>
+              )
+            })}
+          </div>
+        </div>
 
         {/* Category filter */}
         <div className="flex flex-wrap gap-2 mb-10">

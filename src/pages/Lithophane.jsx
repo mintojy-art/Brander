@@ -1047,7 +1047,7 @@ export default function Lithophane() {
       stlBuf={orderModal.buf}
       imageFile={orderModal.imageFile}
     />
-    <div className="pt-16 bg-white min-h-screen">
+    <div className="pt-[100px] bg-white min-h-screen">
 
       {/* ── HERO ── */}
       <section className="relative bg-[#1D1D1F] py-20 px-5 overflow-hidden">

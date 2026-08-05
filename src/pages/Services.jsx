@@ -91,7 +91,7 @@ export default function Services() {
     description: 'ORIC offers 8 professional 3D printing services in Bangalore: small batch manufacturing, custom prints, prototyping, figurines, toys, idols and more.',
   })
   return (
-    <div className="pt-16 min-h-screen bg-white">
+    <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
       <div className="bg-[#1D1D1F]">

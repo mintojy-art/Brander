@@ -66,6 +66,10 @@
 }
 .float-animation { animation: float 5s ease-in-out infinite; }
 
+/* ── Hide scrollbar (carousels) ── */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* ── Cart slide-in ── */
 @keyframes slideInRight {
   from { transform: translateX(100%); opacity: 0; }

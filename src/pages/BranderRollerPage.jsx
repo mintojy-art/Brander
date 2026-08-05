@@ -21,7 +21,7 @@ export default function BranderRollerPage() {
     document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <div className="pt-16">
+    <div className="pt-[100px]">
       {/* Breadcrumb */}
       <div className="bg-[#F5F5F7] border-b border-[#D2D2D7] py-3 px-5">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-[#86868B]">
