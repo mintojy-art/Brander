@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Cropper from 'react-easy-crop'
 import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo } from '../lib/supabase'
 import { products as STATIC_PRODUCTS } from '../data/products'
+import { getCroppedImg } from '../utils/cropImage'
 
 const CATEGORIES = ['Tools', 'Figurines', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
 
@@ -244,6 +246,145 @@ create policy "Public read products" on products
 create policy "Admin write products" on products
   for all to authenticated using (true) with check (true);`
 
+// ── Image Crop Modal ──────────────────────────────────────────────────────────
+const RESIZE_OPTIONS = [
+  { label: 'Resize to 1600px', value: 1600 },
+  { label: 'Resize to 1200px', value: 1200 },
+  { label: 'Resize to 800px', value: 800 },
+  { label: 'Original size', value: 'original' },
+]
+
+function ImageCropModal({ queue, onFinish, onCancel, toast }) {
+  const [index, setIndex] = useState(0)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [naturalAspect, setNaturalAspect] = useState(1)
+  const [aspectMode, setAspectMode] = useState('square') // 'square' | 'original'
+  const [maxSize, setMaxSize] = useState(1600)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  const [processing, setProcessing] = useState(false)
+  const resultsRef = useRef([])
+
+  const current = queue[index]
+
+  useEffect(() => {
+    if (!current) return
+    const url = URL.createObjectURL(current)
+    setPreviewUrl(url)
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setAspectMode('square')
+    setCroppedAreaPixels(null)
+    return () => URL.revokeObjectURL(url)
+  }, [current])
+
+  if (!current) return null
+
+  const aspect = aspectMode === 'original' ? naturalAspect : 1
+
+  const advance = (fileToUse) => {
+    resultsRef.current = [...resultsRef.current, fileToUse]
+    if (index + 1 >= queue.length) onFinish(resultsRef.current)
+    else setIndex(i => i + 1)
+  }
+
+  const handleSkip = () => advance(current)
+
+  const handleSkipAll = () => {
+    onFinish([...resultsRef.current, ...queue.slice(index)])
+  }
+
+  const handleApply = async () => {
+    if (!croppedAreaPixels) { handleSkip(); return }
+    setProcessing(true)
+    try {
+      const blob = await getCroppedImg(previewUrl, croppedAreaPixels, maxSize === 'original' ? null : maxSize)
+      const name = current.name.replace(/\.[^.]+$/, '') + '.jpg'
+      advance(new File([blob], name, { type: 'image/jpeg' }))
+    } catch (e) {
+      toast?.('Crop failed — using original image', 'error')
+      advance(current)
+    }
+    setProcessing(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4" onClick={onCancel}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E1E3E5]">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[#202223]">Crop image {index + 1} of {queue.length}</p>
+            <p className="text-xs text-[#6D7175] truncate max-w-[280px]">{current.name}</p>
+          </div>
+          <button onClick={onCancel} className="text-[#6D7175] hover:text-[#202223] shrink-0">{Ico.xLg}</button>
+        </div>
+
+        {previewUrl && (
+          <div className="relative bg-[#111] h-[340px] sm:h-[420px]">
+            <Cropper
+              image={previewUrl}
+              crop={crop}
+              zoom={zoom}
+              aspect={aspect}
+              cropShape="rect"
+              showGrid
+              onMediaLoaded={({ width, height }) => setNaturalAspect(width / height)}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
+            />
+          </div>
+        )}
+
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex border border-[#C9CCCF] rounded-lg overflow-hidden shrink-0">
+              {[['Square', 'square'], ['Original ratio', 'original']].map(([lbl, val]) => (
+                <button key={lbl} onClick={() => setAspectMode(val)}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${aspectMode === val ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#6D7175] hover:bg-[#F6F6F7]'}`}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 flex-1 min-w-[140px]">
+              <span className="text-xs text-[#6D7175] shrink-0">Zoom</span>
+              <input type="range" min={1} max={3} step={0.05} value={zoom}
+                onChange={e => setZoom(Number(e.target.value))}
+                className="flex-1 h-1.5 rounded-full accent-[#1D1D1F]" />
+            </div>
+
+            <div className="w-44 shrink-0">
+              <Select value={maxSize} onChange={e => setMaxSize(e.target.value === 'original' ? 'original' : Number(e.target.value))}>
+                {RESIZE_OPTIONS.map(o => <option key={o.label} value={o.value}>{o.label}</option>)}
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <button onClick={handleSkipAll} className="text-xs font-medium text-[#6D7175] hover:text-[#202223] transition-colors">
+              Skip remaining — use originals
+            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={handleSkip} disabled={processing}
+                className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40">
+                Use original
+              </button>
+              <button onClick={handleApply} disabled={processing}
+                className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2">
+                {processing ? (
+                  <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Processing…</>
+                ) : index + 1 < queue.length ? 'Apply & Next' : 'Apply & Finish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Image Uploader ────────────────────────────────────────────────────────────
 function ImageUploader({ images, onChange, toast }) {
   const [uploading, setUploading] = useState(false)
@@ -251,14 +392,14 @@ function ImageUploader({ images, onChange, toast }) {
   const [drag, setDrag] = useState(false)
   const [bucketMissing, setBucketMissing] = useState(false)
   const [sqlCopied, setSqlCopied] = useState(false)
+  const [cropQueue, setCropQueue] = useState(null)
   const inputRef = useRef(null)
 
-  const handleFiles = async (files) => {
-    if (!files?.length) return
+  const uploadFiles = async (fileArr) => {
+    if (!fileArr?.length) return
     setUploading(true)
     setProgress(0)
     setBucketMissing(false)
-    const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'))
     const urls = []
     for (let i = 0; i < fileArr.length; i++) {
       try {
@@ -279,6 +420,11 @@ function ImageUploader({ images, onChange, toast }) {
     if (urls.length) onChange([...images, ...urls])
     setUploading(false)
     setProgress(0)
+  }
+
+  const handleFiles = (files) => {
+    const fileArr = Array.from(files || []).filter(f => f.type.startsWith('image/'))
+    if (fileArr.length) setCropQueue(fileArr)
   }
 
   const copySql = () => {
@@ -327,7 +473,7 @@ function ImageUploader({ images, onChange, toast }) {
           <div className="flex flex-col items-center gap-2 text-[#6D7175]">
             {Ico.upload}
             <p className="text-sm font-medium text-[#202223] mt-1">Drop images here or click to upload</p>
-            <p className="text-xs">JPG, PNG, WebP · Multiple files supported</p>
+            <p className="text-xs">JPG, PNG, WebP · Multiple files supported · Crop &amp; resize before upload</p>
           </div>
         )}
       </div>
@@ -391,6 +537,15 @@ function ImageUploader({ images, onChange, toast }) {
             <span className="text-xs">Add more</span>
           </div>
         </div>
+      )}
+
+      {cropQueue && (
+        <ImageCropModal
+          queue={cropQueue}
+          toast={toast}
+          onCancel={() => setCropQueue(null)}
+          onFinish={(files) => { setCropQueue(null); uploadFiles(files) }}
+        />
       )}
     </div>
   )
