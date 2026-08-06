@@ -6,6 +6,7 @@ import PrintConfigurator from '../components/PrintConfigurator'
 import ProductCarousel from '../components/ProductCarousel'
 import TrustBadgeRow from '../components/TrustBadgeRow'
 import Testimonials from '../components/Testimonials'
+import InstagramFeed from '../components/InstagramFeed'
 import FAQSection from '../components/FAQSection'
 import { useSEO } from '../hooks/useSEO'
 
@@ -355,6 +356,8 @@ export default function Home() {
       </section>
 
       <Testimonials />
+
+      <InstagramFeed />
 
       <FAQSection />
 

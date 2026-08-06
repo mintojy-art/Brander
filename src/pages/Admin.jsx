@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { supabase, isConfigured, uploadImage, deleteImage } from '../lib/supabase'
+import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo } from '../lib/supabase'
 import { products as STATIC_PRODUCTS } from '../data/products'
 
 const CATEGORIES = ['Tools', 'Figurines', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
@@ -48,6 +48,8 @@ const Ico = {
   store:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
   logout:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
   search:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  eye:     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  eyeOff:  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a20.3 20.3 0 015.06-6.06M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a20.29 20.29 0 01-3.22 4.44M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
   upload:  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>,
   x:       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
   xLg:     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
@@ -153,21 +155,21 @@ function SchemaErrorBanner({ onDismiss }) {
 }
 
 // ── Delete Modal ──────────────────────────────────────────────────────────────
-function DeleteModal({ product, onConfirm, onCancel }) {
+function DeleteModal({ title, message, confirmLabel = 'Delete', onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onCancel}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
         <div className="w-11 h-11 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600">
           {Ico.trash}
         </div>
-        <h3 className="text-base font-bold text-[#202223] mb-2">Delete "{product.name}"?</h3>
-        <p className="text-sm text-[#6D7175] mb-6">This will permanently remove the product from your shop. This action cannot be undone.</p>
+        <h3 className="text-base font-bold text-[#202223] mb-2">{title}</h3>
+        <p className="text-sm text-[#6D7175] mb-6">{message}</p>
         <div className="flex gap-3">
           <button onClick={onCancel} className="flex-1 py-2.5 border border-[#C9CCCF] rounded-lg text-sm font-medium text-[#202223] hover:bg-[#F6F6F7] transition-colors">
             Cancel
           </button>
           <button onClick={onConfirm} className="flex-1 py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors">
-            Delete product
+            {confirmLabel}
           </button>
         </div>
       </div>
@@ -944,7 +946,9 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
     <div className="flex-1 flex flex-col">
       {deleteTarget && (
         <DeleteModal
-          product={deleteTarget}
+          title={`Delete "${deleteTarget.name}"?`}
+          message="This will permanently remove the product from your shop. This action cannot be undone."
+          confirmLabel="Delete product"
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteTarget(null)}
         />
@@ -1059,6 +1063,10 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
                           className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
                           {Ico.edit}
                         </button>
+                        <button onClick={() => onToggleActive(p)} title={p.active ? 'Hide from shop' : 'Unhide'}
+                          className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                          {p.active ? Ico.eyeOff : Ico.eye}
+                        </button>
                         <button onClick={() => setDeleteTarget(p)}
                           className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 active:bg-red-50 hover:text-red-600 active:text-red-600 transition-colors">
                           {Ico.trash}
@@ -1135,6 +1143,10 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
                                 {Ico.edit} Edit
                               </button>
+                              <button onClick={() => onToggleActive(p)} title={p.active ? 'Hide from shop' : 'Unhide'}
+                                className="p-1.5 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                                {p.active ? Ico.eyeOff : Ico.eye}
+                              </button>
                               <button onClick={() => setDeleteTarget(p)}
                                 className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
                                 {Ico.trash}
@@ -1155,6 +1167,584 @@ function ProductsList({ products, loading, onAdd, onEdit, onToggleActive, onRefr
   )
 }
 
+// ── Testimonials: setup SQL ──────────────────────────────────────────────────
+const TESTIMONIAL_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists testimonials (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  quote text,
+  detail text,
+  rating numeric(2,1) default 5,
+  video_url text,
+  active boolean default true,
+  sort_order integer default 0,
+  created_at timestamptz default now()
+);
+alter table testimonials enable row level security;
+drop policy if exists "Public read testimonials" on testimonials;
+drop policy if exists "Admin write testimonials" on testimonials;
+create policy "Public read testimonials" on testimonials
+  for select using (true);
+create policy "Admin write testimonials" on testimonials
+  for all to authenticated using (true) with check (true);
+
+insert into storage.buckets (id, name, public)
+values ('testimonial-media', 'testimonial-media', true)
+on conflict (id) do nothing;
+
+create policy "Public read testimonial media" on storage.objects
+  for select using (bucket_id = 'testimonial-media');
+create policy "Allow upload testimonial media" on storage.objects
+  for insert to authenticated with check (bucket_id = 'testimonial-media');
+create policy "Allow delete testimonial media" on storage.objects
+  for delete to authenticated using (bucket_id = 'testimonial-media');`
+
+function TestimonialSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(TESTIMONIAL_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Testimonials table not set up yet</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">testimonials</code> table and storage bucket, then try saving again.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{TESTIMONIAL_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Video Uploader ────────────────────────────────────────────────────────────
+function VideoUploader({ videoUrl, onChange, toast }) {
+  const [uploading, setUploading] = useState(false)
+  const [drag, setDrag] = useState(false)
+  const [bucketMissing, setBucketMissing] = useState(false)
+  const [sqlCopied, setSqlCopied] = useState(false)
+  const inputRef = useRef(null)
+
+  const handleFile = async (files) => {
+    const file = files?.[0]
+    if (!file || !file.type.startsWith('video/')) return
+    setUploading(true)
+    setBucketMissing(false)
+    try {
+      const url = await uploadVideo(file)
+      onChange(url)
+    } catch (e) {
+      if (e.message === 'BUCKET_MISSING') {
+        setBucketMissing(true)
+        toast?.('Storage bucket not set up yet — see instructions below', 'warn')
+      } else if (e.message === 'VIDEO_TOO_LARGE') {
+        toast?.('Video is too large — max 50MB', 'error')
+      } else {
+        toast?.('Upload failed: ' + e.message, 'error')
+      }
+    }
+    setUploading(false)
+  }
+
+  const copySql = () => {
+    navigator.clipboard.writeText(TESTIMONIAL_SETUP_SQL)
+    setSqlCopied(true)
+    setTimeout(() => setSqlCopied(false), 2000)
+  }
+
+  const handleRemove = async () => {
+    if (videoUrl?.includes('supabase')) {
+      try { await deleteVideo(videoUrl) } catch {}
+    }
+    onChange(null)
+  }
+
+  if (videoUrl) {
+    return (
+      <div>
+        <div className="rounded-xl overflow-hidden border border-[#E1E3E5] bg-black">
+          <video src={videoUrl} controls className="w-full max-h-64" />
+        </div>
+        <button onClick={handleRemove} className="mt-2 text-xs font-semibold text-red-600 hover:text-red-700 transition-colors">
+          Remove video
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div
+        onDrop={(e) => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files) }}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
+        onDragLeave={() => setDrag(false)}
+        onClick={() => !uploading && inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+          drag ? 'border-[#1D1D1F] bg-[#F0F0F0]' : 'border-[#C9CCCF] hover:border-[#1D1D1F] hover:bg-[#F6F6F7]'
+        }`}
+      >
+        <input ref={inputRef} type="file" accept="video/*" className="hidden"
+          onChange={(e) => handleFile(e.target.files)} />
+        {uploading ? (
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-[#6D7175]">Uploading…</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-[#6D7175]">
+            {Ico.upload}
+            <p className="text-sm font-medium text-[#202223] mt-1">Drop a video here or click to upload</p>
+            <p className="text-xs">MP4, MOV, WebM · Max 50MB · Optional</p>
+          </div>
+        )}
+      </div>
+
+      {bucketMissing && (
+        <div className="mt-4 border border-amber-200 bg-amber-50 rounded-xl overflow-hidden">
+          <div className="flex items-start gap-3 p-4">
+            <span className="text-amber-500 shrink-0 mt-0.5">{Ico.warn}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-800">Storage bucket not created yet</p>
+              <p className="text-xs text-amber-700 mt-1 mb-3">
+                Go to <strong>Supabase → SQL Editor → New query</strong>, paste the SQL below, and click Run.
+                Then try uploading again.
+              </p>
+              <div className="relative">
+                <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre">{TESTIMONIAL_SETUP_SQL}</pre>
+                <button onClick={copySql}
+                  className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+                  {sqlCopied ? <>{Ico.check} Copied</> : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Testimonial Form ──────────────────────────────────────────────────────────
+function TestimonialForm({ testimonial, onSave, onBack, toast }) {
+  const isNew = !testimonial?.id || !!testimonial?._new
+  const topRef = useRef(null)
+
+  const initForm = () => {
+    if (!testimonial || testimonial._new) return {
+      name: '', quote: '', detail: '', rating: '5', video_url: null,
+      active: true, sort_order: 0,
+    }
+    return { ...testimonial, rating: testimonial.rating ?? '5' }
+  }
+
+  const [form, setForm] = useState(initForm)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [schemaError, setSchemaError] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
+
+  const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+
+  const handleBack = () => {
+    if (isDirty) setShowDiscard(true)
+    else onBack()
+  }
+
+  const handleSave = async (stayOnPage = false) => {
+    if (!form.name.trim()) {
+      setErr('Customer name is required.')
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    setSaving(true)
+    setErr('')
+
+    const payload = {
+      name: form.name.trim(),
+      quote: form.quote?.trim() || '',
+      detail: form.detail?.trim() || '',
+      rating: form.rating !== '' && form.rating !== null ? parseFloat(form.rating) : 5,
+      video_url: form.video_url || null,
+      active: !!form.active,
+      sort_order: parseInt(form.sort_order) || 0,
+    }
+
+    let error, data
+    if (isNew) {
+      const res = await supabase.from('testimonials').insert(payload).select().single()
+      error = res.error; data = res.data
+    } else {
+      const res = await supabase.from('testimonials').update(payload).eq('id', form.id)
+      error = res.error
+    }
+
+    setSaving(false)
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('column') || msg.includes('does not exist') || msg.includes('relation')) {
+        setSchemaError(true)
+        setErr('')
+      } else {
+        setErr(msg)
+      }
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      toast('Save failed — see instructions above', 'error')
+      return
+    }
+    setSchemaError(false)
+
+    toast(`Testimonial from "${form.name}" ${isNew ? 'created' : 'saved'} successfully`)
+    setIsDirty(false)
+
+    if (stayOnPage) {
+      if (isNew && data) setForm(f => ({ ...f, id: data.id }))
+    } else {
+      onSave()
+    }
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {showDiscard && (
+        <DiscardModal
+          onConfirm={() => { setShowDiscard(false); onBack() }}
+          onCancel={() => setShowDiscard(false)}
+        />
+      )}
+
+      <div ref={topRef} className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={handleBack} className="flex items-center gap-1 text-sm text-[#6D7175] hover:text-[#202223] transition-colors shrink-0">
+            {Ico.back} Testimonials
+          </button>
+          <span className="text-[#C9CCCF]">/</span>
+          <span className="text-sm font-semibold text-[#202223] truncate">
+            {isNew ? 'Add testimonial' : (form.name || 'Edit testimonial')}
+          </span>
+          {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-4">
+          <button onClick={handleBack} className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors hidden sm:block">
+            Discard
+          </button>
+          <button onClick={() => handleSave(true)} disabled={saving}
+            className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40 hidden md:block">
+            Save & continue
+          </button>
+          <button onClick={() => handleSave(false)} disabled={saving}
+            className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2">
+            {saving ? (
+              <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</>
+            ) : (
+              <>{Ico.check} Save</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {schemaError && (
+        <TestimonialSetupBanner onDismiss={() => setSchemaError(false)} />
+      )}
+      {err && !schemaError && (
+        <div className="mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+          <span className="shrink-0 mt-0.5 font-bold">✕</span>
+          <span>{err}</span>
+        </div>
+      )}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
+
+        <div className="lg:col-span-2 space-y-5">
+          <Card>
+            <CardTitle>Customer details</CardTitle>
+            <div className="space-y-4">
+              <div>
+                <Label>Customer name <span className="text-red-500">*</span></Label>
+                <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Priya Sharma" />
+              </div>
+              <div>
+                <Label hint="(the quote shown on the site)">Testimonial text</Label>
+                <Textarea rows={5} value={form.quote} onChange={e => set('quote', e.target.value)} placeholder="What did they say about their order?" />
+              </div>
+              <div>
+                <Label hint='(e.g. "Ordered: Custom Figurine")'>Detail line</Label>
+                <Input value={form.detail} onChange={e => set('detail', e.target.value)} placeholder="Ordered: Custom Figurine" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Video testimonial</CardTitle>
+            <p className="text-xs text-[#6D7175] mb-3">
+              Optional — a short video of the customer talking about their order.
+            </p>
+            <VideoUploader videoUrl={form.video_url} onChange={url => set('video_url', url)} toast={toast} />
+          </Card>
+        </div>
+
+        <div className="space-y-5">
+          <Card>
+            <CardTitle>Status</CardTitle>
+            <div className="space-y-4">
+              <Toggle value={form.active} onChange={v => set('active', v)} label="Active (visible on site)" />
+              <div>
+                <Label hint="(lower number = shows first)">Sort order</Label>
+                <Input type="number" value={form.sort_order} onChange={e => set('sort_order', e.target.value)} placeholder="0" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Rating</CardTitle>
+            <Label hint="(0–5, e.g. 5)">Star rating</Label>
+            <Input type="number" step="0.5" min="0" max="5" value={form.rating} onChange={e => set('rating', e.target.value)} placeholder="5" />
+          </Card>
+
+          <div className="flex flex-col gap-2">
+            <button onClick={() => handleSave(false)} disabled={saving}
+              className="w-full py-3 text-sm font-semibold bg-[#1D1D1F] text-white rounded-xl hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</> : <>{Ico.check} Save testimonial</>}
+            </button>
+            <button onClick={() => handleSave(true)} disabled={saving}
+              className="w-full py-2.5 text-sm font-medium border border-[#C9CCCF] rounded-xl hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40">
+              Save &amp; continue editing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Testimonials List ─────────────────────────────────────────────────────────
+function TestimonialsList({ testimonials, loading, onAdd, onEdit, onToggleActive, onRefresh, toast }) {
+  const [search, setSearch] = useState('')
+  const [tab, setTab] = useState('all')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const counts = {
+    all: testimonials.length,
+    active: testimonials.filter(t => t.active).length,
+    hidden: testimonials.filter(t => !t.active).length,
+  }
+
+  const filtered = testimonials.filter(t => {
+    const q = search.toLowerCase()
+    const matchQ = !q || t.name.toLowerCase().includes(q) || (t.quote || '').toLowerCase().includes(q)
+    const matchTab = tab === 'all' || (tab === 'active' && t.active) || (tab === 'hidden' && !t.active)
+    return matchQ && matchTab
+  })
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    if (deleteTarget.video_url) { try { await deleteVideo(deleteTarget.video_url) } catch {} }
+    const { error } = await supabase.from('testimonials').delete().eq('id', deleteTarget.id)
+    if (error) { toast('Delete failed: ' + error.message, 'error') }
+    else { toast(`Testimonial from "${deleteTarget.name}" deleted`) }
+    setDeleteTarget(null)
+    onRefresh()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {deleteTarget && (
+        <DeleteModal
+          title={`Delete testimonial from "${deleteTarget.name}"?`}
+          message="This will permanently remove this testimonial from your site. This action cannot be undone."
+          confirmLabel="Delete testimonial"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {/* Header — hidden on mobile (handled by top bar) */}
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
+        <h1 className="text-lg font-bold text-[#202223]">Testimonials</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={onRefresh} title="Refresh" disabled={loading}
+            className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+            <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+          </button>
+          <button onClick={onAdd} className="flex items-center gap-1.5 px-4 py-2 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+            {Ico.plus} <span>Add testimonial</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-5">
+          {[
+            { label: 'Total', value: counts.all },
+            { label: 'Active', value: counts.active, color: 'text-green-700' },
+            { label: 'Hidden', value: counts.hidden, color: 'text-[#6D7175]' },
+          ].map(s => (
+            <div key={s.label} className="bg-white border border-[#E1E3E5] rounded-xl px-5 py-4">
+              <p className="text-xs text-[#6D7175] font-medium mb-1">{s.label}</p>
+              <p className={`text-3xl font-bold ${s.color || 'text-[#202223]'}`}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="bg-white border border-[#E1E3E5] rounded-xl overflow-hidden">
+          <div className="px-3 sm:px-4 py-3 border-b border-[#E1E3E5] flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[140px] max-w-xs">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6D7175]">{Ico.search}</span>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search testimonials…"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-[#C9CCCF] rounded-lg outline-none focus:border-[#1D1D1F] bg-white text-[#202223]" />
+            </div>
+            <div className="flex border border-[#C9CCCF] rounded-lg overflow-hidden">
+              {[['all', 'All'], ['active', 'Active'], ['hidden', 'Hidden']].map(([val, lbl]) => (
+                <button key={val} onClick={() => setTab(val)}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === val ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#6D7175] hover:bg-[#F6F6F7]'}`}>
+                  {lbl} <span className="opacity-60">{counts[val] ?? counts.all}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="py-20 text-center">
+              <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-[#6D7175]">Loading testimonials…</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-20 text-center px-8">
+              {testimonials.length === 0 ? (
+                <>
+                  <p className="text-2xl mb-3">💬</p>
+                  <p className="text-base font-semibold text-[#202223] mb-1">No testimonials yet</p>
+                  <p className="text-sm text-[#6D7175] mb-5">Add your first customer testimonial to show it on the homepage.</p>
+                  <button onClick={onAdd} className="px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+                    Add first testimonial
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-[#6D7175]">No testimonials match "{search}".</p>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Mobile card list */}
+              <div className="md:hidden divide-y divide-[#F1F1F1]">
+                {filtered.map(t => (
+                  <div key={t.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0 flex items-center justify-center text-lg">
+                      {t.video_url ? '🎬' : '💬'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#202223] truncate">{t.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-[#6D7175] truncate max-w-[140px]">{t.quote || <span className="italic opacity-50">No quote</span>}</span>
+                        <span className="text-[#C9CCCF]">·</span>
+                        <button onClick={() => onToggleActive(t)} className="flex items-center gap-1 shrink-0">
+                          <span className={`w-1.5 h-1.5 rounded-full ${t.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                          <span className={`text-xs ${t.active ? 'text-green-700' : 'text-[#6D7175]'}`}>{t.active ? 'Active' : 'Hidden'}</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => onEdit(t)}
+                        className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                        {Ico.edit}
+                      </button>
+                      <button onClick={() => onToggleActive(t)} title={t.active ? 'Hide from site' : 'Unhide'}
+                        className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                        {t.active ? Ico.eyeOff : Ico.eye}
+                      </button>
+                      <button onClick={() => setDeleteTarget(t)}
+                        className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 active:bg-red-50 hover:text-red-600 active:text-red-600 transition-colors">
+                        {Ico.trash}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[640px]">
+                  <thead>
+                    <tr className="bg-[#F6F6F7] border-b border-[#E1E3E5]">
+                      {['Customer', 'Quote', 'Video', 'Rating', 'Status', ''].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6D7175] uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F1F1]">
+                    {filtered.map(t => (
+                      <tr key={t.id} className="hover:bg-[#F9F9F9] transition-colors group">
+                        <td className="px-4 py-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#202223] truncate">{t.name}</p>
+                            <p className="text-xs text-[#6D7175] truncate max-w-[200px]">{t.detail || <span className="italic opacity-50">No detail</span>}</p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="text-xs text-[#6D7175] truncate max-w-[240px]">{t.quote || <span className="italic opacity-50">No quote</span>}</p>
+                        </td>
+                        <td className="px-4 py-3">
+                          {t.video_url
+                            ? <span className="text-xs px-2 py-1 bg-[#F1F1F1] text-[#202223] rounded-full font-medium">🎬 Yes</span>
+                            : <span className="text-xs text-[#C9CCCF]">None</span>
+                          }
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-[#202223] whitespace-nowrap">{t.rating ?? '—'} {Ico.star}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => onToggleActive(t)} className="flex items-center gap-1.5 group/toggle">
+                            <span className={`w-2 h-2 rounded-full transition-colors ${t.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                            <span className={`text-xs font-medium transition-colors ${t.active ? 'text-green-700 group-hover/toggle:text-green-900' : 'text-[#6D7175] group-hover/toggle:text-[#202223]'}`}>
+                              {t.active ? 'Active' : 'Hidden'}
+                            </span>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => onEdit(t)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                              {Ico.edit} Edit
+                            </button>
+                            <button onClick={() => onToggleActive(t)} title={t.active ? 'Hide from site' : 'Unhide'}
+                              className="p-1.5 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                              {t.active ? Ico.eyeOff : Ico.eye}
+                            </button>
+                            <button onClick={() => setDeleteTarget(t)}
+                              className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
+                              {Ico.trash}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Admin() {
   const [authed, setAuthed] = useState(false)
@@ -1162,10 +1752,14 @@ export default function Admin() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [testimonials, setTestimonials] = useState([])
+  const [testimonialsLoading, setTestimonialsLoading] = useState(false)
   const [view, setView] = useState('list')
   const [editProduct, setEditProduct] = useState(null)
+  const [editTestimonial, setEditTestimonial] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { toasts, toast } = useToast()
+  const inTestimonials = view === 'testimonials-list' || view === 'testimonials-form'
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -1190,6 +1784,17 @@ export default function Admin() {
 
   useEffect(() => { if (authed && isConfigured) fetchProducts() }, [authed, fetchProducts])
 
+  const fetchTestimonials = useCallback(async () => {
+    if (!supabase) return
+    setTestimonialsLoading(true)
+    const { data, error } = await supabase.from('testimonials').select('*').order('sort_order', { ascending: true })
+    if (error && !error.message.includes('does not exist')) toast('Failed to load testimonials: ' + error.message, 'error')
+    setTestimonials(data || [])
+    setTestimonialsLoading(false)
+  }, [toast])
+
+  useEffect(() => { if (authed && isConfigured) fetchTestimonials() }, [authed, fetchTestimonials])
+
   const handleSeed = async () => {
     setSeeding(true)
     const rows = STATIC_PRODUCTS.map(toRow)
@@ -1205,6 +1810,13 @@ export default function Admin() {
     if (error) { toast('Update failed: ' + error.message, 'error'); return }
     toast(`"${p.name}" ${!p.active ? 'activated' : 'hidden'}`)
     fetchProducts()
+  }
+
+  const handleToggleActiveTestimonial = async (t) => {
+    const { error } = await supabase.from('testimonials').update({ active: !t.active }).eq('id', t.id)
+    if (error) { toast('Update failed: ' + error.message, 'error'); return }
+    toast(`Testimonial from "${t.name}" ${!t.active ? 'activated' : 'hidden'}`)
+    fetchTestimonials()
   }
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#F6F6F7]"><div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin" /></div>
@@ -1225,16 +1837,27 @@ export default function Admin() {
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
         <button
-          onClick={() => { setEditProduct({ _new: true }); setView('form'); setMobileOpen(false) }}
+          onClick={() => {
+            if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
+            else { setEditProduct({ _new: true }); setView('form') }
+            setMobileOpen(false)
+          }}
           className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3"
         >
-          {Ico.plus} Add product
+          {Ico.plus} {inTestimonials ? 'Add testimonial' : 'Add product'}
         </button>
         <button onClick={() => { setView('list'); setMobileOpen(false) }}
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' || view === 'form' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
           <span className="flex items-center gap-2">📦 Products</span>
           {products.length > 0 && (
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{products.length}</span>
+          )}
+        </button>
+        <button onClick={() => { setView('testimonials-list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inTestimonials ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">💬 Testimonials</span>
+          {testimonials.length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{testimonials.length}</span>
           )}
         </button>
         <a href="/" target="_blank" rel="noopener noreferrer"
@@ -1276,7 +1899,10 @@ export default function Admin() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { setEditProduct({ _new: true }); setView('form') }}
+              onClick={() => {
+                if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
+                else { setEditProduct({ _new: true }); setView('form') }
+              }}
               className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#1D1D1F] text-xs font-bold rounded-lg"
             >
               {Ico.plus} Add
@@ -1300,12 +1926,29 @@ export default function Admin() {
              onRefresh={fetchProducts}
              onSeed={handleSeed}
            />
-         ) : (
+         ) : view === 'form' ? (
            <ProductForm
              product={editProduct}
              toast={toast}
              onSave={() => { setView('list'); fetchProducts() }}
              onBack={() => setView('list')}
+           />
+         ) : view === 'testimonials-list' ? (
+           <TestimonialsList
+             testimonials={testimonials}
+             loading={testimonialsLoading}
+             toast={toast}
+             onAdd={() => { setEditTestimonial({ _new: true }); setView('testimonials-form') }}
+             onEdit={t => { setEditTestimonial(t); setView('testimonials-form') }}
+             onToggleActive={handleToggleActiveTestimonial}
+             onRefresh={fetchTestimonials}
+           />
+         ) : (
+           <TestimonialForm
+             testimonial={editTestimonial}
+             toast={toast}
+             onSave={() => { setView('testimonials-list'); fetchTestimonials() }}
+             onBack={() => setView('testimonials-list')}
            />
          )
         }
