@@ -54,8 +54,18 @@ const services = [
     icon: '🗿',
   },
   {
-    id: 'idols',
+    id: 'bobbleheads',
     number: '06',
+    title: 'Bobbleheads',
+    tagline: 'Custom bobbleheads of you, your pet, or anyone.',
+    description: 'Fully custom bobblehead figures sculpted from your reference photos — accurate likeness, spring-mounted head, and a display base. A favourite for gifts, desk decor, and novelty portraits.',
+    specs: ['Material: PLA / PETG', 'Lead time: 7–10 business days', 'Spring-mounted head', 'Custom likeness from photo'],
+    useCase: 'Gifts, novelty portraits, desk decor, team/family sets',
+    icon: '🎎',
+  },
+  {
+    id: 'idols',
+    number: '07',
     title: 'Idol & Deity Models',
     tagline: 'Detailed sacred figurines, printed with care.',
     description: 'High-detail idol and deity models at multiple scales. Suitable for home shrines, gifting, and architectural decor. Printed with fine layer resolution and available with smooth post-processing.',
@@ -65,7 +75,7 @@ const services = [
   },
   {
     id: 'accessories',
-    number: '07',
+    number: '08',
     title: 'Accessories',
     tagline: 'Clips, mounts, brackets — any geometry.',
     description: 'Functional accessories printed to your exact spec. Desk organizers, cable management clips, camera mounts, wall brackets, replacement knobs — if it can be modelled, we can print it.',
@@ -75,7 +85,7 @@ const services = [
   },
   {
     id: 'more',
-    number: '08',
+    number: '09',
     title: 'And More',
     tagline: 'Have a unique project? Let\'s build it.',
     description: "Architecture models, educational aids, cosplay props, electronic enclosures, jigs and fixtures — if you can imagine it and we can print it, it's on the table. Reach out with your project details.",
@@ -88,7 +98,7 @@ const services = [
 export default function Services() {
   useSEO({
     title: 'Services — 3D Printing, Prototyping & Manufacturing Bangalore',
-    description: 'ORIC offers 8 professional 3D printing services in Bangalore: small batch manufacturing, custom prints, prototyping, figurines, toys, idols and more.',
+    description: 'ORIC offers 9 professional 3D printing services in Bangalore: small batch manufacturing, custom prints, prototyping, figurines, bobbleheads, toys, idols and more.',
   })
   return (
     <div className="pt-[100px] min-h-screen bg-white">
@@ -115,7 +125,7 @@ export default function Services() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            8 service categories. FDM precision. Fast turnaround. Delivered across India.
+            9 service categories. FDM precision. Fast turnaround. Delivered across India.
           </motion.p>
         </div>
       </div>

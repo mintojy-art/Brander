@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '../context/CartContext'
-import { categories, categoryIcons } from '../data/products'
+import { useProducts } from '../hooks/useProducts'
+import { categoryIcons } from '../data/products'
 
 const navLinks = [
   { to: '/services',     label: 'Services'    },
   { to: '/about',        label: 'About'       },
   { to: '/lithophanes',  label: 'Lithophane' },
 ]
-
-const shopCategories = categories.filter((c) => c !== 'All')
 
 export default function OricNavbar() {
   const [scrolled, setScrolled]     = useState(false)
@@ -19,6 +18,8 @@ export default function OricNavbar() {
   const [mobileShopOpen, setMShop]  = useState(false)
   const { count, setIsOpen }      = useCart()
   const location                  = useLocation()
+  const { products }              = useProducts()
+  const shopCategories            = [...new Set(products.map((p) => p.category))]
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10)

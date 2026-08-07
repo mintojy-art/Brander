@@ -377,4 +377,5 @@ export const categories = ['All', ...new Set(products.map((p) => p.category))]
 export const categoryIcons = {
   Tools: '🛠️', Figurines: '🗿', Cosplay: '🎭', Accessories: '🧲',
   Idols: '🪔', Prototyping: '🔬', Manufacturing: '⚙️', Toys: '🧸', Custom: '🖨️',
+  Bobbleheads: '🎎',
 }

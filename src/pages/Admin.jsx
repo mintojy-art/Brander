@@ -4,7 +4,7 @@ import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVi
 import { products as STATIC_PRODUCTS } from '../data/products'
 import { getCroppedImg } from '../utils/cropImage'
 
-const CATEGORIES = ['Tools', 'Figurines', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
+const CATEGORIES = ['Tools', 'Figurines', 'Bobbleheads', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
 
 // ── utils ─────────────────────────────────────────────────────────────────────
 const slugify = (s) => s.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
