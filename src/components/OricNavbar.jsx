@@ -11,6 +11,10 @@ const navLinks = [
   { to: '/lithophanes',  label: 'Lithophane' },
 ]
 
+// Bobbleheads has its own dedicated hub page (occasions + products together)
+// instead of the generic category-filtered shop view.
+const categoryHref = (cat) => cat === 'Bobbleheads' ? '/bobbleheads' : `/shop?cat=${encodeURIComponent(cat)}`
+
 export default function OricNavbar() {
   const [scrolled, setScrolled]     = useState(false)
   const [mobileOpen, setMobile]     = useState(false)
@@ -94,7 +98,7 @@ export default function OricNavbar() {
                         {shopCategories.map((cat) => (
                           <Link
                             key={cat}
-                            to={`/shop?cat=${encodeURIComponent(cat)}`}
+                            to={categoryHref(cat)}
                             className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F5F5F7] transition-colors"
                           >
                             <span className="text-lg">{categoryIcons[cat] || '🖨️'}</span>
@@ -234,7 +238,7 @@ export default function OricNavbar() {
                         {shopCategories.map((cat) => (
                           <Link
                             key={cat}
-                            to={`/shop?cat=${encodeURIComponent(cat)}`}
+                            to={categoryHref(cat)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors"
                           >
                             <span>{categoryIcons[cat] || '🖨️'}</span>

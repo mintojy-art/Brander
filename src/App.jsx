@@ -10,6 +10,7 @@ import Shop from './pages/Shop'
 import Services from './pages/Services'
 import BranderRollerPage from './pages/BranderRollerPage'
 import ProductDetail from './pages/ProductDetail'
+import Bobbleheads from './pages/Bobbleheads'
 import BobbleheadDetail from './pages/BobbleheadDetail'
 import Admin from './pages/Admin'
 import AdminResetPassword from './pages/AdminResetPassword'
@@ -38,6 +39,7 @@ function Layout() {
         <Route path="/shop"                   element={<Shop />}              />
         <Route path="/shop/brander-roller"    element={<BranderRollerPage />} />
         <Route path="/shop/:productId"        element={<ProductDetail />}     />
+        <Route path="/bobbleheads"             element={<Bobbleheads />}       />
         <Route path="/bobbleheads/:id"        element={<BobbleheadDetail />}  />
         <Route path="/services"               element={<Services />}          />
         <Route path="/admin"                  element={<Admin />}             />

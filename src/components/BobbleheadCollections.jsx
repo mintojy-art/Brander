@@ -87,7 +87,7 @@ export default function BobbleheadCollections() {
 
         <div className="text-center mt-10">
           <Link
-            to="/shop?cat=Bobbleheads"
+            to="/bobbleheads"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all"
           >
             All Bobbleheads
