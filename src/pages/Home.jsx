@@ -5,6 +5,7 @@ import { useProducts } from '../hooks/useProducts'
 import PrintConfigurator from '../components/PrintConfigurator'
 import ProductCarousel from '../components/ProductCarousel'
 import TrustBadgeRow from '../components/TrustBadgeRow'
+import BobbleheadCollections from '../components/BobbleheadCollections'
 import Testimonials from '../components/Testimonials'
 import InstagramFeed from '../components/InstagramFeed'
 import FAQSection from '../components/FAQSection'
@@ -104,7 +105,6 @@ export default function Home() {
   const { products } = useProducts()
   const bestSellers  = products.filter((p) => p.badge === 'Popular')
   const newArrivals  = products.filter((p) => p.badge === 'New')
-  const bobbleheads  = products.filter((p) => p.category === 'Bobbleheads')
 
   useSEO({
     title: '3D Printing Service in Bangalore — Custom Prints, Figurines & Prototypes',
@@ -237,22 +237,10 @@ export default function Home() {
             </div>
           )}
 
-          {bobbleheads.length > 0 && (
-            <div className="mt-20">
-              <motion.h3
-                className="text-2xl font-bold text-[#1D1D1F] mb-6"
-                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              >
-                Bobbleheads
-              </motion.h3>
-              <ProductCarousel>
-                {bobbleheads.map((p) => <ProductCard key={p.id} product={p} />)}
-                <ShopAllCard />
-              </ProductCarousel>
-            </div>
-          )}
         </div>
       </section>
+
+      <BobbleheadCollections />
 
       {/* ── SERVICES GRID ── */}
       <section className="py-28 bg-white">
