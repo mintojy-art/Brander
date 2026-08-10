@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Cropper from 'react-easy-crop'
-import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo } from '../lib/supabase'
+import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo, uploadOccasionImage, deleteOccasionImage } from '../lib/supabase'
 import { products as STATIC_PRODUCTS } from '../data/products'
 import { getCroppedImg } from '../utils/cropImage'
 
@@ -386,7 +386,7 @@ function ImageCropModal({ queue, onFinish, onCancel, toast }) {
 }
 
 // ── Image Uploader ────────────────────────────────────────────────────────────
-function ImageUploader({ images, onChange, toast }) {
+function ImageUploader({ images, onChange, toast, uploadFn = uploadImage, deleteFn = deleteImage, bucketSql = BUCKET_SQL }) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [drag, setDrag] = useState(false)
@@ -403,7 +403,7 @@ function ImageUploader({ images, onChange, toast }) {
     const urls = []
     for (let i = 0; i < fileArr.length; i++) {
       try {
-        const url = await uploadImage(fileArr[i])
+        const url = await uploadFn(fileArr[i])
         urls.push(url)
         setProgress(Math.round(((i + 1) / fileArr.length) * 100))
       } catch (e) {
@@ -428,7 +428,7 @@ function ImageUploader({ images, onChange, toast }) {
   }
 
   const copySql = () => {
-    navigator.clipboard.writeText(BUCKET_SQL)
+    navigator.clipboard.writeText(bucketSql)
     setSqlCopied(true)
     setTimeout(() => setSqlCopied(false), 2000)
   }
@@ -436,7 +436,7 @@ function ImageUploader({ images, onChange, toast }) {
   const handleRemove = async (idx) => {
     const url = images[idx]
     if (url?.includes('supabase')) {
-      try { await deleteImage(url) } catch {}
+      try { await deleteFn(url) } catch {}
     }
     onChange(images.filter((_, i) => i !== idx))
   }
@@ -490,7 +490,7 @@ function ImageUploader({ images, onChange, toast }) {
                 Then try uploading again.
               </p>
               <div className="relative">
-                <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre">{BUCKET_SQL}</pre>
+                <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre">{bucketSql}</pre>
                 <button onClick={copySql}
                   className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
                   {sqlCopied ? <>{Ico.check} Copied</> : 'Copy'}
@@ -1900,6 +1900,578 @@ function TestimonialsList({ testimonials, loading, onAdd, onEdit, onToggleActive
   )
 }
 
+// ── Bobblehead Occasions: setup SQL ──────────────────────────────────────────
+const OCCASION_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists bobblehead_occasions (
+  id text primary key,
+  title text not null,
+  tagline text,
+  description text,
+  badge text,
+  icon text,
+  images text[],
+  price_display text,
+  cta_text text default 'Get a Quote',
+  active boolean default true,
+  sort_order integer default 0,
+  created_at timestamptz default now()
+);
+alter table bobblehead_occasions enable row level security;
+drop policy if exists "Public read occasions" on bobblehead_occasions;
+drop policy if exists "Admin write occasions" on bobblehead_occasions;
+create policy "Public read occasions" on bobblehead_occasions
+  for select using (true);
+create policy "Admin write occasions" on bobblehead_occasions
+  for all to authenticated using (true) with check (true);
+
+insert into storage.buckets (id, name, public)
+values ('bobblehead-media', 'bobblehead-media', true)
+on conflict (id) do nothing;
+
+create policy "Public read bobblehead media" on storage.objects
+  for select using (bucket_id = 'bobblehead-media');
+create policy "Allow upload bobblehead media" on storage.objects
+  for insert to authenticated with check (bucket_id = 'bobblehead-media');
+create policy "Allow delete bobblehead media" on storage.objects
+  for delete to authenticated using (bucket_id = 'bobblehead-media');`
+
+function OccasionSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(OCCASION_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Bobblehead occasions table not set up yet</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">bobblehead_occasions</code> table and storage bucket, then try saving again.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{OCCASION_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Seed content — 5 starter occasions the admin can edit/add to via the dashboard
+const DEFAULT_OCCASIONS = [
+  {
+    title: 'Corporate Gifts',
+    tagline: 'Bulk orders for your team, client, or boss.',
+    description: 'Custom bobbleheads for corporate milestones, client appreciation, and team celebrations. Order in bulk with consistent quality across every figure — a gift your colleagues will actually keep on their desk.',
+    badge: 'Popular',
+    icon: '🎁',
+    cta_text: 'Get a Quote',
+  },
+  {
+    title: 'Gifts for Doctor',
+    tagline: "A thank-you they'll display forever.",
+    description: 'A one-of-a-kind thank-you for the doctor, nurse, or caregiver who went above and beyond. Sculpted in full scrubs or coat, with their exact likeness.',
+    badge: 'New',
+    icon: '🩺',
+    cta_text: 'Get a Quote',
+  },
+  {
+    title: 'Birthday Gifts',
+    tagline: 'A gift as one-of-a-kind as they are.',
+    description: "Mark a birthday with a custom bobblehead capturing exactly who they are — hobbies, outfit, expression and all. A gift they won't get from anyone else.",
+    badge: 'Trending',
+    icon: '🎂',
+    cta_text: 'Get a Quote',
+  },
+  {
+    title: 'Wedding',
+    tagline: 'Immortalize your big day, mini-me style.',
+    description: 'Custom bride-and-groom bobbleheads sculpted from your wedding photos — perfect as a cake topper, guestbook centerpiece, or anniversary keepsake.',
+    badge: 'Best Seller',
+    icon: '💍',
+    cta_text: 'Get a Quote',
+  },
+  {
+    title: 'Funny Gifts',
+    tagline: 'Because they can take a joke.',
+    description: 'Novelty bobbleheads built for laughs — surprise photos, exaggerated expressions, inside jokes brought to life in 3D. The gift that gets opened first.',
+    badge: 'Hot',
+    icon: '😂',
+    cta_text: 'Get a Quote',
+  },
+]
+
+// ── Occasion Form ─────────────────────────────────────────────────────────────
+function OccasionForm({ occasion, onSave, onBack, toast }) {
+  const isNew = !occasion?.id || !!occasion?._new
+  const topRef = useRef(null)
+
+  const initForm = () => {
+    if (!occasion || occasion._new) return {
+      id: '', title: '', tagline: '', description: '', badge: '', icon: '',
+      images: [], price_display: '', cta_text: 'Get a Quote', active: true, sort_order: 0,
+    }
+    return { ...occasion, images: occasion.images || [] }
+  }
+
+  const [form, setForm] = useState(initForm)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [schemaError, setSchemaError] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
+
+  const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+
+  const handleBack = () => {
+    if (isDirty) setShowDiscard(true)
+    else onBack()
+  }
+
+  const handleSave = async (stayOnPage = false) => {
+    if (!form.title.trim()) {
+      setErr('Occasion title is required.')
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    setSaving(true)
+    setErr('')
+
+    const id = isNew ? slugify(form.title) : form.id
+    const payload = {
+      title: form.title.trim(),
+      tagline: form.tagline?.trim() || '',
+      description: form.description?.trim() || '',
+      badge: form.badge?.trim() || null,
+      icon: form.icon?.trim() || null,
+      images: form.images.filter(Boolean),
+      price_display: form.price_display?.trim() || null,
+      cta_text: form.cta_text?.trim() || 'Get a Quote',
+      active: !!form.active,
+      sort_order: parseInt(form.sort_order) || 0,
+    }
+
+    let error
+    if (isNew) {
+      const res = await supabase.from('bobblehead_occasions').insert({ id, ...payload })
+      error = res.error
+    } else {
+      const res = await supabase.from('bobblehead_occasions').update(payload).eq('id', id)
+      error = res.error
+    }
+
+    setSaving(false)
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('column') || msg.includes('does not exist') || msg.includes('relation')) {
+        setSchemaError(true)
+        setErr('')
+      } else {
+        setErr(msg)
+      }
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      toast('Save failed — see instructions above', 'error')
+      return
+    }
+    setSchemaError(false)
+
+    toast(`"${form.title}" ${isNew ? 'created' : 'saved'} successfully`)
+    setIsDirty(false)
+
+    if (stayOnPage) {
+      if (isNew) setForm(f => ({ ...f, id }))
+    } else {
+      onSave()
+    }
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {showDiscard && (
+        <DiscardModal
+          onConfirm={() => { setShowDiscard(false); onBack() }}
+          onCancel={() => setShowDiscard(false)}
+        />
+      )}
+
+      <div ref={topRef} className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={handleBack} className="flex items-center gap-1 text-sm text-[#6D7175] hover:text-[#202223] transition-colors shrink-0">
+            {Ico.back} Bobbleheads
+          </button>
+          <span className="text-[#C9CCCF]">/</span>
+          <span className="text-sm font-semibold text-[#202223] truncate">
+            {isNew ? 'Add occasion' : (form.title || 'Edit occasion')}
+          </span>
+          {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-4">
+          <button onClick={handleBack} className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors hidden sm:block">
+            Discard
+          </button>
+          <button onClick={() => handleSave(true)} disabled={saving}
+            className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40 hidden md:block">
+            Save & continue
+          </button>
+          <button onClick={() => handleSave(false)} disabled={saving}
+            className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2">
+            {saving ? (
+              <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</>
+            ) : (
+              <>{Ico.check} Save</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {schemaError && (
+        <OccasionSetupBanner onDismiss={() => setSchemaError(false)} />
+      )}
+      {err && !schemaError && (
+        <div className="mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+          <span className="shrink-0 mt-0.5 font-bold">✕</span>
+          <span>{err}</span>
+        </div>
+      )}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
+
+        <div className="lg:col-span-2 space-y-5">
+          <Card>
+            <CardTitle>Occasion details</CardTitle>
+            <div className="space-y-4">
+              <div>
+                <Label>Title <span className="text-red-500">*</span></Label>
+                <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Corporate Gifts" />
+              </div>
+              <div>
+                <Label hint="(short line shown on the homepage card)">Tagline</Label>
+                <Input value={form.tagline} onChange={e => set('tagline', e.target.value)} placeholder="e.g. Bulk orders for your team, client, or boss." />
+              </div>
+              <div>
+                <Label hint="(shown on the full occasion page)">Description</Label>
+                <Textarea rows={5} value={form.description} onChange={e => set('description', e.target.value)} placeholder="What makes this occasion special, what customers get, how it works." />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Images</CardTitle>
+            <p className="text-xs text-[#6D7175] mb-3">
+              First image is used as the homepage card background and page hero. Additional images appear in the gallery on the occasion page.
+            </p>
+            <ImageUploader
+              images={form.images}
+              onChange={imgs => set('images', imgs)}
+              toast={toast}
+              uploadFn={uploadOccasionImage}
+              deleteFn={deleteOccasionImage}
+              bucketSql={OCCASION_SETUP_SQL}
+            />
+          </Card>
+        </div>
+
+        <div className="space-y-5">
+          <Card>
+            <CardTitle>Status</CardTitle>
+            <div className="space-y-4">
+              <Toggle value={form.active} onChange={v => set('active', v)} label="Active (visible on site)" />
+              <div>
+                <Label hint="(lower number = shows first)">Sort order</Label>
+                <Input type="number" value={form.sort_order} onChange={e => set('sort_order', e.target.value)} placeholder="0" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Card details</CardTitle>
+            <div className="space-y-3">
+              <div>
+                <Label hint="(optional — shows as a pill badge)">Badge label</Label>
+                <Input value={form.badge} onChange={e => set('badge', e.target.value)} placeholder="Popular / New / Hot" />
+              </div>
+              <div>
+                <Label hint="(shown if no image is uploaded)">Icon (emoji)</Label>
+                <Input value={form.icon} onChange={e => set('icon', e.target.value)} placeholder="🎁" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Pricing & CTA</CardTitle>
+            <div className="space-y-3">
+              <div>
+                <Label hint="(optional — leave blank to hide)">Price display</Label>
+                <Input value={form.price_display} onChange={e => set('price_display', e.target.value)} placeholder="From ₹1,999" />
+              </div>
+              <div>
+                <Label>Button text</Label>
+                <Input value={form.cta_text} onChange={e => set('cta_text', e.target.value)} placeholder="Get a Quote" />
+              </div>
+            </div>
+          </Card>
+
+          <div className="flex flex-col gap-2">
+            <button onClick={() => handleSave(false)} disabled={saving}
+              className="w-full py-3 text-sm font-semibold bg-[#1D1D1F] text-white rounded-xl hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</> : <>{Ico.check} Save occasion</>}
+            </button>
+            <button onClick={() => handleSave(true)} disabled={saving}
+              className="w-full py-2.5 text-sm font-medium border border-[#C9CCCF] rounded-xl hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40">
+              Save &amp; continue editing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Occasions List ────────────────────────────────────────────────────────────
+function OccasionsList({ occasions, loading, seeding, onAdd, onEdit, onToggleActive, onRefresh, onSeed, toast }) {
+  const [search, setSearch] = useState('')
+  const [tab, setTab] = useState('all')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const counts = {
+    all: occasions.length,
+    active: occasions.filter(o => o.active).length,
+    hidden: occasions.filter(o => !o.active).length,
+  }
+
+  const filtered = occasions.filter(o => {
+    const q = search.toLowerCase()
+    const matchQ = !q || o.title.toLowerCase().includes(q)
+    const matchTab = tab === 'all' || (tab === 'active' && o.active) || (tab === 'hidden' && !o.active)
+    return matchQ && matchTab
+  })
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    const { error } = await supabase.from('bobblehead_occasions').delete().eq('id', deleteTarget.id)
+    if (error) { toast('Delete failed: ' + error.message, 'error') }
+    else { toast(`"${deleteTarget.title}" deleted`) }
+    setDeleteTarget(null)
+    onRefresh()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {deleteTarget && (
+        <DeleteModal
+          title={`Delete "${deleteTarget.title}"?`}
+          message="This will permanently remove this occasion from your site. This action cannot be undone."
+          confirmLabel="Delete occasion"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {/* Header — hidden on mobile (handled by top bar) */}
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
+        <h1 className="text-lg font-bold text-[#202223]">Bobbleheads — Shop by Occasion</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={onRefresh} title="Refresh" disabled={loading}
+            className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+            <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+          </button>
+          <button onClick={onSeed} disabled={seeding}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] disabled:opacity-50 transition-colors">
+            {Ico.import}
+            <span className="hidden sm:inline">{seeding ? 'Importing…' : 'Import default occasions'}</span>
+          </button>
+          <button onClick={onAdd} className="flex items-center gap-1.5 px-4 py-2 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+            {Ico.plus} <span>Add occasion</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-5">
+          {[
+            { label: 'Total', value: counts.all },
+            { label: 'Active', value: counts.active, color: 'text-green-700' },
+            { label: 'Hidden', value: counts.hidden, color: 'text-[#6D7175]' },
+          ].map(s => (
+            <div key={s.label} className="bg-white border border-[#E1E3E5] rounded-xl px-5 py-4">
+              <p className="text-xs text-[#6D7175] font-medium mb-1">{s.label}</p>
+              <p className={`text-3xl font-bold ${s.color || 'text-[#202223]'}`}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="bg-white border border-[#E1E3E5] rounded-xl overflow-hidden">
+          <div className="px-3 sm:px-4 py-3 border-b border-[#E1E3E5] flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[140px] max-w-xs">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6D7175]">{Ico.search}</span>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search occasions…"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-[#C9CCCF] rounded-lg outline-none focus:border-[#1D1D1F] bg-white text-[#202223]" />
+            </div>
+            <div className="flex border border-[#C9CCCF] rounded-lg overflow-hidden">
+              {[['all', 'All'], ['active', 'Active'], ['hidden', 'Hidden']].map(([val, lbl]) => (
+                <button key={val} onClick={() => setTab(val)}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === val ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#6D7175] hover:bg-[#F6F6F7]'}`}>
+                  {lbl} <span className="opacity-60">{counts[val] ?? counts.all}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="py-20 text-center">
+              <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-[#6D7175]">Loading occasions…</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-20 text-center px-8">
+              {occasions.length === 0 ? (
+                <>
+                  <p className="text-2xl mb-3">🎎</p>
+                  <p className="text-base font-semibold text-[#202223] mb-1">No occasions yet</p>
+                  <p className="text-sm text-[#6D7175] mb-5">Import the 5 starter occasions or add your own to populate the homepage grid.</p>
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                    <button onClick={onSeed} disabled={seeding}
+                      className="px-5 py-2.5 border border-[#C9CCCF] text-[#202223] text-sm font-semibold rounded-lg hover:bg-[#F6F6F7] transition-colors disabled:opacity-50">
+                      {seeding ? 'Importing…' : 'Import default occasions'}
+                    </button>
+                    <button onClick={onAdd} className="px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+                      Add first occasion
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-[#6D7175]">No occasions match "{search}".</p>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Mobile card list */}
+              <div className="md:hidden divide-y divide-[#F1F1F1]">
+                {filtered.map(o => {
+                  const imgs = (o.images || []).filter(Boolean)
+                  return (
+                    <div key={o.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0 flex items-center justify-center text-lg">
+                        {imgs[0]
+                          ? <img src={imgs[0]} alt={o.title} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                          : (o.icon || '🎎')
+                        }
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#202223] truncate">{o.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-[#6D7175] truncate max-w-[140px]">{o.tagline || <span className="italic opacity-50">No tagline</span>}</span>
+                          <span className="text-[#C9CCCF]">·</span>
+                          <button onClick={() => onToggleActive(o)} className="flex items-center gap-1 shrink-0">
+                            <span className={`w-1.5 h-1.5 rounded-full ${o.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                            <span className={`text-xs ${o.active ? 'text-green-700' : 'text-[#6D7175]'}`}>{o.active ? 'Active' : 'Hidden'}</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => onEdit(o)}
+                          className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                          {Ico.edit}
+                        </button>
+                        <button onClick={() => onToggleActive(o)} title={o.active ? 'Hide from site' : 'Unhide'}
+                          className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                          {o.active ? Ico.eyeOff : Ico.eye}
+                        </button>
+                        <button onClick={() => setDeleteTarget(o)}
+                          className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 active:bg-red-50 hover:text-red-600 active:text-red-600 transition-colors">
+                          {Ico.trash}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[640px]">
+                  <thead>
+                    <tr className="bg-[#F6F6F7] border-b border-[#E1E3E5]">
+                      {['Occasion', 'Tagline', 'Images', 'Status', ''].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6D7175] uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F1F1]">
+                    {filtered.map(o => {
+                      const imgs = (o.images || []).filter(Boolean)
+                      return (
+                        <tr key={o.id} className="hover:bg-[#F9F9F9] transition-colors group">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0 flex items-center justify-center text-base">
+                                {imgs[0]
+                                  ? <img src={imgs[0]} alt={o.title} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                                  : (o.icon || '🎎')
+                                }
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-[#202223] truncate">{o.title}</p>
+                                {o.badge && <span className="text-xs px-2 py-0.5 bg-[#F1F1F1] text-[#6D7175] rounded-full font-medium">{o.badge}</span>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <p className="text-xs text-[#6D7175] truncate max-w-[240px]">{o.tagline || <span className="italic opacity-50">No tagline</span>}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs text-[#6D7175]">{imgs.length > 0 ? `${imgs.length} image${imgs.length !== 1 ? 's' : ''}` : 'None'}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button onClick={() => onToggleActive(o)} className="flex items-center gap-1.5 group/toggle">
+                              <span className={`w-2 h-2 rounded-full transition-colors ${o.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                              <span className={`text-xs font-medium transition-colors ${o.active ? 'text-green-700 group-hover/toggle:text-green-900' : 'text-[#6D7175] group-hover/toggle:text-[#202223]'}`}>
+                                {o.active ? 'Active' : 'Hidden'}
+                              </span>
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => onEdit(o)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                                {Ico.edit} Edit
+                              </button>
+                              <button onClick={() => onToggleActive(o)} title={o.active ? 'Hide from site' : 'Unhide'}
+                                className="p-1.5 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                                {o.active ? Ico.eyeOff : Ico.eye}
+                              </button>
+                              <button onClick={() => setDeleteTarget(o)}
+                                className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
+                                {Ico.trash}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Admin() {
   const [authed, setAuthed] = useState(false)
@@ -1909,12 +2481,17 @@ export default function Admin() {
   const [seeding, setSeeding] = useState(false)
   const [testimonials, setTestimonials] = useState([])
   const [testimonialsLoading, setTestimonialsLoading] = useState(false)
+  const [occasions, setOccasions] = useState([])
+  const [occasionsLoading, setOccasionsLoading] = useState(false)
+  const [occasionSeeding, setOccasionSeeding] = useState(false)
   const [view, setView] = useState('list')
   const [editProduct, setEditProduct] = useState(null)
   const [editTestimonial, setEditTestimonial] = useState(null)
+  const [editOccasion, setEditOccasion] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { toasts, toast } = useToast()
   const inTestimonials = view === 'testimonials-list' || view === 'testimonials-form'
+  const inOccasions = view === 'occasions-list' || view === 'occasions-form'
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -1950,6 +2527,27 @@ export default function Admin() {
 
   useEffect(() => { if (authed && isConfigured) fetchTestimonials() }, [authed, fetchTestimonials])
 
+  const fetchOccasions = useCallback(async () => {
+    if (!supabase) return
+    setOccasionsLoading(true)
+    const { data, error } = await supabase.from('bobblehead_occasions').select('*').order('sort_order', { ascending: true })
+    if (error && !error.message.includes('does not exist')) toast('Failed to load occasions: ' + error.message, 'error')
+    setOccasions(data || [])
+    setOccasionsLoading(false)
+  }, [toast])
+
+  useEffect(() => { if (authed && isConfigured) fetchOccasions() }, [authed, fetchOccasions])
+
+  const handleSeedOccasions = async () => {
+    setOccasionSeeding(true)
+    const rows = DEFAULT_OCCASIONS.map((o, i) => ({ id: slugify(o.title), images: [], price_display: null, active: true, sort_order: i, ...o }))
+    const { error } = await supabase.from('bobblehead_occasions').upsert(rows, { onConflict: 'id' })
+    if (error) toast('Import failed: ' + error.message, 'error')
+    else toast(`${rows.length} occasions imported`)
+    await fetchOccasions()
+    setOccasionSeeding(false)
+  }
+
   const handleSeed = async () => {
     setSeeding(true)
     const rows = STATIC_PRODUCTS.map(toRow)
@@ -1974,6 +2572,13 @@ export default function Admin() {
     fetchTestimonials()
   }
 
+  const handleToggleActiveOccasion = async (o) => {
+    const { error } = await supabase.from('bobblehead_occasions').update({ active: !o.active }).eq('id', o.id)
+    if (error) { toast('Update failed: ' + error.message, 'error'); return }
+    toast(`"${o.title}" ${!o.active ? 'activated' : 'hidden'}`)
+    fetchOccasions()
+  }
+
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#F6F6F7]"><div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin" /></div>
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />
 
@@ -1993,13 +2598,14 @@ export default function Admin() {
       <nav className="flex-1 px-3 py-4 space-y-1">
         <button
           onClick={() => {
-            if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
+            if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
+            else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
             else { setEditProduct({ _new: true }); setView('form') }
             setMobileOpen(false)
           }}
           className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3"
         >
-          {Ico.plus} {inTestimonials ? 'Add testimonial' : 'Add product'}
+          {Ico.plus} {inOccasions ? 'Add occasion' : inTestimonials ? 'Add testimonial' : 'Add product'}
         </button>
         <button onClick={() => { setView('list'); setMobileOpen(false) }}
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' || view === 'form' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
@@ -2013,6 +2619,13 @@ export default function Admin() {
           <span className="flex items-center gap-2">💬 Testimonials</span>
           {testimonials.length > 0 && (
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{testimonials.length}</span>
+          )}
+        </button>
+        <button onClick={() => { setView('occasions-list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inOccasions ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">🎎 Bobbleheads</span>
+          {occasions.length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{occasions.length}</span>
           )}
         </button>
         <a href="/" target="_blank" rel="noopener noreferrer"
@@ -2055,7 +2668,8 @@ export default function Admin() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
+                if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
+                else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
                 else { setEditProduct({ _new: true }); setView('form') }
               }}
               className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#1D1D1F] text-xs font-bold rounded-lg"
@@ -2098,12 +2712,31 @@ export default function Admin() {
              onToggleActive={handleToggleActiveTestimonial}
              onRefresh={fetchTestimonials}
            />
-         ) : (
+         ) : view === 'testimonials-form' ? (
            <TestimonialForm
              testimonial={editTestimonial}
              toast={toast}
              onSave={() => { setView('testimonials-list'); fetchTestimonials() }}
              onBack={() => setView('testimonials-list')}
+           />
+         ) : view === 'occasions-list' ? (
+           <OccasionsList
+             occasions={occasions}
+             loading={occasionsLoading}
+             seeding={occasionSeeding}
+             toast={toast}
+             onAdd={() => { setEditOccasion({ _new: true }); setView('occasions-form') }}
+             onEdit={o => { setEditOccasion(o); setView('occasions-form') }}
+             onToggleActive={handleToggleActiveOccasion}
+             onRefresh={fetchOccasions}
+             onSeed={handleSeedOccasions}
+           />
+         ) : (
+           <OccasionForm
+             occasion={editOccasion}
+             toast={toast}
+             onSave={() => { setView('occasions-list'); fetchOccasions() }}
+             onBack={() => setView('occasions-list')}
            />
          )
         }

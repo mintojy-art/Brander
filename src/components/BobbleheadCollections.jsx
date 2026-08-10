@@ -1,96 +1,65 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useBobbleheadOccasions } from '../hooks/useBobbleheadOccasions'
 
-// No real photography or fixed pricing exists yet for these occasion themes —
-// gradient + icon cards ship today; swap in real photos/prices per card
-// whenever they're available (image field is intentionally absent).
-const COLLECTIONS = [
-  {
-    title: 'Corporate Gifts',
-    tagline: 'Bulk orders for your team, client, or boss.',
-    badge: 'Popular',
-    icon: '🎁',
-    gradient: 'from-[#2A2A2D] to-[#1D1D1F]',
-    dark: true,
-  },
-  {
-    title: 'Gifts for Doctor',
-    tagline: 'A thank-you they’ll display forever.',
-    badge: 'New',
-    icon: '🩺',
-    gradient: 'from-[#EAF4F2] to-[#D3E9E3]',
-    badgeColor: 'bg-[#1D4ED8] text-white',
-  },
-  {
-    title: 'Birthday Gifts',
-    tagline: 'A gift as one-of-a-kind as they are.',
-    badge: 'Trending',
-    icon: '🎂',
-    gradient: 'from-[#FDF0F5] to-[#FAD9E6]',
-    badgeColor: 'bg-[#DB2777] text-white',
-  },
-  {
-    title: 'Wedding',
-    tagline: 'Immortalize your big day, mini-me style.',
-    badge: 'Best Seller',
-    icon: '💍',
-    gradient: 'from-[#FAF6EE] to-[#F1E3C9]',
-    badgeColor: 'bg-[#15803D] text-white',
-  },
-  {
-    title: 'Funny Gifts',
-    tagline: 'Because they can take a joke.',
-    badge: 'Hot',
-    icon: '😂',
-    gradient: 'from-[#FFF8E8] to-[#FFEAB0]',
-    badgeColor: 'bg-[#EA580C] text-white',
-  },
-]
-
-const SPAN = [
-  'md:col-span-4 md:row-span-2',
-  'md:col-span-4',
-  'md:col-span-4',
-  'md:col-span-5',
-  'md:col-span-3',
-]
-
-function CollectionCard({ c, span, delay }) {
-  const waMsg = encodeURIComponent(`Hi ORIC! I'd like a custom bobblehead for ${c.title}. Can you share pricing and next steps?`)
-  const textColor = c.dark ? 'text-white' : 'text-[#1D1D1F]'
-  const subColor = c.dark ? 'text-white/70' : 'text-[#424245]'
-  const badgeColor = c.badgeColor || 'bg-white/15 text-white border border-white/25'
-  const ctaColor = c.dark ? 'bg-white text-[#1D1D1F] group-hover:bg-[#F5F5F7]' : 'bg-[#1D1D1F] text-white group-hover:bg-[#424245]'
+function CollectionCard({ o, span, delay }) {
+  const image = (o.images || []).filter(Boolean)[0]
 
   return (
-    <motion.a
-      href={`https://wa.me/918310194953?text=${waMsg}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`group relative overflow-hidden rounded-3xl p-6 flex flex-col justify-between min-h-[220px] bg-gradient-to-br ${c.gradient} ${span}`}
+    <motion.div
+      className={`group relative overflow-hidden rounded-3xl min-h-[220px] bg-[#1D1D1F] ${span}`}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
     >
-      <div className="flex items-start justify-between">
-        <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${badgeColor}`}>
-          {c.badge}
-        </span>
-        <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{c.icon}</span>
-      </div>
-      <div>
-        <h3 className={`text-2xl font-bold mb-1 ${textColor}`}>{c.title}</h3>
-        <p className={`text-sm mb-4 ${subColor}`}>{c.tagline}</p>
-        <span className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full transition-all ${ctaColor}`}>
-          Get a Quote →
-        </span>
-      </div>
-    </motion.a>
+      <Link to={`/bobbleheads/${o.id}`} className="absolute inset-0 flex flex-col justify-between p-6">
+        {image ? (
+          <img
+            src={image}
+            alt={o.title}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-40">
+            {o.icon || '🎎'}
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/10" />
+
+        <div className="relative flex items-start justify-between">
+          {o.badge && (
+            <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-white/15 text-white border border-white/25 backdrop-blur-sm">
+              {o.badge}
+            </span>
+          )}
+          {image && o.icon && <span className="text-3xl ml-auto">{o.icon}</span>}
+        </div>
+
+        <div className="relative">
+          <h3 className="text-2xl font-bold mb-1 text-white">{o.title}</h3>
+          {o.tagline && <p className="text-sm mb-4 text-white/75">{o.tagline}</p>}
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full bg-white text-[#1D1D1F] group-hover:bg-[#F5F5F7] transition-all">
+            {o.cta_text || 'Get a Quote'} →
+          </span>
+        </div>
+      </Link>
+    </motion.div>
   )
 }
 
+// First occasion is the tall hero card; the rest fill the remaining columns
+// two-per-row (12-col grid, hero takes 4 cols × 2 rows, rest take 4 cols each).
+function spanFor(index) {
+  if (index === 0) return 'md:col-span-4 md:row-span-2'
+  return 'md:col-span-4'
+}
+
 export default function BobbleheadCollections() {
+  const { occasions } = useBobbleheadOccasions()
+
+  if (occasions.length === 0) return null
+
   return (
     <section className="py-28 bg-white">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
@@ -110,9 +79,9 @@ export default function BobbleheadCollections() {
           </motion.h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-4 md:h-[640px]">
-          {COLLECTIONS.map((c, i) => (
-            <CollectionCard key={c.title} c={c} span={SPAN[i]} delay={i * 0.05} />
+        <div className="grid grid-cols-1 md:grid-cols-12 md:auto-rows-fr gap-4">
+          {occasions.map((o, i) => (
+            <CollectionCard key={o.id} o={o} span={spanFor(i)} delay={Math.min(i, 5) * 0.05} />
           ))}
         </div>
 
