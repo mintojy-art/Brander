@@ -57,8 +57,9 @@ export default function Bobbleheads() {
   const bobbleheadProducts = products.filter((p) => p.category === 'Bobbleheads')
 
   useSEO({
-    title: 'Custom Bobbleheads — Made in Bangalore | ORIC',
-    description: 'Custom bobblehead figures for every occasion — corporate gifts, weddings, birthdays, funny gifts and more. Hand-sculpted likeness, ordered online or via WhatsApp, delivered across India.',
+    title: 'Custom Bobbleheads, Made in Bangalore',
+    description: 'Hand-sculpted custom bobbleheads for weddings, birthdays and corporate gifts. Send a photo on WhatsApp, we print and ship across India.',
+    path: '/bobbleheads',
   })
 
   return (

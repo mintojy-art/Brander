@@ -3,8 +3,9 @@ import { useSEO } from '../hooks/useSEO'
 
 export default function About() {
   useSEO({
-    title: 'About ORIC — 3D Printing Studio, Bangalore',
-    description: 'Meet the team behind ORIC. A Bangalore-based 3D printing studio crafting custom figurines, prototypes, and prints on demand.',
+    title: 'About Our Bangalore 3D Print Studio',
+    description: 'Meet ORIC, the Bangalore studio behind the prints. See our FDM setup, how we work, and why we take on jobs with no minimum order.',
+    path: '/about',
   })
 
   return (

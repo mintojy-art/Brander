@@ -519,8 +519,9 @@ function Divider() { return <div className="border-t border-[#E8E8ED] my-4" /> }
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Lithophane() {
   useSEO({
-    title: 'Lithophane Generator — Free 3D Lithophane Maker',
-    description: 'Free online lithophane generator. Turn any photo into a 3D-printable STL lithophane. Plane, cylinder, arc and sphere shapes. Download instantly. Order prints from Bangalore.',
+    title: 'Free Lithophane Generator — Photo to STL',
+    description: 'Free lithophane generator — turn any photo into a 3D-printable STL in plane, cylinder, arc or sphere. Download free or order the print from us.',
+    path: '/lithophanes',
   })
 
   const [rawImg, setRawImg]           = useState(null)

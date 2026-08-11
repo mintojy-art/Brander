@@ -1,0 +1,59 @@
+# ORIC
+
+> ORIC is a 3D print-on-demand studio based in Bangalore, Karnataka,
+> India. We produce custom figurines, bobbleheads, functional parts,
+> prototypes, idols, toys and lithophanes using FDM printing, with no
+> minimum order quantity and delivery across India. Orders are placed
+> online or directly over WhatsApp.
+
+## Key Pages
+
+- [Home](https://www.oric3d.com/): Overview of ORIC's 3D printing
+  services, featured products and how to start an order.
+- [Services](https://www.oric3d.com/services): Nine services — small
+  batch manufacturing, custom 3D prints, prototyping, figurines,
+  bobbleheads, toys, idol & deity models, accessories and more.
+- [Shop](https://www.oric3d.com/shop): Ready-to-order 3D printed
+  products shipped anywhere in India.
+- [Custom Bobbleheads](https://www.oric3d.com/bobbleheads):
+  Hand-sculpted bobbleheads for weddings, birthdays, corporate gifts
+  and novelty gifting, organised by occasion.
+- [Lithophane Generator](https://www.oric3d.com/lithophanes): Free
+  browser-based tool that converts any photo into a 3D-printable STL
+  lithophane in plane, cylinder, arc or sphere form. Download free or
+  order the finished print.
+- [Brander Roller](https://www.oric3d.com/shop/brander-roller):
+  A 15mm hand-held stamp roller for repeat ink marking on packaging,
+  wood, fabric and other surfaces.
+- [About](https://www.oric3d.com/about): The studio, the workshop and
+  how ORIC works.
+- [Refund & Reprint Policy](https://www.oric3d.com/refund-policy):
+  Defective or damaged prints are reprinted free of charge.
+
+## Key Facts
+
+- Location: Bangalore, Karnataka, India
+- Printing technology: FDM
+- Minimum order quantity: none (batches of 5–500 units supported)
+- Delivery: across India
+- Languages: English, Hindi, Kannada
+- Hours: Monday–Saturday, 09:00–19:00 IST
+- Currency: INR · Payment: UPI, bank transfer, cash
+- Contact: support@oric3d.com · WhatsApp +91 83101 94953
+- Instagram: https://www.instagram.com/oric3d/
+- Free tools offered: online lithophane STL generator
+
+## Common Questions
+
+- How to order: send a file or a reference photo over WhatsApp, or
+  order directly from the shop and confirm details via WhatsApp.
+- Accepted file formats: STL, STEP, and OBJ for custom prints.
+- Pricing: for STL uploads, use the instant price configurator on the
+  homepage; for figurines, idols, and other custom items, ORIC reviews
+  the request and quotes within 24 hours.
+- Shipping: pan-India via Shiprocket/Delhivery.
+- Refunds: defective or damaged prints are reprinted free of charge.
+
+## Optional
+
+- [Refund & Reprint Policy](https://www.oric3d.com/refund-policy)

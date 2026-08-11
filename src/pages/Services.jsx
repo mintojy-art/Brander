@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
+import { useJsonLd } from '../hooks/useJsonLd'
 
 const services = [
   {
@@ -97,9 +98,28 @@ const services = [
 
 export default function Services() {
   useSEO({
-    title: 'Services — 3D Printing, Prototyping & Manufacturing Bangalore',
-    description: 'ORIC offers 9 professional 3D printing services in Bangalore: small batch manufacturing, custom prints, prototyping, figurines, bobbleheads, toys, idols and more.',
+    title: '3D Printing & Prototyping Services, Bangalore',
+    description: 'Nine 3D printing services in Bangalore — small batch manufacturing, prototyping, figurines, bobbleheads, toys and idols. Request a quote today.',
+    path: '/services',
   })
+
+  useJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: '3D Printing Services — ORIC Bangalore',
+    itemListElement: services.map((svc, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Service',
+        name: svc.title,
+        description: svc.description,
+        provider: { '@id': 'https://www.oric3d.com/#business' },
+        areaServed: 'IN',
+      },
+    })),
+  }, 'services-jsonld')
+
   return (
     <div className="pt-[100px] min-h-screen bg-white">
 

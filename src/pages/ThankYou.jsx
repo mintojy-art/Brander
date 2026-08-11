@@ -39,7 +39,7 @@ export default function ThankYou() {
   const type = searchParams.get('type')
   const content = CONTENT[type] || CONTENT.default
 
-  useSEO({ title: 'Thank You — ORIC', description: content.message })
+  useSEO({ title: 'Thank You', description: content.message, path: '/thank-you' })
 
   useEffect(() => {
     if (typeof window.gtag === 'function') {

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useBobbleheadOccasions } from '../hooks/useBobbleheadOccasions'
 import { useSEO } from '../hooks/useSEO'
+import { useJsonLd } from '../hooks/useJsonLd'
 
 export default function BobbleheadDetail() {
   const { id } = useParams()
@@ -10,10 +11,25 @@ export default function BobbleheadDetail() {
   const occasion = occasions.find((o) => o.id === id)
   const [activeImg, setActiveImg] = useState(0)
 
+  const occasionImage = (occasion?.images || []).filter(Boolean)[0]
+  const rawDescription = occasion?.description || 'Custom bobbleheads made in Bangalore, India.'
   useSEO({
-    title: occasion ? `${occasion.title} Bobbleheads — ORIC` : 'Bobbleheads — ORIC',
-    description: occasion?.description || 'Custom bobbleheads made in Bangalore, India.',
+    title: occasion ? `${occasion.title} Bobbleheads` : 'Bobbleheads',
+    description: rawDescription.length > 155 ? `${rawDescription.slice(0, 154)}…` : rawDescription,
+    path: `/bobbleheads/${id}`,
+    image: occasionImage,
   })
+
+  useJsonLd(occasion ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `${occasion.title} Bobbleheads`,
+    description: rawDescription,
+    image: occasionImage ? [occasionImage] : undefined,
+    category: 'Bobbleheads',
+    brand: { '@type': 'Brand', name: 'ORIC' },
+    manufacturer: { '@id': 'https://www.oric3d.com/#business' },
+  } : null, 'occasion-jsonld')
 
   if (!occasion) {
     return (

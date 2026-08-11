@@ -12,8 +12,9 @@ function Section({ title, children }) {
 
 export default function RefundPolicy() {
   useSEO({
-    title: 'Refund & Reprint Policy — ORIC',
-    description: 'ORIC\'s return, refund, and reprint policy. Defective or damaged prints are reprinted free. Learn how to raise a request.',
+    title: 'Refund & Reprint Policy',
+    description: "ORIC's return, refund, and reprint policy. Defective or damaged prints are reprinted free. Learn how to raise a request.",
+    path: '/refund-policy',
   })
 
   return (

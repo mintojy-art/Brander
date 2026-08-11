@@ -107,8 +107,9 @@ export default function Home() {
   const newArrivals  = products.filter((p) => p.badge === 'New')
 
   useSEO({
-    title: '3D Printing Service in Bangalore — Custom Prints, Figurines & Prototypes',
-    description: 'ORIC is Bangalore\'s premium 3D print-on-demand studio. Custom figurines, prototypes, functional parts, idols & more. FDM precision. Fast delivery across India. No minimum order.',
+    title: '3D Printing Service in Bangalore — Custom Prints',
+    description: "Bangalore's 3D print-on-demand studio. Custom figurines, prototypes, parts and idols with FDM precision, no minimum order. Get a quote on WhatsApp.",
+    path: '/',
   })
 
   return (

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useSEO } from '../hooks/useSEO'
 // Brander Roller page — wraps all existing Brander components inside the ORIC site
 import Hero from '../components/Hero'
 import StatsBar from '../components/StatsBar'
@@ -16,6 +17,12 @@ import WaitlistSection from '../components/WaitlistSection'
 export default function BranderRollerPage() {
   // Scroll to top on mount
   useEffect(() => { window.scrollTo(0, 0) }, [])
+
+  useSEO({
+    title: 'Brander Roller — Hand-Held Stamp Roller',
+    description: 'The Brander Roller is a 15mm hand-held stamp roller for repeat ink marking on packaging, wood, fabric and more. Custom-engraved, made in India.',
+    path: '/shop/brander-roller',
+  })
 
   const scrollToWaitlist = () =>
     document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })

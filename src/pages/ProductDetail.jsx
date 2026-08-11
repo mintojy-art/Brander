@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useProducts } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
+import { useSEO } from '../hooks/useSEO'
+import { useJsonLd } from '../hooks/useJsonLd'
 
 // ── Star Rating ───────────────────────────────────────────────────────────────
 function StarIcon({ fill = 'full', className }) {
@@ -50,6 +52,43 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [activeImg, setActiveImg] = useState(0)
+
+  const rawDesc = product?.description || product?.tagline || 'Custom 3D printed product from ORIC, Bangalore.'
+  useSEO({
+    title: product ? `${product.name} — ${product.category}` : 'Product',
+    description: rawDesc.length > 155 ? `${rawDesc.slice(0, 154)}…` : rawDesc,
+    path: `/shop/${productId}`,
+    image: product?.image || undefined,
+  })
+
+  useJsonLd(product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: rawDesc,
+    image: product.image ? [product.image] : undefined,
+    sku: product.id,
+    category: product.category,
+    brand: { '@type': 'Brand', name: 'ORIC' },
+    manufacturer: { '@id': 'https://www.oric3d.com/#business' },
+    ...(product.price ? {
+      offers: {
+        '@type': 'Offer',
+        url: `https://www.oric3d.com/shop/${product.id}`,
+        priceCurrency: 'INR',
+        price: product.price,
+        availability: 'https://schema.org/InStock',
+        seller: { '@id': 'https://www.oric3d.com/#business' },
+      },
+    } : {}),
+    ...(product.rating ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: product.rating,
+        reviewCount: product.reviews || 1,
+      },
+    } : {}),
+  } : null, 'product-jsonld')
 
   if (!product) {
     return (

@@ -102,8 +102,9 @@ export default function Shop() {
   const filtered = active === 'All' ? products : products.filter((p) => p.category === active)
 
   useSEO({
-    title: 'Shop — 3D Printed Products Bangalore',
-    description: 'Browse ORIC\'s shop of 3D printed figurines, prototypes, custom parts, toys and more. Order online and get delivered anywhere in India.',
+    title: 'Buy 3D Printed Figurines, Toys & Parts',
+    description: "Browse ORIC's 3D printed figurines, toys, custom parts and prototypes. Order online, no minimum quantity, delivered anywhere in India.",
+    path: '/shop',
   })
 
   return (
