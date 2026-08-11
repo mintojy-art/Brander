@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 const MESSAGES = [
   'Designed & Printed in Bangalore, India',
-  'Free Delivery Across India',
+  'Delivery Across India',
 ]
 
 export default function AnnouncementBar() {

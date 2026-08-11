@@ -229,7 +229,7 @@ export default function ProductDetail() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#86868B]">Inclusive of all taxes · Free delivery across India</p>
+              <p className="text-xs text-[#86868B]">Inclusive of all taxes · Delivery across India</p>
             </div>
 
             {/* Stock + Delivery */}
