@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxAXWbtjWvWXQTTVIR8pilVJaOgyvRrcjx0W4Kwo_ufDc1qPNZgynLeKRvl2kpnV6AK/exec'
 
@@ -15,6 +16,7 @@ function getDesign() {
 }
 
 export default function WaitlistSection() {
+  const navigate = useNavigate()
   const [form, setForm]           = useState({ name: '', email: '', phone: '' })
   const [readyToPay, setReadyToPay] = useState(null)
   const [status, setStatus]       = useState('idle')
@@ -70,7 +72,7 @@ export default function WaitlistSection() {
         designPreview:   localStorage.getItem('brander_design_preview') || '',
       })
       await fetch(`${SHEET_URL}?${params.toString()}`, { method: 'GET', mode: 'no-cors' })
-      setStatus('done')
+      navigate('/thank-you?type=waitlist')
     } catch {
       setStatus('error')
     }
@@ -145,27 +147,7 @@ export default function WaitlistSection() {
                 <p className="text-stone-400 text-sm">Takes 30 seconds. No spam — ever.</p>
               </div>
 
-              <AnimatePresence mode="wait">
-                {status === 'done' ? (
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="px-7 py-12 text-center"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center mx-auto mb-5 text-2xl text-[#111111] font-bold">
-                      ✓
-                    </div>
-                    <h4 className="text-2xl font-bold text-[#111111] mb-2">You're on the list!</h4>
-                    <p className="text-stone-400 text-sm max-w-xs mx-auto leading-relaxed">
-                      We'll reach out personally before launch. Keep an eye on your inbox.
-                    </p>
-                    <div className="mt-6 px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-400">
-                      Your details have been saved. We'll contact you via email &amp; WhatsApp.
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.form key="form" onSubmit={submit} className="px-7 py-6 space-y-4">
+              <motion.form onSubmit={submit} className="px-7 py-6 space-y-4">
                     {/* Name */}
                     <div>
                       <label className="block text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-1.5">Full Name</label>
@@ -269,9 +251,7 @@ export default function WaitlistSection() {
                         </p>
                       </div>
                     )}
-                  </motion.form>
-                )}
-              </AnimatePresence>
+              </motion.form>
             </div>
           </motion.div>
 

@@ -17,6 +17,7 @@ import AdminResetPassword from './pages/AdminResetPassword'
 import Lithophane from './pages/Lithophane'
 import About from './pages/About'
 import RefundPolicy from './pages/RefundPolicy'
+import ThankYou from './pages/ThankYou'
 import NotFound from './pages/NotFound'
 
 function ScrollToTop() {
@@ -47,6 +48,7 @@ function Layout() {
         <Route path="/lithophanes"            element={<Lithophane />}        />
         <Route path="/about"                  element={<About />}             />
         <Route path="/refund-policy"          element={<RefundPolicy />}      />
+        <Route path="/thank-you"              element={<ThankYou />}          />
         <Route path="*"                       element={<NotFound />}          />
       </Routes>
       {!isAdmin && <OricFooter />}
