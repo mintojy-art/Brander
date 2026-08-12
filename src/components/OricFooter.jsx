@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 const col1 = [
   { label: 'Home',         to: '/'           },
@@ -60,7 +60,7 @@ export default function OricFooter() {
             <ul className="space-y-3">
               {col1.map((item) => (
                 <li key={item.label}>
-                  <Link to={item.to} className="text-sm text-[#424245] hover:text-[#1D1D1F] transition-colors">
+                  <Link href={item.to} className="text-sm text-[#424245] hover:text-[#1D1D1F] transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -74,7 +74,7 @@ export default function OricFooter() {
             <ul className="space-y-3">
               {col2.map((item) => (
                 <li key={item.label}>
-                  <Link to={item.to} className="text-sm text-[#424245] hover:text-[#1D1D1F] transition-colors">
+                  <Link href={item.to} className="text-sm text-[#424245] hover:text-[#1D1D1F] transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -87,8 +87,8 @@ export default function OricFooter() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 py-6 text-xs text-[#86868B]">
           <p>&copy; {new Date().getFullYear()} ORIC. Made in India.</p>
           <div className="flex items-center gap-4 flex-wrap justify-center">
-            <Link to="/about" className="hover:text-[#1D1D1F] transition-colors">About</Link>
-            <Link to="/refund-policy" className="hover:text-[#1D1D1F] transition-colors">Refund Policy</Link>
+            <Link href="/about" className="hover:text-[#1D1D1F] transition-colors">About</Link>
+            <Link href="/refund-policy" className="hover:text-[#1D1D1F] transition-colors">Refund Policy</Link>
             <a href="mailto:support@oric3d.com" className="hover:text-[#1D1D1F] transition-colors">support@oric3d.com</a>
             <p>3D Printing Service · Bangalore, Karnataka · +91 83101 94953</p>
           </div>

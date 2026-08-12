@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useBobbleheadOccasions } from '../hooks/useBobbleheadOccasions'
 
 function CollectionCard({ o, span, delay }) {
   const image = (o.images || []).filter(Boolean)[0]
@@ -13,7 +14,7 @@ function CollectionCard({ o, span, delay }) {
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
     >
-      <Link to={`/bobbleheads/${o.id}`} className="absolute inset-0 flex flex-col justify-between p-6">
+      <Link href={`/bobbleheads/${o.id}`} className="absolute inset-0 flex flex-col justify-between p-6">
         {image ? (
           <img
             src={image}
@@ -55,9 +56,7 @@ function spanFor(index) {
   return 'md:col-span-4'
 }
 
-export default function BobbleheadCollections() {
-  const { occasions } = useBobbleheadOccasions()
-
+export default function BobbleheadCollections({ occasions = [] }) {
   if (occasions.length === 0) return null
 
   return (
@@ -87,7 +86,7 @@ export default function BobbleheadCollections() {
 
         <div className="text-center mt-10">
           <Link
-            to="/bobbleheads"
+            href="/bobbleheads"
             className="inline-flex items-center gap-2 px-8 py-4 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all"
           >
             All Bobbleheads

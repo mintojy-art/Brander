@@ -1,8 +1,10 @@
+'use client'
+
 import { useState, useRef, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { useCart } from '../context/CartContext'
+import { useCart } from '@/context/CartContext'
 import OrderModal from './OrderModal'
 
 // ── Data ────────────────────────────────────────────────────────────────────

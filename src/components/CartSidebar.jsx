@@ -1,5 +1,7 @@
+'use client'
+
 import { AnimatePresence, motion } from 'framer-motion'
-import { useCart } from '../context/CartContext'
+import { useCart } from '@/context/CartContext'
 
 export default function CartSidebar() {
   const { items, remove, update, total, count, isOpen, setIsOpen, checkoutWhatsApp } = useCart()

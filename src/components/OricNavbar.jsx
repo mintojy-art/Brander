@@ -1,9 +1,11 @@
+'use client'
+
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useCart } from '../context/CartContext'
-import { useProducts } from '../hooks/useProducts'
-import { categoryIcons } from '../data/products'
+import { useCart } from '@/context/CartContext'
+import { categoryIcons } from '@/data/products'
 
 const navLinks = [
   { to: '/services',     label: 'Services'    },
@@ -15,15 +17,14 @@ const navLinks = [
 // instead of the generic category-filtered shop view.
 const categoryHref = (cat) => cat === 'Bobbleheads' ? '/bobbleheads' : `/shop?cat=${encodeURIComponent(cat)}`
 
-export default function OricNavbar() {
+export default function OricNavbar({ categories = [] }) {
   const [scrolled, setScrolled]     = useState(false)
   const [mobileOpen, setMobile]     = useState(false)
   const [shopMenuOpen, setShopMenu] = useState(false)
   const [mobileShopOpen, setMShop]  = useState(false)
   const { count, setIsOpen }      = useCart()
-  const location                  = useLocation()
-  const { products }              = useProducts()
-  const shopCategories            = [...new Set(products.map((p) => p.category))]
+  const pathname                  = usePathname()
+  const shopCategories            = categories
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10)
@@ -31,9 +32,9 @@ export default function OricNavbar() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  useEffect(() => setMobile(false), [location.pathname])
+  useEffect(() => setMobile(false), [pathname])
 
-  const isActive = (to) => to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)
+  const isActive = (to) => to === '/' ? pathname === '/' : pathname.startsWith(to)
 
   return (
     <header
@@ -45,7 +46,7 @@ export default function OricNavbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center select-none">
+          <Link href="/" className="flex items-center select-none">
             <img src="/oriclogo1.svg" alt="ORIC" className="h-8 w-auto" style={{ display: 'block' }} />
           </Link>
 
@@ -53,7 +54,7 @@ export default function OricNavbar() {
           <nav className="hidden md:flex items-center gap-1">
             <Link
               key="/"
-              to="/"
+              href="/"
               className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
                 isActive('/')
                   ? 'bg-[#1D1D1F] text-white'
@@ -70,7 +71,7 @@ export default function OricNavbar() {
               onMouseLeave={() => setShopMenu(false)}
             >
               <Link
-                to="/shop"
+                href="/shop"
                 className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all ${
                   isActive('/shop')
                     ? 'bg-[#1D1D1F] text-white'
@@ -98,7 +99,7 @@ export default function OricNavbar() {
                         {shopCategories.map((cat) => (
                           <Link
                             key={cat}
-                            to={categoryHref(cat)}
+                            href={categoryHref(cat)}
                             className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F5F5F7] transition-colors"
                           >
                             <span className="text-lg">{categoryIcons[cat] || '🖨️'}</span>
@@ -126,7 +127,7 @@ export default function OricNavbar() {
             {navLinks.map((link) => (
               <Link
                 key={link.to}
-                to={link.to}
+                href={link.to}
                 className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
                   isActive(link.to)
                     ? 'bg-[#1D1D1F] text-white'
@@ -192,7 +193,7 @@ export default function OricNavbar() {
           >
             <div className="px-5 pt-2 pb-5 space-y-1">
               <Link
-                to="/"
+                href="/"
                 className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   isActive('/')
                     ? 'bg-[#1D1D1F] text-white'
@@ -206,7 +207,7 @@ export default function OricNavbar() {
               <div>
                 <div className="flex items-center">
                   <Link
-                    to="/shop"
+                    href="/shop"
                     className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       isActive('/shop')
                         ? 'bg-[#1D1D1F] text-white'
@@ -238,7 +239,7 @@ export default function OricNavbar() {
                         {shopCategories.map((cat) => (
                           <Link
                             key={cat}
-                            to={categoryHref(cat)}
+                            href={categoryHref(cat)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors"
                           >
                             <span>{categoryIcons[cat] || '🖨️'}</span>
@@ -254,7 +255,7 @@ export default function OricNavbar() {
               {navLinks.map((link) => (
                 <Link
                   key={link.to}
-                  to={link.to}
+                  href={link.to}
                   className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     isActive(link.to)
                       ? 'bg-[#1D1D1F] text-white'

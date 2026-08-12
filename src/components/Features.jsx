@@ -1,6 +1,8 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import FeatureCard from './FeatureCard'
-import { Box, Layers, Zap } from '../icons'
+import { Box, Layers, Zap } from '@/icons'
 
 const features = [
   {

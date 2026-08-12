@@ -1,5 +1,7 @@
+'use client'
+
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxAXWbtjWvWXQTTVIR8pilVJaOgyvRrcjx0W4Kwo_ufDc1qPNZgynLeKRvl2kpnV6AK/exec'
@@ -16,7 +18,7 @@ function getDesign() {
 }
 
 export default function WaitlistSection() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [form, setForm]           = useState({ name: '', email: '', phone: '' })
   const [readyToPay, setReadyToPay] = useState(null)
   const [status, setStatus]       = useState('idle')
@@ -72,7 +74,7 @@ export default function WaitlistSection() {
         designPreview:   localStorage.getItem('brander_design_preview') || '',
       })
       await fetch(`${SHEET_URL}?${params.toString()}`, { method: 'GET', mode: 'no-cors' })
-      navigate('/thank-you?type=waitlist')
+      router.push('/thank-you?type=waitlist')
     } catch {
       setStatus('error')
     }

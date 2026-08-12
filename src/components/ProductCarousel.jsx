@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef, useState, useEffect, Children } from 'react'
 
 export default function ProductCarousel({ children }) {

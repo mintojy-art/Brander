@@ -1,5 +1,6 @@
+'use client'
+
 import { motion } from 'framer-motion'
-import { useTestimonials } from '../hooks/useTestimonials'
 
 function Stars({ rating = 5 }) {
   return (
@@ -13,9 +14,7 @@ function Stars({ rating = 5 }) {
   )
 }
 
-export default function Testimonials() {
-  const { testimonials } = useTestimonials()
-
+export default function Testimonials({ testimonials = [] }) {
   if (testimonials.length === 0) return null
 
   return (

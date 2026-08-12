@@ -1,6 +1,8 @@
+'use client'
+
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 
 const FAQS = [
   {
@@ -24,7 +26,7 @@ const FAQS = [
     a: (
       <>
         Defective or damaged prints are reprinted free of charge. See our full{' '}
-        <Link to="/refund-policy" className="underline underline-offset-2 font-semibold text-[#1D1D1F]">
+        <Link href="/refund-policy" className="underline underline-offset-2 font-semibold text-[#1D1D1F]">
           Refund & Reprint Policy
         </Link>{' '}
         for what qualifies and how to raise a request.

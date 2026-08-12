@@ -1,6 +1,8 @@
+'use client'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight } from '../icons'
+import { ArrowRight } from '@/icons'
 
 const container = {
   hidden: {},
