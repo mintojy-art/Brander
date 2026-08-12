@@ -9,6 +9,7 @@ import { categoryIcons } from '@/data/products'
 
 const navLinks = [
   { to: '/services',     label: 'Services'    },
+  { to: '/blog',         label: 'Blog'        },
   { to: '/about',        label: 'About'       },
   { to: '/lithophanes',  label: 'Lithophane' },
 ]

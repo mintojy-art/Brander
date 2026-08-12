@@ -42,3 +42,6 @@ export const deleteVideo = (url) => deleteFromBucket(url, 'testimonial-media')
 
 export const uploadOccasionImage = (file) => uploadToBucket(file, 'bobblehead-media')
 export const deleteOccasionImage = (url) => deleteFromBucket(url, 'bobblehead-media')
+
+export const uploadBlogImage = (file) => uploadToBucket(file, 'blog-images')
+export const deleteBlogImage = (url) => deleteFromBucket(url, 'blog-images')

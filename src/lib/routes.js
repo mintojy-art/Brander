@@ -4,6 +4,7 @@ export const STATIC_ROUTES = [
   { path: '/', freq: 'weekly', priority: '1.0' },
   { path: '/shop', freq: 'weekly', priority: '0.9' },
   { path: '/services', freq: 'monthly', priority: '0.9' },
+  { path: '/blog', freq: 'weekly', priority: '0.8' },
   { path: '/bobbleheads', freq: 'monthly', priority: '0.8' },
   { path: '/lithophanes', freq: 'monthly', priority: '0.8' },
   { path: '/shop/brander-roller', freq: 'monthly', priority: '0.7' },

@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Cropper from 'react-easy-crop'
-import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo, uploadOccasionImage, deleteOccasionImage } from '@/lib/supabase'
+import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo, uploadOccasionImage, deleteOccasionImage, uploadBlogImage, deleteBlogImage } from '@/lib/supabase'
 import { products as STATIC_PRODUCTS } from '@/data/products'
 import { getCroppedImg } from '@/utils/cropImage'
+import { BLOG_CATEGORIES } from '@/data/blogCategories'
+import BlogEditor from '@/components/BlogEditor'
 
 const CATEGORIES = ['Tools', 'Figurines', 'Bobbleheads', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
 
@@ -2475,6 +2477,667 @@ function OccasionsList({ occasions, loading, seeding, onAdd, onEdit, onToggleAct
 }
 
 // ── Root ──────────────────────────────────────────────────────────────────────
+// ── Blog setup SQL ────────────────────────────────────────────────────────────
+const BLOG_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists blog_posts (
+  slug text primary key,
+  title text not null,
+  excerpt text,
+  content_html text,
+  featured_image text,
+  category text,
+  tags text[],
+  author_name text default 'ORIC Team',
+  status text default 'draft',
+  published_at timestamptz,
+  meta_title text,
+  meta_description text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table blog_posts enable row level security;
+drop policy if exists "Public read published posts" on blog_posts;
+drop policy if exists "Admin write posts" on blog_posts;
+create policy "Public read published posts" on blog_posts
+  for select using (status = 'published' and published_at <= now());
+create policy "Admin write posts" on blog_posts
+  for all to authenticated using (true) with check (true);
+
+create table if not exists blog_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_slug text references blog_posts(slug) on delete cascade,
+  name text not null,
+  email text,
+  comment_text text not null,
+  status text default 'pending',
+  created_at timestamptz default now()
+);
+alter table blog_comments enable row level security;
+drop policy if exists "Public read approved comments" on blog_comments;
+drop policy if exists "Public submit comments" on blog_comments;
+drop policy if exists "Admin manage comments" on blog_comments;
+create policy "Public read approved comments" on blog_comments
+  for select using (status = 'approved');
+create policy "Public submit comments" on blog_comments
+  for insert with check (status = 'pending');
+create policy "Admin manage comments" on blog_comments
+  for all to authenticated using (true) with check (true);
+
+insert into storage.buckets (id, name, public)
+values ('blog-images', 'blog-images', true)
+on conflict (id) do nothing;
+
+create policy "Public read blog images" on storage.objects
+  for select using (bucket_id = 'blog-images');
+create policy "Allow upload blog images" on storage.objects
+  for insert to authenticated with check (bucket_id = 'blog-images');
+create policy "Allow delete blog images" on storage.objects
+  for delete to authenticated using (bucket_id = 'blog-images');`
+
+function BlogSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(BLOG_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Blog tables not set up yet</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">blog_posts</code> and <code className="bg-red-100 px-1 rounded font-mono">blog_comments</code> tables plus the <code className="bg-red-100 px-1 rounded font-mono">blog-images</code> storage bucket, then try saving again.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{BLOG_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function toLocalDatetimeInput(iso) {
+  const d = new Date(iso)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+const blogStatusOf = (p) => {
+  if (p.status !== 'published') return 'draft'
+  return p.published_at && new Date(p.published_at) > new Date() ? 'scheduled' : 'published'
+}
+
+// ── Blog Form ──────────────────────────────────────────────────────────────────
+function BlogForm({ post, onSave, onBack, toast }) {
+  const isNew = !post?.slug || !!post?._new
+  const topRef = useRef(null)
+
+  const initForm = () => {
+    if (!post || post._new) return {
+      slug: '', title: '', excerpt: '', content_html: '',
+      featuredImages: [], category: BLOG_CATEGORIES[0], tags: '',
+      author_name: 'ORIC Team', meta_title: '', meta_description: '',
+    }
+    return {
+      ...post,
+      featuredImages: post.featured_image ? [post.featured_image] : [],
+      tags: (post.tags || []).join(', '),
+      category: post.category || BLOG_CATEGORIES[0],
+      published_at: post.published_at ? toLocalDatetimeInput(post.published_at) : '',
+    }
+  }
+
+  const [form, setForm] = useState(initForm)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [schemaError, setSchemaError] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
+  const [publishMode, setPublishMode] = useState(() => {
+    const status = !post || post._new ? 'draft' : blogStatusOf(post)
+    return status === 'scheduled' ? 'schedule' : status === 'published' ? 'publish' : 'draft'
+  })
+
+  const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+
+  const handleBack = () => {
+    if (isDirty) setShowDiscard(true)
+    else onBack()
+  }
+
+  const handleSave = async (stayOnPage = false) => {
+    if (!form.title.trim()) {
+      setErr('Post title is required.')
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    if (publishMode === 'schedule' && !form.published_at) {
+      setErr('Pick a date and time to schedule this post.')
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    setSaving(true)
+    setErr('')
+
+    const slug = isNew ? slugify(form.title) : form.slug
+    const status = publishMode === 'draft' ? 'draft' : 'published'
+    const published_at =
+      publishMode === 'draft' ? null :
+      publishMode === 'schedule' ? new Date(form.published_at).toISOString() :
+      new Date().toISOString()
+
+    const payload = {
+      title: form.title.trim(),
+      excerpt: form.excerpt?.trim() || '',
+      content_html: form.content_html || '',
+      featured_image: form.featuredImages[0] || null,
+      category: form.category,
+      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      author_name: form.author_name?.trim() || 'ORIC Team',
+      status,
+      published_at,
+      meta_title: form.meta_title?.trim() || null,
+      meta_description: form.meta_description?.trim() || null,
+      updated_at: new Date().toISOString(),
+    }
+
+    let error
+    if (isNew) {
+      const res = await supabase.from('blog_posts').insert({ slug, ...payload })
+      error = res.error
+    } else {
+      const res = await supabase.from('blog_posts').update(payload).eq('slug', slug)
+      error = res.error
+    }
+
+    setSaving(false)
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('column') || msg.includes('does not exist') || msg.includes('relation')) {
+        setSchemaError(true)
+        setErr('')
+      } else {
+        setErr(msg)
+      }
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      toast('Save failed — see instructions above', 'error')
+      return
+    }
+    setSchemaError(false)
+
+    toast(`"${form.title}" ${isNew ? 'created' : 'saved'} successfully`)
+    setIsDirty(false)
+
+    if (stayOnPage) {
+      if (isNew) setForm(f => ({ ...f, slug }))
+    } else {
+      onSave()
+    }
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {showDiscard && (
+        <DiscardModal
+          onConfirm={() => { setShowDiscard(false); onBack() }}
+          onCancel={() => setShowDiscard(false)}
+        />
+      )}
+
+      <div ref={topRef} className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={handleBack} className="flex items-center gap-1 text-sm text-[#6D7175] hover:text-[#202223] transition-colors shrink-0">
+            {Ico.back} Blog
+          </button>
+          <span className="text-[#C9CCCF]">/</span>
+          <span className="text-sm font-semibold text-[#202223] truncate">
+            {isNew ? 'Add post' : (form.title || 'Edit post')}
+          </span>
+          {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-4">
+          <button onClick={handleBack} className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors hidden sm:block">
+            Discard
+          </button>
+          <button onClick={() => handleSave(true)} disabled={saving}
+            className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40 hidden md:block">
+            Save & continue
+          </button>
+          <button onClick={() => handleSave(false)} disabled={saving}
+            className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2">
+            {saving ? (
+              <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</>
+            ) : (
+              <>{Ico.check} Save</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {schemaError && (
+        <BlogSetupBanner onDismiss={() => setSchemaError(false)} />
+      )}
+      {err && !schemaError && (
+        <div className="mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+          <span className="shrink-0 mt-0.5 font-bold">✕</span>
+          <span>{err}</span>
+        </div>
+      )}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
+
+        <div className="lg:col-span-2 space-y-5">
+          <Card>
+            <CardTitle>Post details</CardTitle>
+            <div className="space-y-4">
+              <div>
+                <Label>Title <span className="text-red-500">*</span></Label>
+                <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. PLA vs PETG vs ABS — Which Should You Print With?" />
+              </div>
+              {!isNew && (
+                <div>
+                  <Label hint="(the URL — /blog/your-slug)">Slug</Label>
+                  <Input value={form.slug} onChange={e => set('slug', slugify(e.target.value))} />
+                </div>
+              )}
+              <div>
+                <Label hint="(shown on blog cards and used as the fallback meta description)">Excerpt</Label>
+                <Textarea rows={3} value={form.excerpt} onChange={e => set('excerpt', e.target.value)} placeholder="One or two sentences summarizing the post." />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Content</CardTitle>
+            <BlogEditor value={form.content_html} onChange={html => set('content_html', html)} toast={toast} />
+          </Card>
+
+          <Card>
+            <CardTitle>Featured image</CardTitle>
+            <p className="text-xs text-[#6D7175] mb-3">Used on the blog listing card, the post hero, and social share previews.</p>
+            <ImageUploader
+              images={form.featuredImages}
+              onChange={imgs => set('featuredImages', imgs.slice(-1))}
+              toast={toast}
+              uploadFn={uploadBlogImage}
+              deleteFn={deleteBlogImage}
+              bucketSql={BLOG_SETUP_SQL}
+            />
+          </Card>
+
+          <Card>
+            <CardTitle>SEO</CardTitle>
+            <div className="space-y-4">
+              <div>
+                <Label hint={`(${(form.meta_title || '').length}/60 chars — leave blank to use the title)`}>Meta title</Label>
+                <Input value={form.meta_title} onChange={e => set('meta_title', e.target.value)} placeholder={form.title} />
+              </div>
+              <div>
+                <Label hint={`(${(form.meta_description || '').length}/155 chars — leave blank to use the excerpt)`}>Meta description</Label>
+                <Textarea rows={2} value={form.meta_description} onChange={e => set('meta_description', e.target.value)} placeholder={form.excerpt} />
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-5">
+          <Card>
+            <CardTitle>Publish</CardTitle>
+            <div className="space-y-2">
+              {[
+                ['draft', 'Save as draft'],
+                ['publish', 'Publish now'],
+                ['schedule', 'Schedule for later'],
+              ].map(([val, lbl]) => (
+                <button key={val} type="button" onClick={() => { setIsDirty(true); setPublishMode(val) }}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+                    publishMode === val ? 'border-[#1D1D1F] bg-[#1D1D1F] text-white' : 'border-[#C9CCCF] text-[#202223] hover:bg-[#F6F6F7]'
+                  }`}>
+                  {lbl}
+                </button>
+              ))}
+              {publishMode === 'schedule' && (
+                <Input type="datetime-local" value={form.published_at} onChange={e => set('published_at', e.target.value)} className="mt-2" />
+              )}
+              {!isNew && post?.published_at && (
+                <p className="text-xs text-[#6D7175] pt-1">
+                  {blogStatusOf(post) === 'published' ? 'Published' : blogStatusOf(post) === 'scheduled' ? 'Scheduled for' : ''} {post.published_at && new Date(post.published_at).toLocaleString('en-IN')}
+                </p>
+              )}
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Organization</CardTitle>
+            <div className="space-y-4">
+              <div>
+                <Label>Category</Label>
+                <Select value={form.category} onChange={e => set('category', e.target.value)}>
+                  {BLOG_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </Select>
+              </div>
+              <div>
+                <Label hint="(comma separated)">Tags</Label>
+                <Input value={form.tags} onChange={e => set('tags', e.target.value)} placeholder="pla, printing tips, beginner" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>Author</CardTitle>
+            <Input value={form.author_name} onChange={e => set('author_name', e.target.value)} placeholder="ORIC Team" />
+          </Card>
+
+          <div className="flex flex-col gap-2">
+            <button onClick={() => handleSave(false)} disabled={saving}
+              className="w-full py-3 text-sm font-semibold bg-[#1D1D1F] text-white rounded-xl hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</> : <>{Ico.check} Save post</>}
+            </button>
+            <button onClick={() => handleSave(true)} disabled={saving}
+              className="w-full py-2.5 text-sm font-medium border border-[#C9CCCF] rounded-xl hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40">
+              Save &amp; continue editing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Blog List ──────────────────────────────────────────────────────────────────
+function BlogsList({ posts, loading, onAdd, onEdit, onRefresh, toast }) {
+  const [search, setSearch] = useState('')
+  const [tab, setTab] = useState('all')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const counts = {
+    all: posts.length,
+    draft: posts.filter(p => blogStatusOf(p) === 'draft').length,
+    scheduled: posts.filter(p => blogStatusOf(p) === 'scheduled').length,
+    published: posts.filter(p => blogStatusOf(p) === 'published').length,
+  }
+
+  const filtered = posts.filter(p => {
+    const q = search.toLowerCase()
+    const matchQ = !q || p.title.toLowerCase().includes(q)
+    const matchTab = tab === 'all' || blogStatusOf(p) === tab
+    return matchQ && matchTab
+  })
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    const { error } = await supabase.from('blog_posts').delete().eq('slug', deleteTarget.slug)
+    if (error) toast('Delete failed: ' + error.message, 'error')
+    else toast(`"${deleteTarget.title}" deleted`)
+    setDeleteTarget(null)
+    onRefresh()
+  }
+
+  const StatusBadge = ({ status }) => {
+    const map = {
+      draft:     { text: 'Draft',     cls: 'bg-[#F1F1F1] text-[#6D7175]' },
+      scheduled: { text: 'Scheduled', cls: 'bg-amber-100 text-amber-700' },
+      published: { text: 'Published', cls: 'bg-green-100 text-green-700' },
+    }
+    const s = map[status]
+    return <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.cls}`}>{s.text}</span>
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {deleteTarget && (
+        <DeleteModal
+          title={`Delete "${deleteTarget.title}"?`}
+          message="This will permanently remove this post from your site. This action cannot be undone."
+          confirmLabel="Delete post"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
+        <h1 className="text-lg font-bold text-[#202223]">Blog</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={onRefresh} title="Refresh" disabled={loading}
+            className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+            <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+          </button>
+          <button onClick={onAdd} className="flex items-center gap-1.5 px-4 py-2 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+            {Ico.plus} <span>Add post</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+          {[
+            { label: 'Total', value: counts.all },
+            { label: 'Draft', value: counts.draft },
+            { label: 'Scheduled', value: counts.scheduled, color: 'text-amber-700' },
+            { label: 'Published', value: counts.published, color: 'text-green-700' },
+          ].map(s => (
+            <div key={s.label} className="bg-white border border-[#E1E3E5] rounded-xl px-5 py-4">
+              <p className="text-xs text-[#6D7175] font-medium mb-1">{s.label}</p>
+              <p className={`text-3xl font-bold ${s.color || 'text-[#202223]'}`}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-white border border-[#E1E3E5] rounded-xl overflow-hidden">
+          <div className="px-3 sm:px-4 py-3 border-b border-[#E1E3E5] flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[140px] max-w-xs">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6D7175]">{Ico.search}</span>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search posts…"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-[#C9CCCF] rounded-lg outline-none focus:border-[#1D1D1F] bg-white text-[#202223]" />
+            </div>
+            <div className="flex border border-[#C9CCCF] rounded-lg overflow-hidden">
+              {[['all', 'All'], ['draft', 'Draft'], ['scheduled', 'Scheduled'], ['published', 'Published']].map(([val, lbl]) => (
+                <button key={val} onClick={() => setTab(val)}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${tab === val ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#6D7175] hover:bg-[#F6F6F7]'}`}>
+                  {lbl} <span className="opacity-60">{counts[val] ?? counts.all}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="py-20 text-center">
+              <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-[#6D7175]">Loading posts…</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-20 text-center px-8">
+              {posts.length === 0 ? (
+                <>
+                  <p className="text-2xl mb-3">📝</p>
+                  <p className="text-base font-semibold text-[#202223] mb-1">No posts yet</p>
+                  <p className="text-sm text-[#6D7175] mb-5">Write your first post — save it as a draft, publish immediately, or schedule it for later.</p>
+                  <button onClick={onAdd} className="px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+                    Write first post
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-[#6D7175]">No posts match "{search}".</p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="md:hidden divide-y divide-[#F1F1F1]">
+                {filtered.map(p => (
+                  <div key={p.slug} className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0 flex items-center justify-center text-lg">
+                      {p.featured_image
+                        ? <img src={p.featured_image} alt={p.title} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                        : '📝'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#202223] truncate">{p.title}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-[#6D7175] truncate max-w-[120px]">{p.category}</span>
+                        <StatusBadge status={blogStatusOf(p)} />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => onEdit(p)} className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] active:bg-[#E1E3E5] transition-colors">
+                        {Ico.edit}
+                      </button>
+                      <button onClick={() => setDeleteTarget(p)} className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 active:bg-red-50 hover:text-red-600 active:text-red-600 transition-colors">
+                        {Ico.trash}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[640px]">
+                  <thead>
+                    <tr className="bg-[#F6F6F7] border-b border-[#E1E3E5]">
+                      {['Post', 'Category', 'Status', 'Date', ''].map(h => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#6D7175] uppercase tracking-wider">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F1F1F1]">
+                    {filtered.map(p => {
+                      const status = blogStatusOf(p)
+                      return (
+                        <tr key={p.slug} className="hover:bg-[#F9F9F9] transition-colors group">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-11 h-11 rounded-xl overflow-hidden bg-[#F6F6F7] border border-[#E1E3E5] shrink-0 flex items-center justify-center text-base">
+                                {p.featured_image
+                                  ? <img src={p.featured_image} alt={p.title} className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none' }} />
+                                  : '📝'}
+                              </div>
+                              <p className="text-sm font-semibold text-[#202223] truncate max-w-[240px]">{p.title}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3"><span className="text-xs text-[#6D7175]">{p.category}</span></td>
+                          <td className="px-4 py-3"><StatusBadge status={status} /></td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs text-[#6D7175]">
+                              {p.published_at ? new Date(p.published_at).toLocaleDateString('en-IN') : '—'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => onEdit(p)}
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#6D7175] hover:bg-[#E1E3E5] hover:text-[#202223] transition-colors">
+                                {Ico.edit} Edit
+                              </button>
+                              <button onClick={() => setDeleteTarget(p)}
+                                className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
+                                {Ico.trash}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Comments List (moderation) ──────────────────────────────────────────────────
+function CommentsList({ comments, loading, onRefresh, toast }) {
+  const [tab, setTab] = useState('pending')
+
+  const counts = {
+    pending: comments.filter(c => c.status === 'pending').length,
+    approved: comments.filter(c => c.status === 'approved').length,
+    rejected: comments.filter(c => c.status === 'rejected').length,
+  }
+  const filtered = comments.filter(c => c.status === tab)
+
+  const setStatus = async (c, status) => {
+    const { error } = await supabase.from('blog_comments').update({ status }).eq('id', c.id)
+    if (error) { toast('Update failed: ' + error.message, 'error'); return }
+    toast(status === 'approved' ? 'Comment approved' : status === 'rejected' ? 'Comment rejected' : 'Comment updated')
+    onRefresh()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
+        <h1 className="text-lg font-bold text-[#202223]">Comments</h1>
+        <button onClick={onRefresh} title="Refresh" disabled={loading}
+          className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+          <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+        </button>
+      </div>
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        <div className="flex border border-[#C9CCCF] rounded-lg overflow-hidden w-fit mb-5">
+          {[['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected']].map(([val, lbl]) => (
+            <button key={val} onClick={() => setTab(val)}
+              className={`px-4 py-2 text-xs font-medium transition-colors ${tab === val ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#6D7175] hover:bg-[#F6F6F7]'}`}>
+              {lbl} <span className="opacity-60">{counts[val] ?? 0}</span>
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="py-20 text-center">
+            <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#6D7175]">Loading comments…</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center px-8">
+            <p className="text-2xl mb-3">💬</p>
+            <p className="text-sm text-[#6D7175]">No {tab} comments.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map(c => (
+              <div key={c.id} className="bg-white border border-[#E1E3E5] rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#202223]">{c.name}</p>
+                    <p className="text-xs text-[#6D7175]">
+                      on <span className="font-medium">{c.blog_posts?.title || c.post_slug}</span> · {new Date(c.created_at).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  {c.status === 'pending' && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => setStatus(c, 'approved')}
+                        className="px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Approve
+                      </button>
+                      <button onClick={() => setStatus(c, 'rejected')}
+                        className="px-3 py-1.5 text-xs font-semibold border border-[#C9CCCF] text-[#202223] rounded-lg hover:bg-[#F6F6F7] transition-colors">
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-[#424245] leading-relaxed">{c.comment_text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminClient() {
   const [authed, setAuthed] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
@@ -2486,14 +3149,21 @@ export default function AdminClient() {
   const [occasions, setOccasions] = useState([])
   const [occasionsLoading, setOccasionsLoading] = useState(false)
   const [occasionSeeding, setOccasionSeeding] = useState(false)
+  const [posts, setPosts] = useState([])
+  const [postsLoading, setPostsLoading] = useState(false)
+  const [comments, setComments] = useState([])
+  const [commentsLoading, setCommentsLoading] = useState(false)
   const [view, setView] = useState('list')
   const [editProduct, setEditProduct] = useState(null)
   const [editTestimonial, setEditTestimonial] = useState(null)
   const [editOccasion, setEditOccasion] = useState(null)
+  const [editPost, setEditPost] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { toasts, toast } = useToast()
   const inTestimonials = view === 'testimonials-list' || view === 'testimonials-form'
   const inOccasions = view === 'occasions-list' || view === 'occasions-form'
+  const inBlog = view === 'blog-list' || view === 'blog-form'
+  const inComments = view === 'comments-list'
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -2539,6 +3209,31 @@ export default function AdminClient() {
   }, [toast])
 
   useEffect(() => { if (authed && isConfigured) fetchOccasions() }, [authed, fetchOccasions])
+
+  const fetchPosts = useCallback(async () => {
+    if (!supabase) return
+    setPostsLoading(true)
+    const { data, error } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false })
+    if (error && !error.message.includes('does not exist')) toast('Failed to load posts: ' + error.message, 'error')
+    setPosts(data || [])
+    setPostsLoading(false)
+  }, [toast])
+
+  useEffect(() => { if (authed && isConfigured) fetchPosts() }, [authed, fetchPosts])
+
+  const fetchComments = useCallback(async () => {
+    if (!supabase) return
+    setCommentsLoading(true)
+    const { data, error } = await supabase
+      .from('blog_comments')
+      .select('*, blog_posts(title)')
+      .order('created_at', { ascending: false })
+    if (error && !error.message.includes('does not exist')) toast('Failed to load comments: ' + error.message, 'error')
+    setComments(data || [])
+    setCommentsLoading(false)
+  }, [toast])
+
+  useEffect(() => { if (authed && isConfigured) fetchComments() }, [authed, fetchComments])
 
   const handleSeedOccasions = async () => {
     setOccasionSeeding(true)
@@ -2602,12 +3297,14 @@ export default function AdminClient() {
           onClick={() => {
             if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
             else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
+            else if (inBlog) { setEditPost({ _new: true }); setView('blog-form') }
+            else if (inComments) { /* no "add" action for comments */ }
             else { setEditProduct({ _new: true }); setView('form') }
             setMobileOpen(false)
           }}
-          className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3"
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3 ${inComments ? 'hidden' : ''}`}
         >
-          {Ico.plus} {inOccasions ? 'Add occasion' : inTestimonials ? 'Add testimonial' : 'Add product'}
+          {Ico.plus} {inOccasions ? 'Add occasion' : inTestimonials ? 'Add testimonial' : inBlog ? 'Add post' : 'Add product'}
         </button>
         <button onClick={() => { setView('list'); setMobileOpen(false) }}
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' || view === 'form' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
@@ -2628,6 +3325,20 @@ export default function AdminClient() {
           <span className="flex items-center gap-2">🎎 Bobbleheads</span>
           {occasions.length > 0 && (
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{occasions.length}</span>
+          )}
+        </button>
+        <button onClick={() => { setView('blog-list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inBlog ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">📝 Blog</span>
+          {posts.length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{posts.length}</span>
+          )}
+        </button>
+        <button onClick={() => { setView('comments-list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inComments ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">🗨️ Comments</span>
+          {comments.filter(c => c.status === 'pending').length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{comments.filter(c => c.status === 'pending').length}</span>
           )}
         </button>
         <a href="/" target="_blank" rel="noopener noreferrer"
@@ -2668,16 +3379,19 @@ export default function AdminClient() {
             <p className="text-white text-sm font-bold">Admin</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
-                else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
-                else { setEditProduct({ _new: true }); setView('form') }
-              }}
-              className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#1D1D1F] text-xs font-bold rounded-lg"
-            >
-              {Ico.plus} Add
-            </button>
+            {!inComments && (
+              <button
+                onClick={() => {
+                  if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
+                  else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
+                  else if (inBlog) { setEditPost({ _new: true }); setView('blog-form') }
+                  else { setEditProduct({ _new: true }); setView('form') }
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#1D1D1F] text-xs font-bold rounded-lg"
+              >
+                {Ico.plus} Add
+              </button>
+            )}
             <button onClick={() => setMobileOpen(true)} className="text-white p-1.5">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
@@ -2733,12 +3447,35 @@ export default function AdminClient() {
              onRefresh={fetchOccasions}
              onSeed={handleSeedOccasions}
            />
-         ) : (
+         ) : view === 'occasions-form' ? (
            <OccasionForm
              occasion={editOccasion}
              toast={toast}
              onSave={() => { setView('occasions-list'); fetchOccasions() }}
              onBack={() => setView('occasions-list')}
+           />
+         ) : view === 'blog-list' ? (
+           <BlogsList
+             posts={posts}
+             loading={postsLoading}
+             toast={toast}
+             onAdd={() => { setEditPost({ _new: true }); setView('blog-form') }}
+             onEdit={p => { setEditPost(p); setView('blog-form') }}
+             onRefresh={fetchPosts}
+           />
+         ) : view === 'blog-form' ? (
+           <BlogForm
+             post={editPost}
+             toast={toast}
+             onSave={() => { setView('blog-list'); fetchPosts() }}
+             onBack={() => setView('blog-list')}
+           />
+         ) : (
+           <CommentsList
+             comments={comments}
+             loading={commentsLoading}
+             toast={toast}
+             onRefresh={fetchComments}
            />
          )
         }

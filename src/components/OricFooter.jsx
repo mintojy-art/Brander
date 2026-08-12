@@ -4,6 +4,7 @@ const col1 = [
   { label: 'Home',         to: '/'           },
   { label: 'Shop',         to: '/shop'       },
   { label: 'Services',     to: '/services'   },
+  { label: 'Blog',         to: '/blog'       },
   { label: 'About',        to: '/about'      },
   { label: 'Lithophane',   to: '/lithophanes'},
 ]
