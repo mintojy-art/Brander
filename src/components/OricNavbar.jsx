@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import { categoryIcons } from '@/data/products'
+import Y2kIcon from '@/components/Y2kIcon'
 
 const navLinks = [
   { to: '/services',     label: 'Services'    },
@@ -56,9 +57,9 @@ export default function OricNavbar({ categories = [] }) {
             <Link
               key="/"
               href="/"
-              className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-all overflow-hidden ${
                 isActive('/')
-                  ? 'bg-[#1D1D1F] text-white'
+                  ? 'y2k-accent-surface y2k-shine text-white'
                   : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-[#F5F5F7]'
               }`}
             >
@@ -73,9 +74,9 @@ export default function OricNavbar({ categories = [] }) {
             >
               <Link
                 href="/shop"
-                className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                className={`flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-all overflow-hidden ${
                   isActive('/shop')
-                    ? 'bg-[#1D1D1F] text-white'
+                    ? 'y2k-accent-surface y2k-shine text-white'
                     : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-[#F5F5F7]'
                 }`}
               >
@@ -92,7 +93,7 @@ export default function OricNavbar({ categories = [] }) {
                     transition={{ duration: 0.15 }}
                     className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-[560px]"
                   >
-                    <div className="bg-white rounded-2xl border border-[#D2D2D7] shadow-xl p-5">
+                    <div className="y2k-chrome-surface rounded-2xl p-5">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#86868B] mb-3 px-1">
                         Shop by Category
                       </p>
@@ -101,9 +102,9 @@ export default function OricNavbar({ categories = [] }) {
                           <Link
                             key={cat}
                             href={categoryHref(cat)}
-                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F5F5F7] transition-colors"
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/70 transition-colors"
                           >
-                            <span className="text-lg">{categoryIcons[cat] || '🖨️'}</span>
+                            <Y2kIcon emoji={categoryIcons[cat] || '🖨️'} size={22} className="text-[#F37121]" />
                             <span className="text-sm text-[#1D1D1F] font-medium">{cat}</span>
                           </Link>
                         ))}
@@ -112,9 +113,9 @@ export default function OricNavbar({ categories = [] }) {
                         href="https://wa.me/918310194953"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-4 py-3 bg-[#F5F5F7] rounded-xl hover:bg-[#E8E8ED] transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 bg-white/70 rounded-xl hover:bg-white transition-colors"
                       >
-                        <span className="text-xl">🖼️</span>
+                        <Y2kIcon emoji="🖼️" size={26} className="text-[#F37121]" />
                         <span className="flex-1 text-sm text-[#1D1D1F]">
                           <span className="font-semibold">Have a photo?</span> Get a custom quote →
                         </span>
@@ -129,9 +130,9 @@ export default function OricNavbar({ categories = [] }) {
               <Link
                 key={link.to}
                 href={link.to}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-all overflow-hidden ${
                   isActive(link.to)
-                    ? 'bg-[#1D1D1F] text-white'
+                    ? 'y2k-accent-surface y2k-shine text-white'
                     : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-[#F5F5F7]'
                 }`}
               >
@@ -152,7 +153,7 @@ export default function OricNavbar({ categories = [] }) {
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" />
               </svg>
               {count > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#1D1D1F] text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                <span className="y2k-lime-glow absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#9AE619] text-[#1D1D1F] text-[9px] font-bold rounded-full flex items-center justify-center">
                   {count}
                 </span>
               )}
@@ -163,7 +164,7 @@ export default function OricNavbar({ categories = [] }) {
               href="https://wa.me/918310194953"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 bg-[#1D1D1F] hover:bg-[#424245] text-white text-sm font-medium rounded-full transition-all"
+              className="y2k-accent-surface y2k-shine hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-full transition-all overflow-hidden"
             >
               Order Now
             </a>
@@ -195,9 +196,9 @@ export default function OricNavbar({ categories = [] }) {
             <div className="px-5 pt-2 pb-5 space-y-1">
               <Link
                 href="/"
-                className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                   isActive('/')
-                    ? 'bg-[#1D1D1F] text-white'
+                    ? 'y2k-accent-surface text-white'
                     : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
                 }`}
               >
@@ -209,9 +210,9 @@ export default function OricNavbar({ categories = [] }) {
                 <div className="flex items-center">
                   <Link
                     href="/shop"
-                    className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                       isActive('/shop')
-                        ? 'bg-[#1D1D1F] text-white'
+                        ? 'y2k-accent-surface text-white'
                         : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
                     }`}
                   >
@@ -243,7 +244,7 @@ export default function OricNavbar({ categories = [] }) {
                             href={categoryHref(cat)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors"
                           >
-                            <span>{categoryIcons[cat] || '🖨️'}</span>
+                            <Y2kIcon emoji={categoryIcons[cat] || '🖨️'} size={16} className="text-[#F37121]" />
                             {cat}
                           </Link>
                         ))}
@@ -257,9 +258,9 @@ export default function OricNavbar({ categories = [] }) {
                 <Link
                   key={link.to}
                   href={link.to}
-                  className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                     isActive(link.to)
-                      ? 'bg-[#1D1D1F] text-white'
+                      ? 'y2k-accent-surface text-white'
                       : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
                   }`}
                 >
@@ -270,7 +271,7 @@ export default function OricNavbar({ categories = [] }) {
                 href="https://wa.me/918310194953"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full text-center mt-3 px-4 py-3 bg-[#1D1D1F] text-white text-sm font-semibold rounded-xl"
+                className="y2k-accent-surface block w-full text-center mt-3 px-4 py-3 text-white text-sm font-semibold rounded-xl overflow-hidden"
               >
                 Order via WhatsApp
               </a>

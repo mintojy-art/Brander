@@ -7,20 +7,21 @@ export default function AboutClient() {
     <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
-      <div className="bg-[#1D1D1F]">
+      <div className="y2k-dark-surface">
         <div className="max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 py-20">
           <motion.p
-            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-3"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           >
             Our Story
           </motion.p>
           <motion.h1
             className="text-5xl md:text-6xl font-bold text-white leading-tight"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            We make ideas<br /><span className="text-[#86868B]">tangible.</span>
+            We make ideas<br /><span className="text-[#FFA35C]">tangible.</span>
           </motion.h1>
         </div>
       </div>
@@ -56,9 +57,9 @@ export default function AboutClient() {
             { val: 'Pan India', label: 'Delivery' },
             { val: '100%', label: 'Quality checked' },
           ].map(({ val, label }) => (
-            <div key={label} className="bg-[#F5F5F7] rounded-2xl p-5 text-center">
+            <div key={label} className="y2k-chrome-surface y2k-lift rounded-2xl p-5 text-center">
               <p className="text-2xl font-bold text-[#1D1D1F] mb-1">{val}</p>
-              <p className="text-xs text-[#86868B]">{label}</p>
+              <p className="text-xs text-[#424245]">{label}</p>
             </div>
           ))}
         </section>
@@ -76,9 +77,9 @@ export default function AboutClient() {
         </section>
 
         {/* Contact */}
-        <section className="bg-[#1D1D1F] rounded-3xl p-10 md:p-14">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#86868B] mb-3">Get in Touch</p>
-          <h2 className="text-3xl font-bold text-white mb-6">We're one message away.</h2>
+        <section className="y2k-dark-surface rounded-3xl p-10 md:p-14">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#FFA35C] mb-3">Get in Touch</p>
+          <h2 className="text-3xl font-bold text-white mb-6" style={{ fontFamily: 'var(--font-orbitron)' }}>We're one message away.</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
@@ -107,7 +108,7 @@ export default function AboutClient() {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 mt-8 px-7 py-3.5 bg-white text-[#1D1D1F] text-sm font-bold rounded-full hover:bg-[#F5F5F7] transition-all"
+            className="y2k-chrome-surface y2k-shine inline-flex items-center gap-2 mt-8 px-7 py-3.5 text-[#1D1D1F] text-sm font-bold rounded-full transition-all overflow-hidden"
           >
             Message Us on WhatsApp →
           </a>

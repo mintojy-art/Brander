@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { readingTime } from '@/lib/data/blog'
 import { SITE } from '@/lib/seo'
+import Y2kIcon from '@/components/Y2kIcon'
 
 function ShareButtons({ title, slug }) {
   const [copied, setCopied] = useState(false)
@@ -51,7 +52,7 @@ function ShareButtons({ title, slug }) {
           rel="noopener noreferrer"
           aria-label={`Share on ${l.label}`}
           title={`Share on ${l.label}`}
-          className="w-8 h-8 rounded-full bg-[#F5F5F7] hover:bg-[#1D1D1F] text-[#1D1D1F] hover:text-white flex items-center justify-center transition-colors"
+          className="w-8 h-8 rounded-full bg-[#F5F5F7] hover:bg-[#F37121] text-[#1D1D1F] hover:text-white flex items-center justify-center transition-colors"
         >
           {l.icon}
         </a>
@@ -60,7 +61,7 @@ function ShareButtons({ title, slug }) {
         onClick={copyLink}
         aria-label="Copy link"
         title="Copy link"
-        className="w-8 h-8 rounded-full bg-[#F5F5F7] hover:bg-[#1D1D1F] text-[#1D1D1F] hover:text-white flex items-center justify-center transition-colors"
+        className="w-8 h-8 rounded-full bg-[#F5F5F7] hover:bg-[#F37121] text-[#1D1D1F] hover:text-white flex items-center justify-center transition-colors"
       >
         {copied ? (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -149,7 +150,7 @@ function CommentForm({ slug, onSubmitted }) {
       <button
         type="submit"
         disabled={status === 'loading'}
-        className="px-6 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all disabled:opacity-50"
+        className="y2k-accent-surface y2k-shine px-6 py-2.5 text-white text-sm font-semibold rounded-full transition-all disabled:opacity-50 overflow-hidden"
       >
         {status === 'loading' ? 'Submitting…' : 'Post Comment'}
       </button>
@@ -219,14 +220,14 @@ export default function BlogPostClient({ post, related, comments }) {
         )}
 
         {/* CTA */}
-        <div className="mt-10 rounded-3xl bg-[#1D1D1F] px-8 py-10 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3">Got a project in mind?</p>
-          <h3 className="text-2xl font-bold text-white mb-5">Let's bring it to life.</h3>
+        <div className="y2k-dark-surface mt-10 rounded-3xl px-8 py-10 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-3">Got a project in mind?</p>
+          <h3 className="text-2xl font-bold text-white mb-5" style={{ fontFamily: 'var(--font-orbitron)' }}>Let's bring it to life.</h3>
           <a
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-[#1D1D1F] text-sm font-bold rounded-full hover:bg-[#F5F5F7] transition-all"
+            className="y2k-chrome-surface y2k-shine inline-flex items-center gap-2 px-7 py-3.5 text-[#1D1D1F] text-sm font-bold rounded-full transition-all overflow-hidden"
           >
             Message Us on WhatsApp →
           </a>
@@ -261,12 +262,12 @@ export default function BlogPostClient({ post, related, comments }) {
             <h2 className="text-xl font-bold text-[#1D1D1F] mb-6">More in {post.category}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {related.map((r) => (
-                <Link key={r.slug} href={`/blog/${r.slug}`} className="group block">
+                <Link key={r.slug} href={`/blog/${r.slug}`} className="y2k-lift group block">
                   <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-[#F5F5F7] mb-3 border border-[#D2D2D7]">
                     {r.featured_image ? (
                       <img src={r.featured_image} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">📝</div>
+                      <div className="w-full h-full flex items-center justify-center"><Y2kIcon emoji="📝" size={32} className="text-[#A6ACB8]" /></div>
                     )}
                   </div>
                   <p className="text-sm font-semibold text-[#1D1D1F] leading-snug group-hover:underline underline-offset-2">{r.title}</p>

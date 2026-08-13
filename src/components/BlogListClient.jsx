@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { readingTime } from '@/lib/data/blog'
+import Y2kIcon from '@/components/Y2kIcon'
 
 function PostCard({ post }) {
   return (
@@ -16,15 +17,15 @@ function PostCard({ post }) {
     >
       <Link
         href={`/blog/${post.slug}`}
-        className="group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-xl transition-all duration-500 block h-full flex flex-col"
+        className="y2k-lift group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-xl transition-all duration-500 block h-full flex flex-col"
       >
         <div className="aspect-[16/10] bg-[#F5F5F7] relative overflow-hidden">
           {post.featured_image ? (
             <img src={post.featured_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-6xl">📝</div>
+            <div className="w-full h-full flex items-center justify-center"><Y2kIcon emoji="📝" size={56} className="text-[#A6ACB8]" /></div>
           )}
-          <div className="absolute top-4 left-4 px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
+          <div className="y2k-lime-glow absolute top-4 left-4 px-3 py-1 bg-[#B6FF3C] text-[#1D1D1F] text-[10px] font-bold tracking-wider rounded-full">
             {post.category}
           </div>
         </div>
@@ -60,20 +61,21 @@ export default function BlogListClient({ posts, categories, initialCategory = 'A
     <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
-      <div className="bg-[#1D1D1F]">
+      <div className="y2k-dark-surface">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 py-24 text-center">
           <motion.p
-            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-4"
+            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           >
             ORIC Blog
           </motion.p>
           <motion.h1
             className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            Ideas, guides<br /><span className="text-[#86868B]">& behind the scenes.</span>
+            Ideas, guides<br /><span className="text-[#FFA35C]">& behind the scenes.</span>
           </motion.h1>
           <motion.p
             className="text-[#86868B] text-base max-w-lg mx-auto"
@@ -95,7 +97,7 @@ export default function BlogListClient({ posts, categories, initialCategory = 'A
               onClick={() => setActive(cat)}
               className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
                 active === cat
-                  ? 'bg-[#1D1D1F] text-white'
+                  ? 'y2k-accent-surface'
                   : 'bg-[#F5F5F7] text-[#424245] hover:bg-[#E8E8ED] hover:text-[#1D1D1F]'
               }`}
             >
@@ -110,12 +112,12 @@ export default function BlogListClient({ posts, categories, initialCategory = 'A
             {filtered.map((p) => <PostCard key={p.slug} post={p} />)}
           </div>
         ) : (
-          <div className="rounded-3xl bg-[#F5F5F7] border border-[#D2D2D7] p-10 md:p-14 text-center">
-            <p className="text-3xl mb-3">📝</p>
+          <div className="y2k-chrome-surface rounded-3xl p-10 md:p-14 text-center">
+            <div className="flex justify-center mb-3"><Y2kIcon emoji="📝" size={48} className="text-[#A6ACB8]" /></div>
             <h3 className="text-xl font-bold text-[#1D1D1F] mb-2">
               {posts.length === 0 ? 'No posts yet' : `No posts in "${active}" yet`}
             </h3>
-            <p className="text-sm text-[#86868B] max-w-sm mx-auto">
+            <p className="text-sm text-[#424245] max-w-sm mx-auto">
               {posts.length === 0 ? 'Check back soon — we\'re working on it.' : 'Try a different category.'}
             </p>
           </div>

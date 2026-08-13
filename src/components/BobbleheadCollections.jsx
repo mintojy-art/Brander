@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import Y2kIcon from '@/components/Y2kIcon'
 
 function CollectionCard({ o, span, delay }) {
   const image = (o.images || []).filter(Boolean)[0]
@@ -22,25 +23,25 @@ function CollectionCard({ o, span, delay }) {
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-40">
-            {o.icon || '🎎'}
+          <div className="absolute inset-0 flex items-center justify-center opacity-60">
+            <Y2kIcon emoji={o.icon || '🎎'} size={72} className="text-white" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/10" />
 
         <div className="relative flex items-start justify-between">
           {o.badge && (
-            <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-white/15 text-white border border-white/25 backdrop-blur-sm">
+            <span className="y2k-lime-glow px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-[#B6FF3C] text-[#1D1D1F]">
               {o.badge}
             </span>
           )}
-          {image && o.icon && <span className="text-3xl ml-auto">{o.icon}</span>}
+          {image && o.icon && <Y2kIcon emoji={o.icon} size={34} className="ml-auto text-white" />}
         </div>
 
         <div className="relative">
           <h3 className="text-2xl font-bold mb-1 text-white">{o.title}</h3>
           {o.tagline && <p className="text-sm mb-4 text-white/75">{o.tagline}</p>}
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full bg-white text-[#1D1D1F] group-hover:bg-[#F5F5F7] transition-all">
+          <span className="y2k-chrome-surface y2k-shine inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full text-[#1D1D1F] transition-all overflow-hidden">
             {o.cta_text || 'Get a Quote'} →
           </span>
         </div>
@@ -71,6 +72,7 @@ export default function BobbleheadCollections({ occasions = [] }) {
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-[#1D1D1F]"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
@@ -87,7 +89,7 @@ export default function BobbleheadCollections({ occasions = [] }) {
         <div className="text-center mt-10">
           <Link
             href="/bobbleheads"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all"
+            className="y2k-accent-surface y2k-shine inline-flex items-center gap-2 px-8 py-4 text-white text-sm font-semibold rounded-full transition-all overflow-hidden"
           >
             All Bobbleheads
           </Link>

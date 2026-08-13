@@ -14,48 +14,57 @@ function Stars({ rating = 5 }) {
   )
 }
 
+function TestimonialCard({ t }) {
+  return (
+    <div className="y2k-lift w-[340px] shrink-0 bg-white/[0.04] border border-[#FFA35C]/20 rounded-3xl overflow-hidden hover:border-[#FFA35C]/50 hover:shadow-[0_12px_32px_rgba(243,113,33,0.25)] transition-colors">
+      {t.video_url && (
+        <video src={t.video_url} controls playsInline className="w-full aspect-video bg-black" />
+      )}
+      <div className="p-8">
+        <Stars rating={t.rating} />
+        {t.quote && <p className="text-white/80 text-sm leading-relaxed mb-6">"{t.quote}"</p>}
+        <p className="text-sm font-semibold text-white">{t.name}</p>
+        {t.detail && <p className="text-xs text-[#86868B] mt-0.5">{t.detail}</p>}
+      </div>
+    </div>
+  )
+}
+
 export default function Testimonials({ testimonials = [] }) {
   if (testimonials.length === 0) return null
 
+  // Duplicated so the -50% translateX loop is seamless (roll keyframe in globals.css).
+  const looped = [...testimonials, ...testimonials]
+
   return (
-    <section className="py-28 bg-[#1D1D1F]">
+    <section className="py-28 y2k-dark-surface overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
         <div className="text-center mb-16">
           <motion.p
-            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-3"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           >
             What Customers Say
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-white"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             Loved by our customers.
           </motion.h2>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={t.id}
-              className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-            >
-              {t.video_url && (
-                <video src={t.video_url} controls playsInline className="w-full aspect-video bg-black" />
-              )}
-              <div className="p-8">
-                <Stars rating={t.rating} />
-                {t.quote && <p className="text-white/80 text-sm leading-relaxed mb-6">"{t.quote}"</p>}
-                <p className="text-sm font-semibold text-white">{t.name}</p>
-                {t.detail && <p className="text-xs text-[#86868B] mt-0.5">{t.detail}</p>}
-              </div>
-            </motion.div>
+      <div className="relative">
+        {/* Fade edges */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 z-10" style={{ background: 'linear-gradient(90deg, #101113 0%, transparent 100%)' }} />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 z-10" style={{ background: 'linear-gradient(270deg, #101113 0%, transparent 100%)' }} />
+
+        <div className="y2k-marquee-track gap-5 px-5">
+          {looped.map((t, i) => (
+            <TestimonialCard key={`${t.id}-${i}`} t={t} />
           ))}
         </div>
       </div>

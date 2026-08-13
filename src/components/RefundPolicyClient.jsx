@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Y2kIcon from '@/components/Y2kIcon'
 
 function Section({ title, children }) {
   return (
@@ -16,22 +17,23 @@ export default function RefundPolicyClient() {
     <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
-      <div className="bg-[#F5F5F7] border-b border-[#D2D2D7]">
+      <div className="border-b border-[#D2D2D7]" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 py-16">
           <motion.p
-            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           >
             Policies
           </motion.p>
           <motion.h1
             className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             Refund & Reprint Policy
           </motion.h1>
-          <p className="text-[#86868B] mt-3 text-sm max-w-md">
+          <p className="text-[#424245] mt-3 text-sm max-w-md">
             We stand behind every print. If something goes wrong on our end, we make it right.
           </p>
         </div>
@@ -41,7 +43,7 @@ export default function RefundPolicyClient() {
 
         {/* Reassurance callout */}
         <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-2xl px-5 py-4 flex gap-3 items-start">
-          <span className="text-xl flex-shrink-0">✅</span>
+          <Y2kIcon emoji="✅" size={24} className="flex-shrink-0 text-[#16A34A]" />
           <p className="text-sm text-[#166534] leading-relaxed">
             <strong>Defective prints are reprinted free.</strong> WhatsApp us within 48 hours of delivery with a photo and we'll sort it out — no questions asked.
           </p>
@@ -89,7 +91,7 @@ export default function RefundPolicyClient() {
         </Section>
 
         {/* CTA */}
-        <div className="bg-[#1D1D1F] rounded-2xl px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+        <div className="y2k-dark-surface rounded-2xl px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
           <div>
             <p className="text-white text-sm font-semibold">Have an issue with your order?</p>
             <p className="text-[#86868B] text-xs mt-0.5">WhatsApp or email us — fastest response guaranteed.</p>
@@ -99,7 +101,7 @@ export default function RefundPolicyClient() {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#1D1D1F] text-sm font-bold rounded-full hover:bg-[#F5F5F7] transition-all"
+            className="y2k-accent-surface y2k-shine flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-full transition-all overflow-hidden"
           >
             WhatsApp Us
           </a>

@@ -1046,27 +1046,28 @@ export default function LithophaneClient() {
     <div className="pt-[100px] bg-white min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="relative bg-[#1D1D1F] py-20 px-5 overflow-hidden">
+      <section className="relative y2k-dark-surface py-20 px-5 overflow-hidden">
         {/* Background image with reduced opacity */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: 'url(/Lithophanesection.jpg)', opacity: 0.18 }}
         />
         <div className="relative max-w-3xl mx-auto text-center">
-          <motion.p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-4"
+          <motion.p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#FFA35C] mb-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }}>
             Free Tool · No Sign-up · Instant STL
           </motion.p>
           <motion.h1 className="text-5xl md:text-7xl font-bold text-white leading-[0.95] tracking-tight mb-6"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}>
-            Lithophane<br /><span className="text-[#86868B]">Generator</span>
+            Lithophane<br /><span className="text-[#FFA35C]">Generator</span>
           </motion.h1>
           <motion.p className="text-[#86868B] text-base max-w-lg mx-auto mb-8"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.7, delay: 0.2 }}>
             Turn any photo into a 3D-printable lithophane. Plane, cylinder, arc, and sphere. Download STL instantly.
           </motion.p>
           <motion.a href="#generator"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#1D1D1F] text-sm font-bold rounded-full hover:bg-[#F5F5F7] transition-all"
+            className="y2k-chrome-surface y2k-shine inline-flex items-center gap-2 px-8 py-4 text-[#1D1D1F] text-sm font-bold rounded-full transition-all overflow-hidden"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.3 }}>
             Start Creating →
           </motion.a>
@@ -1075,11 +1076,11 @@ export default function LithophaneClient() {
 
 
       {/* ── GENERATOR APP ── */}
-      <section id="generator" className="py-10 bg-[#F5F5F7] min-h-screen">
+      <section id="generator" className="py-10 min-h-screen" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Tab bar */}
-          <div className="flex gap-1 bg-white rounded-2xl p-1.5 mb-6 shadow-sm max-w-xl mx-auto">
+          <div className="y2k-chrome-surface flex gap-1 rounded-2xl p-1.5 mb-6 max-w-xl mx-auto">
             {TABS.map(t => {
               const locked = (t === 'edit' || t === 'model' || t === 'download') && !rawImg
               return (
@@ -1087,7 +1088,7 @@ export default function LithophaneClient() {
                   onClick={() => !locked && setTab(t)}
                   disabled={locked}
                   className={`flex-1 py-2.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
-                    tab === t ? 'bg-[#1D1D1F] text-white shadow' : locked ? 'text-[#C7C7CC] cursor-not-allowed' : 'text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F5F5F7]'
+                    tab === t ? 'y2k-accent-surface' : locked ? 'text-[#C7C7CC] cursor-not-allowed' : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-white/50'
                   }`}>
                   {TAB_LABELS[t]}
                 </button>
@@ -1099,14 +1100,14 @@ export default function LithophaneClient() {
 
             {/* Left: controls panel */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm p-5 max-h-[78vh] overflow-y-auto">
+              <div className="y2k-chrome-surface rounded-2xl p-5 max-h-[78vh] overflow-y-auto">
                 {renderTab()}
 
                 {/* Next step button (not on download tab) */}
                 {tab !== 'download' && (
-                  <div className="mt-5 pt-4 border-t border-[#E8E8ED]">
+                  <div className="mt-5 pt-4 border-t border-black/5">
                     {tab === 'upload' && !rawImg && (
-                      <p className="text-xs text-center text-[#86868B]">Upload a photo to continue</p>
+                      <p className="text-xs text-center text-[#424245]">Upload a photo to continue</p>
                     )}
                     {(tab !== 'upload' || rawImg) && (
                       <button
@@ -1115,7 +1116,7 @@ export default function LithophaneClient() {
                           if (next) setTab(next)
                         }}
                         disabled={tab === 'upload' && !rawImg}
-                        className="w-full py-3 bg-[#1D1D1F] text-white text-sm font-bold rounded-2xl hover:bg-[#424245] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="y2k-accent-surface y2k-shine w-full py-3 text-white text-sm font-bold rounded-2xl transition-all disabled:opacity-30 disabled:cursor-not-allowed overflow-hidden"
                       >
                         {tab === 'model' ? 'Proceed to Download →' : 'Next Step →'}
                       </button>
@@ -1129,7 +1130,7 @@ export default function LithophaneClient() {
             <div className="lg:col-span-3 flex flex-col gap-3">
 
               {/* Backlight selector */}
-              <div className="bg-white rounded-2xl shadow-sm px-4 py-3 flex items-center gap-3 flex-wrap">
+              <div className="y2k-chrome-surface flex items-center gap-3 flex-wrap rounded-2xl px-4 py-3">
                 <span className="text-[10px] font-bold text-[#86868B] uppercase tracking-wider">Backlight</span>
                 <div className="flex gap-2 flex-wrap">
                   {Object.entries(BACKLIGHTS).map(([id, bl]) => (
@@ -1169,10 +1170,10 @@ export default function LithophaneClient() {
                 <button
                   onClick={downloadSTL}
                   disabled={!processedCanvas || generating}
-                  className={`py-3.5 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 ${
+                  className={`py-3.5 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 overflow-hidden ${
                     generating ? 'bg-[#86868B] text-white cursor-wait'
                     : !processedCanvas ? 'bg-[#D2D2D7] text-[#86868B] cursor-not-allowed'
-                    : 'bg-[#1D1D1F] text-white hover:bg-[#424245] active:scale-[0.98]'
+                    : 'y2k-accent-surface y2k-shine active:scale-[0.98]'
                   }`}
                 >
                   {generating ? (
@@ -1184,10 +1185,10 @@ export default function LithophaneClient() {
                 <button
                   onClick={orderPrint}
                   disabled={!processedCanvas || ordering}
-                  className={`py-3.5 border-2 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 ${
-                    ordering ? 'border-[#86868B] text-[#86868B] cursor-wait'
-                    : !processedCanvas ? 'border-[#D2D2D7] text-[#86868B] cursor-not-allowed'
-                    : 'border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#1D1D1F] hover:text-white'
+                  className={`y2k-chrome-surface py-3.5 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 ${
+                    ordering ? 'text-[#86868B] cursor-wait'
+                    : !processedCanvas ? 'opacity-50 text-[#86868B] cursor-not-allowed'
+                    : 'text-[#1D1D1F]'
                   }`}
                 >
                   {ordering ? (
@@ -1217,8 +1218,8 @@ export default function LithophaneClient() {
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="text-center mb-14">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3">Inspiration</p>
-            <h2 className="text-4xl md:text-5xl font-bold text-[#1D1D1F]">Gallery</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3">Inspiration</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-[#1D1D1F]" style={{ fontFamily: 'var(--font-orbitron)' }}>Gallery</h2>
             <p className="text-[#86868B] text-base mt-3 max-w-md mx-auto">Portraits, pets, landscapes — lithophanes come to life when backlit.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -1228,7 +1229,7 @@ export default function LithophaneClient() {
               { src: '/lithophane03.jpg', title: 'Custom' },
             ].map((g, i) => (
               <motion.div key={g.title}
-                className="rounded-2xl overflow-hidden aspect-[3/4] relative"
+                className="y2k-lift rounded-2xl overflow-hidden aspect-[3/4] relative"
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
               >
@@ -1240,10 +1241,10 @@ export default function LithophaneClient() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-20 bg-[#F5F5F7]">
+      <section className="py-20" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-5xl mx-auto px-5 sm:px-8 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3">Process</p>
-          <h2 className="text-4xl font-bold text-[#1D1D1F] mb-12">How It Works</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3">Process</p>
+          <h2 className="text-4xl font-bold text-[#1D1D1F] mb-12" style={{ fontFamily: 'var(--font-orbitron)' }}>How It Works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { n: '01', t: 'Upload Photo',   d: 'Drop any JPG, PNG, or WEBP — portraits, pets, landscapes.' },
@@ -1254,9 +1255,9 @@ export default function LithophaneClient() {
               <motion.div key={s.n} className="text-center"
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-                <div className="w-12 h-12 rounded-full bg-[#1D1D1F] text-white text-sm font-bold flex items-center justify-center mx-auto mb-4">{s.n}</div>
+                <div className="y2k-accent-surface w-12 h-12 rounded-full text-white text-sm font-bold flex items-center justify-center mx-auto mb-4">{s.n}</div>
                 <h3 className="text-sm font-bold text-[#1D1D1F] mb-2">{s.t}</h3>
-                <p className="text-xs text-[#86868B] leading-relaxed">{s.d}</p>
+                <p className="text-xs text-[#424245] leading-relaxed">{s.d}</p>
               </motion.div>
             ))}
           </div>
@@ -1281,13 +1282,13 @@ export default function LithophaneClient() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-20 bg-[#1D1D1F] text-center">
+      <section className="py-20 y2k-dark-surface text-center">
         <div className="max-w-2xl mx-auto px-5">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Don't have a 3D printer?</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: 'var(--font-orbitron)' }}>Don't have a 3D printer?</h2>
           <p className="text-[#86868B] text-base mb-8">Send us your photo — or the STL. We print, post-process, and ship anywhere in India.</p>
           <a href="https://wa.me/918310194953?text=Hi!%20I%20want%20to%20order%20a%20custom%20lithophane%20print"
             target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#1D1D1F] text-sm font-bold rounded-full hover:bg-[#F5F5F7] transition-all">
+            className="y2k-chrome-surface y2k-shine inline-flex items-center gap-2 px-8 py-4 text-[#1D1D1F] text-sm font-bold rounded-full transition-all overflow-hidden">
             Order via WhatsApp →
           </a>
         </div>
@@ -1302,11 +1303,11 @@ export default function LithophaneClient() {
 function FaqItem({ q, a }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className={`border rounded-2xl overflow-hidden transition-colors ${open ? 'border-[#1D1D1F]' : 'border-[#D2D2D7]'}`}>
+    <div className={`border rounded-2xl overflow-hidden transition-colors ${open ? 'border-[#F37121]' : 'border-[#D2D2D7]'}`}>
       <button className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#F5F5F7] transition-colors"
         onClick={() => setOpen(o => !o)}>
         <span className="text-sm font-semibold text-[#1D1D1F] pr-4">{q}</span>
-        <span className={`text-[#86868B] text-xl leading-none transition-transform flex-shrink-0 ${open ? 'rotate-45' : ''}`}>+</span>
+        <span className={`text-[#F37121] text-xl leading-none transition-transform flex-shrink-0 ${open ? 'rotate-45' : ''}`}>+</span>
       </button>
       {open && (
         <div className="px-5 pb-4 text-sm text-[#555] leading-relaxed border-t border-[#E8E8ED]">{a}</div>

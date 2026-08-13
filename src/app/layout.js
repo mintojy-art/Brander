@@ -1,4 +1,4 @@
-import { Poppins, Black_Ops_One } from 'next/font/google'
+import { Poppins, Black_Ops_One, Orbitron } from 'next/font/google'
 import Script from 'next/script'
 import ContentProtection from '@/components/ContentProtection'
 import './globals.css'
@@ -14,6 +14,13 @@ const blackOpsOne = Black_Ops_One({
   subsets: ['latin'],
   weight: '400',
   variable: '--font-black-ops-one',
+  display: 'swap',
+})
+
+const orbitron = Orbitron({
+  subsets: ['latin'],
+  weight: ['600', '700', '800', '900'],
+  variable: '--font-orbitron',
   display: 'swap',
 })
 
@@ -185,7 +192,7 @@ const faqJsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${blackOpsOne.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${blackOpsOne.variable} ${orbitron.variable}`}>
       <body>
         {/* Meta Pixel noscript fallback (must be in body) */}
         <noscript>

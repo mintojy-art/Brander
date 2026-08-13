@@ -4,6 +4,7 @@
   --font-sans: var(--font-poppins);
   --font-poppins: var(--font-poppins);
   --font-stencil: var(--font-black-ops-one);
+  --font-orbitron: var(--font-orbitron);
 
   --color-oric-black: #000000;
   --color-oric-dark: #1D1D1F;
@@ -13,7 +14,21 @@
   --color-oric-gray: #F5F5F7;
   --color-oric-white: #FFFFFF;
 
+  /* ── Y2K "Millennium Silver" design system ── */
+  --color-chrome-100: #F7F8FA;
+  --color-chrome-200: #E4E7ED;
+  --color-chrome-300: #C7CCD6;
+  --color-chrome-400: #A6ACB8;
+
+  --color-electric-400: #FFA35C;
+  --color-electric-500: #F37121;
+  --color-electric-600: #C94E00;
+
+  --color-lime-400: #B6FF3C;
+  --color-lime-500: #9AE619;
+
   --animate-slideIn: slideIn 0.2s ease-out;
+  --animate-y2kShine: y2kShine 1.1s ease;
 }
 
 @keyframes slideIn {
@@ -59,6 +74,17 @@
   animation: roll 20s linear infinite;
   will-change: transform;
   touch-action: pan-y;
+}
+
+/* ── Rolling card marquee (Testimonials) ── */
+.y2k-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: roll 40s linear infinite;
+  will-change: transform;
+}
+.y2k-marquee-track:hover {
+  animation-play-state: paused;
 }
 
 /* ── Carbon dot pattern (Brander page) ── */
@@ -175,6 +201,78 @@ a img, button img, .interactive img {
   max-width: 100%;
 }
 .blog-content strong { font-weight: 700; color: #1D1D1F; }
+
+/* ── Y2K "Millennium Silver" glossy surfaces ──────────────────────────────── */
+
+/* Chrome/silver glossy surface — buttons, pills, cards */
+.y2k-chrome-surface {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, #FFFFFF 0%, #EEF1F6 42%, #DDE1E9 43%, #C7CCD6 100%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(20, 30, 60, 0.08),
+    0 8px 20px rgba(20, 30, 60, 0.10);
+}
+
+/* Electric-blue glossy surface — primary CTAs */
+.y2k-accent-surface {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, var(--color-electric-400) 0%, var(--color-electric-500) 55%, var(--color-electric-600) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 10px 24px rgba(243, 113, 33, 0.35);
+  color: #fff;
+}
+
+/* Dark glossy surface — used on dark sections (navbar CTA area, footer, etc.) */
+.y2k-dark-surface {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, #2A2C33 0%, #1D1D1F 55%, #101113 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Diagonal shine sweep — pairs with any .y2k-*-surface, triggers on hover/focus */
+.y2k-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  background-size: 250% 250%;
+  background-position: -100% -100%;
+  pointer-events: none;
+  transition: background-position 0.7s ease;
+}
+.y2k-shine:hover::after,
+.y2k-shine:focus-visible::after {
+  background-position: 100% 100%;
+}
+
+/* Lift on hover, for cards */
+.y2k-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.y2k-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Cyber-lime glow badge accent */
+.y2k-lime-glow {
+  box-shadow: 0 0 0 1px rgba(154, 230, 25, 0.4), 0 4px 16px rgba(154, 230, 25, 0.35);
+}
+
+@keyframes y2kShine {
+  0%   { background-position: -100% -100%; }
+  100% { background-position: 100% 100%; }
+}
 
 /* Hide everything when printing */
 @media print {

@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
+import { UploadCloud, ClipboardCheck, PackageCheck } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
+import Y2kIcon from '@/components/Y2kIcon'
 import ProductCarousel from '@/components/ProductCarousel'
 import TrustBadgeRow from '@/components/TrustBadgeRow'
 import BobbleheadCollections from '@/components/BobbleheadCollections'
@@ -26,9 +28,9 @@ const services = [
 ]
 
 const process = [
-  { step: '01', title: 'Share Your Idea',   desc: 'Upload your file or describe what you need via WhatsApp or our form.' },
-  { step: '02', title: 'We Review & Quote', desc: 'Within 24 hours we confirm specs, material, and price.' },
-  { step: '03', title: 'Print & Deliver',   desc: 'We print to spec and ship anywhere in India.' },
+  { step: '01', icon: UploadCloud,    title: 'Share Your Idea',   desc: 'Upload your file or describe what you need via WhatsApp or our form.' },
+  { step: '02', icon: ClipboardCheck, title: 'We Review & Quote', desc: 'Within 24 hours we confirm specs, material, and price.' },
+  { step: '03', icon: PackageCheck,   title: 'Print & Deliver',   desc: 'We print to spec and ship anywhere in India.' },
 ]
 
 function ProductCard({ product }) {
@@ -51,12 +53,12 @@ function ProductCard({ product }) {
             <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-              <span className="text-6xl">🖨️</span>
+              <Y2kIcon emoji="🖨️" size={64} className="text-[#A6ACB8]" />
               <span className="text-xs font-medium text-[#86868B] uppercase tracking-widest">Custom Order</span>
             </div>
           )}
           {product.badge && (
-            <div className="absolute top-4 left-4 px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
+            <div className="y2k-lime-glow absolute top-4 left-4 px-3 py-1 bg-[#B6FF3C] text-[#1D1D1F] text-[10px] font-bold tracking-wider rounded-full">
               {product.badge}
             </div>
           )}
@@ -72,7 +74,7 @@ function ProductCard({ product }) {
             <span className="text-base font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
             <button
               onClick={(e) => { e.preventDefault(); add(product) }}
-              className="px-3 py-1.5 text-xs font-medium bg-[#1D1D1F] text-white rounded-full hover:bg-[#424245] transition-all"
+              className="y2k-accent-surface y2k-shine px-3 py-1.5 text-xs font-semibold text-white rounded-full transition-all overflow-hidden"
             >
               {product.price ? 'Add to Cart' : 'Get Quote'}
             </button>
@@ -87,16 +89,16 @@ function ShopAllCard() {
   return (
     <Link
       href="/shop"
-      className="group flex flex-col items-center justify-center gap-4 bg-[#1D1D1F] rounded-3xl border-2 border-[#1D1D1F] hover:bg-[#2D2D2F] transition-all duration-300 cursor-pointer h-full min-h-[280px] p-6 text-center"
+      className="y2k-dark-surface y2k-lift group flex flex-col items-center justify-center gap-4 rounded-3xl transition-all duration-300 cursor-pointer h-full min-h-[280px] p-6 text-center"
     >
       <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-all duration-300">
-        <span className="text-xl">🛍️</span>
+        <Y2kIcon emoji="🛍️" size={30} className="text-white" />
       </div>
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/50 mb-2">Browse Everything</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#FFA35C] mb-2">Browse Everything</p>
         <p className="text-lg font-bold text-white leading-snug">Shop All Products</p>
       </div>
-      <div className="flex items-center gap-2 px-4 py-2 bg-white text-[#1D1D1F] text-xs font-semibold rounded-full group-hover:bg-[#F5F5F7] transition-all duration-300">
+      <div className="y2k-chrome-surface y2k-shine flex items-center gap-2 px-4 py-2 text-[#1D1D1F] text-xs font-semibold rounded-full transition-all duration-300 overflow-hidden">
         View All <span className="text-base leading-none">→</span>
       </div>
     </Link>
@@ -117,19 +119,19 @@ export default function HomeClient({ products, testimonials, occasions }) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-4">
             ORIC · 3D Print on Demand · Made in India
           </p>
-          <h1 className="text-5xl font-bold text-white leading-[0.92] tracking-tight mb-5">
-            Print.<br />Create.<br /><span className="text-[#86868B]">Deliver.</span>
+          <h1 className="text-5xl font-bold text-white leading-[0.92] tracking-tight mb-5" style={{ fontFamily: 'var(--font-orbitron)' }}>
+            Print.<br />Create.<br /><span className="text-[#FFA35C]">Deliver.</span>
           </h1>
           <p className="text-base text-[#86868B] leading-relaxed mb-8">
             From figurines to functional parts — we 3D print what you imagine.
             FDM precision. Fast turnaround. No minimum order.
           </p>
           <div className="flex flex-col gap-3">
-            <Link href="/shop" className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#1D1D1F] text-sm font-semibold rounded-full">
+            <Link href="/shop" className="y2k-chrome-surface y2k-shine inline-flex items-center justify-center px-8 py-4 text-[#1D1D1F] text-sm font-semibold rounded-full overflow-hidden">
               Browse Shop →
             </Link>
             <a href="https://wa.me/918310194953" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-8 py-4 border border-[#424245] text-white text-sm font-semibold rounded-full">
+              className="y2k-accent-surface y2k-shine inline-flex items-center justify-center px-8 py-4 text-white text-sm font-semibold rounded-full overflow-hidden">
               Get a Quote
             </a>
           </div>
@@ -151,8 +153,9 @@ export default function HomeClient({ products, testimonials, occasions }) {
               ORIC · 3D Print on Demand · Made in India
             </motion.p>
             <motion.h1 className="text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.92] tracking-tight mb-8"
+              style={{ fontFamily: 'var(--font-orbitron)' }}
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: 0.1 }}>
-              Print.<br />Create.<br /><span className="text-[#86868B]">Deliver.</span>
+              Print.<br />Create.<br /><span className="text-[#FFA35C]">Deliver.</span>
             </motion.h1>
             <motion.p className="text-lg md:text-xl text-[#86868B] leading-relaxed max-w-xl mb-12"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}>
@@ -161,11 +164,11 @@ export default function HomeClient({ products, testimonials, occasions }) {
             </motion.p>
             <motion.div className="flex flex-row gap-4"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}>
-              <Link href="/shop" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-[#F5F5F7] text-[#1D1D1F] text-sm font-semibold rounded-full transition-all">
+              <Link href="/shop" className="y2k-chrome-surface y2k-shine inline-flex items-center justify-center gap-2 px-8 py-4 text-[#1D1D1F] text-sm font-semibold rounded-full transition-all overflow-hidden">
                 Browse Shop →
               </Link>
               <a href="https://wa.me/918310194953" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-[#424245] hover:border-white text-white text-sm font-semibold rounded-full transition-all">
+                className="y2k-accent-surface y2k-shine inline-flex items-center justify-center gap-2 px-8 py-4 text-white text-sm font-semibold rounded-full transition-all overflow-hidden">
                 Get a Quote
               </a>
             </motion.div>
@@ -176,18 +179,19 @@ export default function HomeClient({ products, testimonials, occasions }) {
       <TrustBadgeRow />
 
       {/* ── BEST SELLERS + NEW ARRIVALS ── */}
-      <section className="py-28 bg-[#F5F5F7]">
+      <section className="py-28" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
 
           <div className="mb-14">
             <motion.p
-              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
               initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             >
               From Our Workshop
             </motion.p>
             <motion.h2
               className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
+              style={{ fontFamily: 'var(--font-orbitron)' }}
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
@@ -200,10 +204,10 @@ export default function HomeClient({ products, testimonials, occasions }) {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:bg-[#FEF3C7] transition-colors"
+            className="y2k-shine mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           >
-            <span className="text-3xl flex-shrink-0">🖼️</span>
+            <Y2kIcon emoji="🖼️" size={44} className="flex-shrink-0 text-[#F37121]" />
             <div className="flex-1 text-center sm:text-left">
               <p className="text-sm font-bold text-[#1D1D1F]">Have a photo? We'll turn it into a 3D figurine.</p>
               <p className="text-xs text-[#424245] mt-0.5">Send any image on WhatsApp — pet, person, character, idol. Quote in 24 hours. No file needed.</p>
@@ -222,6 +226,7 @@ export default function HomeClient({ products, testimonials, occasions }) {
             <div className="mt-20">
               <motion.h3
                 className="text-2xl font-bold text-[#1D1D1F] mb-6"
+                style={{ fontFamily: 'var(--font-orbitron)' }}
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               >
                 New Arrivals
@@ -245,13 +250,14 @@ export default function HomeClient({ products, testimonials, occasions }) {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
             <div>
               <motion.p
-                className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+                className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
                 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
               >
                 What We Make
               </motion.p>
               <motion.h2
                 className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
+                style={{ fontFamily: 'var(--font-orbitron)' }}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
@@ -263,24 +269,27 @@ export default function HomeClient({ products, testimonials, occasions }) {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
             {services.map((svc, i) => (
               <motion.a
                 key={svc.title}
                 href={svc.href}
-                className="group p-6 bg-[#F5F5F7] hover:bg-[#1D1D1F] rounded-2xl transition-all duration-300 cursor-pointer"
+                className="y2k-chrome-surface y2k-lift y2k-shine group rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 cursor-pointer overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.5 }}
               >
-                <div className="text-3xl mb-4">{svc.icon}</div>
-                <h3 className="text-sm font-semibold text-[#1D1D1F] group-hover:text-white mb-2 transition-colors leading-snug">
-                  {svc.title}
-                </h3>
-                <p className="text-xs text-[#86868B] group-hover:text-[#86868B] leading-relaxed">
-                  {svc.desc}
-                </p>
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  style={{ background: 'linear-gradient(180deg, #FFA35C 0%, #F37121 55%, #C94E00 100%)', boxShadow: '0 8px 20px rgba(243,113,33,0.35)' }}
+                >
+                  <Y2kIcon emoji={svc.icon} size={28} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-[#1D1D1F] mb-1.5 leading-snug">{svc.title}</h3>
+                  <p className="text-sm text-[#424245] leading-relaxed">{svc.desc}</p>
+                </div>
               </motion.a>
             ))}
           </div>
@@ -292,13 +301,14 @@ export default function HomeClient({ products, testimonials, occasions }) {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="text-center mb-16">
             <motion.p
-              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
               initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             >
               The Process
             </motion.p>
             <motion.h2
               className="text-4xl md:text-5xl font-bold text-[#1D1D1F]"
+              style={{ fontFamily: 'var(--font-orbitron)' }}
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
@@ -316,8 +326,13 @@ export default function HomeClient({ products, testimonials, occasions }) {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15, duration: 0.6 }}
               >
-                <div className="w-14 h-14 rounded-full bg-[#1D1D1F] text-white flex items-center justify-center text-sm font-bold mx-auto mb-6">
-                  {step.step}
+                <div className="relative w-16 h-16 mx-auto mb-6">
+                  <div className="y2k-accent-surface w-16 h-16 rounded-full text-white flex items-center justify-center">
+                    <step.icon size={26} strokeWidth={2} />
+                  </div>
+                  <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#1D1D1F] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                    {step.step}
+                  </span>
                 </div>
                 <h3 className="text-lg font-semibold text-[#1D1D1F] mb-3">{step.title}</h3>
                 <p className="text-sm text-[#86868B] leading-relaxed max-w-xs mx-auto">{step.desc}</p>
@@ -328,17 +343,18 @@ export default function HomeClient({ products, testimonials, occasions }) {
       </section>
 
       {/* ── 3D PRINT CONFIGURATOR ── */}
-      <section className="py-20 bg-[#F5F5F7] border-b border-[#D2D2D7]">
+      <section className="py-20 border-b border-[#D2D2D7]" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="mb-12">
             <motion.p
-              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+              className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
               initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             >
               Instant Quote
             </motion.p>
             <motion.h2
               className="text-4xl md:text-5xl font-bold text-[#1D1D1F] leading-tight"
+              style={{ fontFamily: 'var(--font-orbitron)' }}
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
@@ -363,17 +379,18 @@ export default function HomeClient({ products, testimonials, occasions }) {
       <FAQSection />
 
       {/* ── STATEMENT BANNER ── */}
-      <section className="py-28 bg-[#1D1D1F]">
+      <section className="py-28 y2k-dark-surface">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 text-center">
           <motion.h2
             className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight tracking-tight mb-8"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
             Every print.<br />
-            <span className="text-[#86868B]">Crafted to spec.</span>
+            <span className="text-[#FFA35C]">Crafted to spec.</span>
           </motion.h2>
           <motion.p
             className="text-[#86868B] text-base md:text-lg max-w-xl mx-auto mb-10"
@@ -395,7 +412,7 @@ export default function HomeClient({ products, testimonials, occasions }) {
               href="https://wa.me/918310194953"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-4 bg-white text-[#1D1D1F] text-sm font-semibold rounded-full hover:bg-[#F5F5F7] transition-all"
+              className="y2k-chrome-surface y2k-shine px-8 py-4 text-[#1D1D1F] text-sm font-semibold rounded-full transition-all overflow-hidden"
             >
               Start Your Order →
             </a>

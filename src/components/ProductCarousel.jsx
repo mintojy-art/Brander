@@ -38,7 +38,7 @@ export default function ProductCarousel({ children }) {
         <button
           onClick={() => scrollBy(-1)}
           aria-label="Scroll left"
-          className="hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full bg-white border border-[#D2D2D7] shadow-lg items-center justify-center hover:bg-[#F5F5F7] transition-all"
+          className="y2k-chrome-surface hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 rounded-full items-center justify-center transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -47,7 +47,7 @@ export default function ProductCarousel({ children }) {
         <button
           onClick={() => scrollBy(1)}
           aria-label="Scroll right"
-          className="hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full bg-white border border-[#D2D2D7] shadow-lg items-center justify-center hover:bg-[#F5F5F7] transition-all"
+          className="y2k-chrome-surface hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-4 z-10 w-10 h-10 rounded-full items-center justify-center transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>

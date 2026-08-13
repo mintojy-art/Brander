@@ -46,10 +46,10 @@ function Item({ faq, isOpen, onToggle }) {
           {faq.q}
         </span>
         <span
-          className={`shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold transition-all mt-0.5 ${
+          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all mt-0.5 overflow-hidden ${
             isOpen
-              ? 'bg-[#1D1D1F] border-[#1D1D1F] text-white'
-              : 'border-[#D2D2D7] text-[#86868B] group-hover:border-[#86868B]'
+              ? 'y2k-accent-surface text-white'
+              : 'border border-[#D2D2D7] text-[#86868B] group-hover:border-[#86868B]'
           }`}
         >
           {isOpen ? '−' : '+'}
@@ -81,7 +81,7 @@ export default function FAQSection() {
   const toggle = (i) => setOpen((prev) => (prev === i ? null : i))
 
   return (
-    <section id="faq" className="py-28 bg-[#F5F5F7]">
+    <section id="faq" className="py-28" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #EEF1F6 100%)' }}>
       <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10">
 
         <div className="text-center mb-16">
@@ -93,6 +93,7 @@ export default function FAQSection() {
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-[#1D1D1F]"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
@@ -101,7 +102,7 @@ export default function FAQSection() {
         </div>
 
         <motion.div
-          className="bg-white rounded-2xl border border-[#D2D2D7] px-6 md:px-8"
+          className="y2k-chrome-surface rounded-2xl px-6 md:px-8"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

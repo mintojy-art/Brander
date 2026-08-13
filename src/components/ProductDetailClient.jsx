@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
+import Y2kIcon from '@/components/Y2kIcon'
 
 // ── Star Rating ───────────────────────────────────────────────────────────────
 function StarIcon({ fill = 'full', className }) {
@@ -36,7 +37,7 @@ function Stars({ rating, size = 'sm' }) {
 function TrustBadge({ icon, text }) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="text-base shrink-0 mt-0.5">{icon}</span>
+      <Y2kIcon emoji={icon} size={20} className="shrink-0 mt-0.5 text-[#F37121]" />
       <span className="text-xs text-[#424245] leading-snug">{text}</span>
     </div>
   )
@@ -104,7 +105,7 @@ export default function ProductDetailClient({ product, related }) {
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-                    <span className="text-8xl">🖨️</span>
+                    <Y2kIcon emoji="🖨️" size={96} className="text-[#A6ACB8]" />
                     <span className="text-xs font-medium text-[#86868B] uppercase tracking-widest">Custom Order</span>
                   </div>
                 )}
@@ -119,7 +120,7 @@ export default function ProductDetailClient({ product, related }) {
                       onClick={() => setActiveImg(i)}
                       className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-150 ${
                         i === activeImg
-                          ? 'border-[#1D1D1F] ring-1 ring-[#1D1D1F]'
+                          ? 'border-[#F37121] ring-1 ring-[#F37121]'
                           : 'border-[#D2D2D7] hover:border-[#86868B]'
                       }`}
                     >
@@ -131,7 +132,7 @@ export default function ProductDetailClient({ product, related }) {
 
               {product.badge && (
                 <div className="mt-3">
-                  <span className="inline-flex items-center px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
+                  <span className="y2k-lime-glow inline-flex items-center px-3 py-1 bg-[#B6FF3C] text-[#1D1D1F] text-[10px] font-bold tracking-wider rounded-full">
                     {product.badge}
                   </span>
                 </div>
@@ -222,11 +223,11 @@ export default function ProductDetailClient({ product, related }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
           >
-            <div className="sticky top-24 border border-[#D2D2D7] rounded-2xl p-5 shadow-sm bg-white">
+            <div className="y2k-chrome-surface sticky top-24 rounded-2xl p-5">
 
               {/* Price */}
               <p className="text-2xl font-bold text-[#1D1D1F] mb-0.5">{product.priceDisplay}</p>
-              <p className="text-xs text-[#86868B] mb-4">Free delivery · All taxes included</p>
+              <p className="text-xs text-[#86868B] mb-4">Delivery across pan India · All taxes included</p>
 
               {/* Stock */}
               <div className="flex items-center gap-2 mb-4">
@@ -263,11 +264,11 @@ export default function ProductDetailClient({ product, related }) {
               {/* Add to Cart */}
               <button
                 onClick={handleAddToCart}
-                className={`w-full py-3 rounded-full text-sm font-bold mb-3 transition-all duration-200 ${
+                className={`w-full py-3 rounded-full text-sm font-bold mb-3 transition-all duration-200 overflow-hidden ${
                   added
                     ? 'bg-green-600 text-white scale-95'
                     : product.price
-                    ? 'bg-[#FFD814] text-[#1D1D1F] hover:bg-[#F7CA00] active:scale-95'
+                    ? 'y2k-accent-surface y2k-shine active:scale-95'
                     : 'bg-[#F5F5F7] text-[#1D1D1F] hover:bg-[#E8E8ED]'
                 }`}
               >
@@ -279,7 +280,7 @@ export default function ProductDetailClient({ product, related }) {
                 href={`https://wa.me/918310194953?text=${waMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 rounded-full text-sm font-bold bg-[#FFA41C] text-white hover:bg-[#FA8900] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+                className="y2k-chrome-surface y2k-shine w-full py-3 rounded-full text-sm font-bold text-[#1D1D1F] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 overflow-hidden"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -291,7 +292,7 @@ export default function ProductDetailClient({ product, related }) {
               <div className="mt-5 pt-5 border-t border-[#F5F5F7] space-y-3">
                 <TrustBadge icon="🛡️" text="Quality guaranteed — full refund if not satisfied" />
                 <TrustBadge icon="📦" text="Ships in protective foam packaging" />
-                <TrustBadge icon="🚚" text="Free delivery anywhere in India" />
+                <TrustBadge icon="🚚" text="Delivery across pan India" />
                 <TrustBadge icon="🇮🇳" text="Designed & printed in India by ORIC" />
               </div>
             </div>
@@ -342,7 +343,7 @@ export default function ProductDetailClient({ product, related }) {
                   href={p.href}
                   className="group block"
                 >
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-[#F5F5F7] mb-3 border border-[#D2D2D7]">
+                  <div className="y2k-lift aspect-square rounded-2xl overflow-hidden bg-[#F5F5F7] mb-3 border border-[#D2D2D7]">
                     {p.image ? (
                       <img
                         src={p.image}
@@ -350,7 +351,7 @@ export default function ProductDetailClient({ product, related }) {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-5xl">🖨️</div>
+                      <div className="w-full h-full flex items-center justify-center"><Y2kIcon emoji="🖨️" size={48} className="text-[#A6ACB8]" /></div>
                     )}
                   </div>
                   <p className="text-sm font-semibold text-[#1D1D1F] leading-snug group-hover:underline underline-offset-2 mb-1">
@@ -371,20 +372,20 @@ export default function ProductDetailClient({ product, related }) {
 
         {/* ── CTA Banner ── */}
         <motion.div
-          className="mt-16 rounded-3xl bg-[#1D1D1F] px-10 py-12 md:px-16 md:py-14 text-center"
+          className="y2k-dark-surface mt-16 rounded-3xl px-10 py-12 md:px-16 md:py-14 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3">Need something different?</p>
-          <h3 className="text-3xl font-bold text-white mb-4">We print anything.<br /><span className="text-[#86868B]">Just ask.</span></h3>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-3">Need something different?</p>
+          <h3 className="text-3xl font-bold text-white mb-4" style={{ fontFamily: 'var(--font-orbitron)' }}>We print anything.<br /><span className="text-[#86868B]">Just ask.</span></h3>
           <p className="text-[#86868B] text-sm max-w-xs mx-auto mb-7">Send your file or idea. We'll quote within 24 hours.</p>
           <a
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-[#1D1D1F] text-sm font-bold rounded-full hover:bg-[#F5F5F7] transition-all"
+            className="y2k-chrome-surface y2k-shine inline-flex items-center gap-2 px-8 py-3.5 text-[#1D1D1F] text-sm font-bold rounded-full transition-all overflow-hidden"
           >
             Start a Custom Order →
           </a>

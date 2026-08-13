@@ -326,7 +326,7 @@ export default function PrintConfigurator() {
       <div className="flex flex-col gap-5">
 
         {/* Upload Model */}
-        <div className="bg-white rounded-2xl border border-[#D2D2D7] p-5">
+        <div className="y2k-chrome-surface rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             <span className="text-sm font-semibold text-[#1D1D1F]">Upload Model</span>
@@ -384,7 +384,7 @@ export default function PrintConfigurator() {
         </div>
 
         {/* 3D Preview */}
-        <div className="bg-white rounded-2xl border border-[#D2D2D7] overflow-hidden flex-1">
+        <div className="y2k-chrome-surface rounded-2xl overflow-hidden flex-1">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F5F5F7]">
             <div className="flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -465,7 +465,7 @@ export default function PrintConfigurator() {
       </div>
 
       {/* ════ RIGHT PANEL ════ */}
-      <div className="bg-white rounded-2xl border border-[#D2D2D7] p-6 flex flex-col gap-5">
+      <div className="y2k-chrome-surface rounded-2xl p-6 flex flex-col gap-5">
         <div className="flex items-center gap-2">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           <h3 className="text-base font-semibold text-[#1D1D1F]">Configure Your Print</h3>
@@ -594,7 +594,7 @@ export default function PrintConfigurator() {
               <button
                 onClick={calcPrice}
                 disabled={!file || calculating}
-                className="flex items-center gap-2 px-4 py-2 bg-[#1D1D1F] hover:bg-[#424245] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-full transition-all"
+                className="y2k-accent-surface y2k-shine flex items-center gap-2 px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-full transition-all overflow-hidden"
               >
                 {calculating ? (
                   <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -612,7 +612,7 @@ export default function PrintConfigurator() {
           <button
             onClick={handleAddToCart}
             disabled={!file}
-            className="flex items-center justify-center gap-2 py-3.5 border border-[#D2D2D7] hover:bg-[#F5F5F7] disabled:opacity-40 disabled:cursor-not-allowed text-[#1D1D1F] text-sm font-semibold rounded-xl transition-all"
+            className="y2k-accent-surface y2k-shine flex items-center justify-center gap-2 py-3.5 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all overflow-hidden"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
             Add to Cart
@@ -626,7 +626,7 @@ export default function PrintConfigurator() {
           className={`w-full py-3.5 border-2 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
             ordering ? 'border-[#86868B] text-[#86868B] cursor-wait'
             : !file ? 'border-[#D2D2D7] text-[#86868B] cursor-not-allowed'
-            : 'border-[#1D1D1F] text-[#1D1D1F] hover:bg-[#1D1D1F] hover:text-white'
+            : 'border-[#F37121] text-[#F37121] hover:bg-[#F37121] hover:text-white'
           }`}
         >
           {ordering ? (

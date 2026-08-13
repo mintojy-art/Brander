@@ -3,27 +3,29 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { services } from '@/data/services'
+import Y2kIcon from '@/components/Y2kIcon'
 
 export default function ServicesClient() {
   return (
     <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
-      <div className="bg-[#1D1D1F]">
+      <div className="y2k-dark-surface">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-24">
           <motion.p
-            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-4"
+            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           >
             ORIC Services
           </motion.p>
           <motion.h1
             className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
             Everything<br />
-            <span className="text-[#86868B]">we print.</span>
+            <span className="text-[#FFA35C]">we print.</span>
           </motion.h1>
           <motion.p
             className="text-[#86868B] text-base max-w-lg"
@@ -51,14 +53,19 @@ export default function ServicesClient() {
               {/* Left */}
               <div className="md:col-span-5">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-3xl">{svc.icon}</span>
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: 'linear-gradient(180deg, #FFA35C 0%, #F37121 55%, #C94E00 100%)', boxShadow: '0 8px 20px rgba(243,113,33,0.35)' }}
+                  >
+                    <Y2kIcon emoji={svc.icon} size={24} className="text-white" />
+                  </div>
                   <span className="text-[11px] font-semibold text-[#86868B] tracking-widest uppercase">{svc.number}</span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-[#1D1D1F] leading-tight mb-2">{svc.title}</h2>
                 <p className="text-[#86868B] text-sm font-medium mb-4">{svc.tagline}</p>
                 <Link
                   href="/shop"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1D1D1F] hover:text-[#424245] transition-colors underline underline-offset-4"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#F37121] hover:text-[#C94E00] transition-colors underline underline-offset-4"
                 >
                   Order this service →
                 </Link>
@@ -90,10 +97,10 @@ export default function ServicesClient() {
       </div>
 
       {/* CTA */}
-      <div className="bg-[#F5F5F7] border-t border-[#D2D2D7] py-24">
+      <div className="border-t border-[#D2D2D7] py-24" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-3xl mx-auto px-5 text-center">
-          <h2 className="text-4xl font-bold text-[#1D1D1F] mb-4">Ready to start?</h2>
-          <p className="text-[#86868B] text-base mb-8 max-w-md mx-auto">
+          <h2 className="text-4xl font-bold text-[#1D1D1F] mb-4" style={{ fontFamily: 'var(--font-orbitron)' }}>Ready to start?</h2>
+          <p className="text-[#424245] text-base mb-8 max-w-md mx-auto">
             Send your file or idea. We'll quote within 24 hours and get it printed fast.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -101,13 +108,13 @@ export default function ServicesClient() {
               href="https://wa.me/918310194953"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-4 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all"
+              className="y2k-accent-surface y2k-shine px-8 py-4 text-white text-sm font-semibold rounded-full transition-all overflow-hidden"
             >
               Order via WhatsApp
             </a>
             <Link
               href="/shop"
-              className="px-8 py-4 border border-[#D2D2D7] text-[#1D1D1F] text-sm font-semibold rounded-full hover:bg-white transition-all"
+              className="y2k-chrome-surface y2k-shine px-8 py-4 text-[#1D1D1F] text-sm font-semibold rounded-full transition-all overflow-hidden"
             >
               Browse Shop
             </Link>

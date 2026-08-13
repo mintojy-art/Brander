@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import { categoryIcons } from '@/data/products'
+import Y2kIcon from '@/components/Y2kIcon'
 
 function StarMini({ rating }) {
   return (
@@ -24,7 +25,7 @@ function ProductCard({ product }) {
 
   return (
     <motion.div
-      className="group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col"
+      className="y2k-lift group bg-white rounded-3xl overflow-hidden border border-[#D2D2D7] hover:shadow-2xl transition-all duration-500 flex flex-col"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -40,14 +41,12 @@ function ProductCard({ product }) {
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-            <div className="w-20 h-20 rounded-2xl bg-[#E8E8ED] flex items-center justify-center">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#86868B" strokeWidth="1.5"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
-            </div>
+            <Y2kIcon emoji="🖨️" size={56} className="text-[#A6ACB8]" />
             <span className="text-xs font-medium text-[#86868B] uppercase tracking-widest">Custom Order</span>
           </div>
         )}
         {product.badge && (
-          <div className="absolute top-4 left-4 px-3 py-1 bg-[#1D1D1F] text-white text-[10px] font-semibold tracking-wider rounded-full">
+          <div className="y2k-lime-glow absolute top-4 left-4 px-3 py-1 bg-[#B6FF3C] text-[#1D1D1F] text-[10px] font-bold tracking-wider rounded-full">
             {product.badge}
           </div>
         )}
@@ -81,7 +80,7 @@ function ProductCard({ product }) {
             </Link>
             <button
               onClick={() => add(product)}
-              className="px-3.5 py-1.5 text-xs font-semibold bg-[#1D1D1F] text-white rounded-full hover:bg-[#424245] transition-all"
+              className="y2k-accent-surface y2k-shine px-3.5 py-1.5 text-xs font-semibold text-white rounded-full transition-all overflow-hidden"
             >
               {product.price ? 'Add' : 'Quote'}
             </button>
@@ -111,16 +110,17 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
     <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
-      <div className="bg-[#F5F5F7] border-b border-[#D2D2D7]">
+      <div className="border-b border-[#D2D2D7]" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-16">
           <motion.p
-            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
+            className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           >
             ORIC Shop
           </motion.p>
           <motion.h1
             className="text-5xl md:text-6xl font-bold text-[#1D1D1F] leading-tight"
+            style={{ fontFamily: 'var(--font-orbitron)' }}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
@@ -150,21 +150,19 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
                 <motion.button
                   key={cat}
                   onClick={() => setActive(cat)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-3xl border transition-all ${
-                    active === cat
-                      ? 'bg-[#1D1D1F] border-[#1D1D1F]'
-                      : 'bg-white border-[#D2D2D7] hover:border-[#86868B]'
+                  className={`y2k-lift flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${
+                    active === cat ? 'y2k-accent-surface' : 'y2k-chrome-surface'
                   }`}
                   initial={{ opacity: 0, y: 12 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4 }}
                 >
-                  <span className="text-2xl">{categoryIcons[cat] || '🖨️'}</span>
+                  <Y2kIcon emoji={categoryIcons[cat] || '🖨️'} size={28} className={active === cat ? 'text-white' : 'text-[#F37121]'} />
                   <span className={`text-xs font-semibold ${active === cat ? 'text-white' : 'text-[#1D1D1F]'}`}>
                     {cat}
                   </span>
-                  <span className={`text-[10px] ${active === cat ? 'text-white/60' : 'text-[#86868B]'}`}>
+                  <span className={`text-[10px] ${active === cat ? 'text-white/70' : 'text-[#86868B]'}`}>
                     {itemCount} item{itemCount !== 1 ? 's' : ''}
                   </span>
                 </motion.button>
@@ -181,7 +179,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
               onClick={() => setActive(cat)}
               className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
                 active === cat
-                  ? 'bg-[#1D1D1F] text-white'
+                  ? 'y2k-accent-surface'
                   : 'bg-[#F5F5F7] text-[#424245] hover:bg-[#E8E8ED] hover:text-[#1D1D1F]'
               }`}
             >
@@ -191,27 +189,21 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
         </div>
 
         {/* 'Got a photo?' banner */}
-        <motion.div
-          className="mb-8 rounded-3xl overflow-hidden border border-[#D2D2D7] flex flex-col sm:flex-row items-stretch"
+        <motion.a
+          href="https://wa.me/918310194953"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="y2k-shine mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         >
-          <div className="flex-1 bg-[#FFF7ED] px-7 py-7 flex flex-col justify-center gap-2">
+          <Y2kIcon emoji="🖼️" size={44} className="flex-shrink-0 text-[#F37121]" />
+          <div className="flex-1 text-center sm:text-left">
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#EA580C]">Most Popular Request</span>
-            <h3 className="text-lg font-bold text-[#1D1D1F] leading-snug">Have a photo?<br />We'll turn it into a 3D figurine.</h3>
-            <p className="text-sm text-[#424245]">Send us any image on WhatsApp — pet, person, character, idol — and we'll quote within 24 hours. No STL file needed.</p>
-            <a
-              href="https://wa.me/918310194953"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 self-start inline-flex items-center gap-2 px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-full hover:bg-[#424245] transition-all"
-            >
-              Send Your Photo →
-            </a>
+            <p className="text-sm font-bold text-[#1D1D1F] mt-0.5">Have a photo? We'll turn it into a 3D figurine.</p>
+            <p className="text-xs text-[#424245] mt-0.5">Send any image on WhatsApp — pet, person, character, idol. Quote in 24 hours. No file needed.</p>
           </div>
-          <div className="bg-[#FEF3C7] flex items-center justify-center px-8 py-6 sm:py-0">
-            <span className="text-6xl">🖼️</span>
-          </div>
-        </motion.div>
+          <span className="text-xs font-semibold text-[#EA580C] flex-shrink-0">Send Your Photo →</span>
+        </motion.a>
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -219,27 +211,27 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
         </div>
 
         {/* Shipping info banner */}
-        <div className="mt-14 mb-2 rounded-2xl bg-[#F5F5F7] border border-[#D2D2D7] px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
+        <div className="y2k-chrome-surface mt-14 mb-2 rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
           <div className="flex items-start gap-3">
             <svg className="mt-0.5 flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="1.8" strokeLinecap="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
             <div>
               <p className="text-sm font-semibold text-[#1D1D1F]">Shipping across India</p>
-              <p className="text-xs text-[#86868B] mt-0.5">Bangalore: ₹40–80 · Rest of India: ₹80–150 · Delivered via Shiprocket / Delhivery</p>
+              <p className="text-xs text-[#424245] mt-0.5">Bangalore: ₹40–80 · Rest of India: ₹80–150 · Delivered via Shiprocket / Delhivery</p>
             </div>
           </div>
-          <p className="text-xs text-[#86868B] sm:text-right">Print time + 2–4 days transit.<br />Exact cost confirmed at order.</p>
+          <p className="text-xs text-[#424245] sm:text-right">Print time + 2–4 days transit.<br />Exact cost confirmed at order.</p>
         </div>
 
         {/* Custom order CTA */}
         <motion.div
-          className="mt-16 rounded-3xl bg-[#1D1D1F] p-10 md:p-14 text-center"
+          className="y2k-dark-surface mt-16 rounded-3xl p-10 md:p-14 text-center"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3">Can't find it?</p>
-          <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-3">Can't find it?</p>
+          <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight" style={{ fontFamily: 'var(--font-orbitron)' }}>
             We print anything.<br />
             <span className="text-[#86868B]">Just ask.</span>
           </h3>
@@ -250,7 +242,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#1D1D1F] text-sm font-semibold rounded-full hover:bg-[#F5F5F7] transition-all"
+            className="y2k-chrome-surface y2k-shine inline-flex items-center gap-2 px-8 py-4 text-[#1D1D1F] text-sm font-semibold rounded-full transition-all overflow-hidden"
           >
             Start a Custom Order
           </a>
