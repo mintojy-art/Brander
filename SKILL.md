@@ -1,7 +1,8 @@
 ---
 name: brander
 description: Use when making any changes to the Brander Roller pre-launch waitlist website — components, copy, stats, design lab, form, FAQ, or deployment. Activates full project context.
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash
+metadata:
+  allowed-tools: Read, Edit, Write, Glob, Grep, Bash
 ---
 
 # Brander Roller — Pre-Launch Waitlist Website
