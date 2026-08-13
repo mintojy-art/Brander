@@ -2758,13 +2758,8 @@ function BlogForm({ post, onSave, onBack, toast }) {
           </Card>
 
           <Card>
-            <CardTitle>Content</CardTitle>
-            <BlogEditor value={form.content_html} onChange={html => set('content_html', html)} toast={toast} />
-          </Card>
-
-          <Card>
-            <CardTitle>Featured image</CardTitle>
-            <p className="text-xs text-[#6D7175] mb-3">Used on the blog listing card, the post hero, and social share previews.</p>
+            <CardTitle>Thumbnail / Featured image</CardTitle>
+            <p className="text-xs text-[#6D7175] mb-3">This is the image shown on blog listing cards, the post hero, and social share previews. Upload one here.</p>
             <ImageUploader
               images={form.featuredImages}
               onChange={imgs => set('featuredImages', imgs.slice(-1))}
@@ -2773,6 +2768,11 @@ function BlogForm({ post, onSave, onBack, toast }) {
               deleteFn={deleteBlogImage}
               bucketSql={BLOG_SETUP_SQL}
             />
+          </Card>
+
+          <Card>
+            <CardTitle>Content</CardTitle>
+            <BlogEditor value={form.content_html} onChange={html => set('content_html', html)} toast={toast} />
           </Card>
 
           <Card>
