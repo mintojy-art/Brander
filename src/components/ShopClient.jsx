@@ -1,7 +1,8 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import { categoryIcons } from '@/data/products'
@@ -91,13 +92,17 @@ function ProductCard({ product }) {
   )
 }
 
-export default function ShopClient({ products }) {
+export default function ShopClient({ products, initialCategory = 'All' }) {
   const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const active = searchParams.get('cat') || 'All'
+  // Driven by a prop from the server (page.jsx reads the ?cat= query param
+  // itself) rather than useSearchParams() — calling that hook here would
+  // force this entire component to bail out of server rendering, which
+  // silently made the whole /shop page invisible to non-JS crawlers.
+  const [active, setActiveState] = useState(initialCategory)
+  useEffect(() => { setActiveState(initialCategory) }, [initialCategory])
   const setActive = (cat) => {
-    router.push(cat === 'All' ? pathname : `${pathname}?cat=${encodeURIComponent(cat)}`)
+    setActiveState(cat)
+    router.push(cat === 'All' ? '/shop' : `/shop?cat=${encodeURIComponent(cat)}`, { scroll: false })
   }
   const categories = ['All', ...new Set(products.map((p) => p.category))]
   const filtered = active === 'All' ? products : products.filter((p) => p.category === active)

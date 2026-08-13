@@ -3,6 +3,11 @@ import { getProducts } from '@/lib/data/products'
 import { getBobbleheadOccasions } from '@/lib/data/bobbleheadOccasions'
 import { buildMetadata } from '@/lib/seo'
 
+// Without this, Next.js statically generates this page once at build/deploy
+// time and serves that snapshot to every visitor until the next deploy —
+// admin-added products/occasions wouldn't show up here.
+export const revalidate = 60
+
 export const metadata = buildMetadata({
   title: 'Custom Bobbleheads, Made in Bangalore',
   description:

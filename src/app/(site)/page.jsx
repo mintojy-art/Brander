@@ -4,6 +4,11 @@ import { getTestimonials } from '@/lib/data/testimonials'
 import { getBobbleheadOccasions } from '@/lib/data/bobbleheadOccasions'
 import { buildMetadata } from '@/lib/seo'
 
+// Without this, Next.js statically generates this page once at build/deploy
+// time and serves that snapshot to every visitor until the next deploy —
+// admin-added products/testimonials/occasions wouldn't show up here.
+export const revalidate = 60
+
 export const metadata = buildMetadata({
   title: '3D Printing Service in Bangalore — Custom Prints',
   description:
