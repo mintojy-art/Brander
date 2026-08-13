@@ -21,7 +21,7 @@ export default function ThankYouClient() {
   }, [content.conversionLabel])
 
   return (
-    <div className="pt-[100px] min-h-screen flex items-center justify-center px-5 py-20" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+    <div className="pt-[100px] min-h-screen flex items-center justify-center px-5 py-20 bg-[#F5F5F7]">
       <motion.div
         className="y2k-chrome-surface text-center max-w-md rounded-3xl p-10 sm:p-12"
         initial={{ opacity: 0, y: 24 }}

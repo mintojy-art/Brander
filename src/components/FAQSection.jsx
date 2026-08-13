@@ -81,7 +81,7 @@ export default function FAQSection() {
   const toggle = (i) => setOpen((prev) => (prev === i ? null : i))
 
   return (
-    <section id="faq" className="py-28" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #EEF1F6 100%)' }}>
+    <section id="faq" className="py-28 bg-[#F5F5F7]">
       <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10">
 
         <div className="text-center mb-16">

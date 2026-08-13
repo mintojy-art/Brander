@@ -1076,7 +1076,7 @@ export default function LithophaneClient() {
 
 
       {/* ── GENERATOR APP ── */}
-      <section id="generator" className="py-10 min-h-screen" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+      <section id="generator" className="py-10 min-h-screen bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Tab bar */}
@@ -1241,7 +1241,7 @@ export default function LithophaneClient() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-20" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+      <section className="py-20 bg-[#F5F5F7]">
         <div className="max-w-5xl mx-auto px-5 sm:px-8 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3">Process</p>
           <h2 className="text-4xl font-bold text-[#1D1D1F] mb-12" style={{ fontFamily: 'var(--font-orbitron)' }}>How It Works</h2>

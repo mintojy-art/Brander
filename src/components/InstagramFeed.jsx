@@ -53,7 +53,7 @@ export default function InstagramFeed() {
               href={post.permalink}
               target="_blank"
               rel="noopener noreferrer"
-              className="y2k-lift group relative aspect-square rounded-2xl overflow-hidden bg-[#F5F5F7] block border border-[#D2D2D7] hover:border-[#FFA35C] hover:shadow-[0_12px_28px_rgba(243, 113, 33,0.2)]"
+              className="y2k-lift group relative aspect-square rounded-2xl overflow-hidden bg-[#F5F5F7] block border border-[#D2D2D7] hover:border-[#FFA35C]"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

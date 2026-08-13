@@ -108,7 +108,7 @@ export default function BobbleheadsClient({ products, occasions }) {
       <BobbleheadCollections occasions={occasions} />
 
       {/* All Bobblehead Products */}
-      <section id="products" className="py-28 scroll-mt-24" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+      <section id="products" className="py-28 scroll-mt-24 bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="mb-10">
             <motion.p

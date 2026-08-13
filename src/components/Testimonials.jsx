@@ -16,7 +16,7 @@ function Stars({ rating = 5 }) {
 
 function TestimonialCard({ t }) {
   return (
-    <div className="y2k-lift w-[340px] shrink-0 bg-white/[0.04] border border-[#FFA35C]/20 rounded-3xl overflow-hidden hover:border-[#FFA35C]/50 hover:shadow-[0_12px_32px_rgba(243,113,33,0.25)] transition-colors">
+    <div className="y2k-lift w-[340px] shrink-0 bg-white/[0.04] border border-[#FFA35C]/20 rounded-3xl overflow-hidden hover:border-[#FFA35C]/50 transition-colors">
       {t.video_url && (
         <video src={t.video_url} controls playsInline className="w-full aspect-video bg-black" />
       )}

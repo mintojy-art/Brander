@@ -12,7 +12,7 @@ const BADGES = [
 
 export default function TrustBadgeRow() {
   return (
-    <section className="py-14 border-y border-[#D2D2D7]" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+    <section className="py-14 border-y border-[#D2D2D7] bg-[#F5F5F7]">
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {BADGES.map((b, i) => (
@@ -26,7 +26,7 @@ export default function TrustBadgeRow() {
             >
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(180deg, #FFA35C 0%, #F37121 55%, #C94E00 100%)', boxShadow: '0 6px 18px rgba(243,113,33,0.4)' }}
+                style={{ background: 'linear-gradient(180deg, #FFA35C 0%, #F37121 55%, #C94E00 100%)' }}
               >
                 <Y2kIcon emoji={b.icon} size={30} className="text-white" />
               </div>

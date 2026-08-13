@@ -55,7 +55,7 @@ export default function ServicesClient() {
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                    style={{ background: 'linear-gradient(180deg, #FFA35C 0%, #F37121 55%, #C94E00 100%)', boxShadow: '0 8px 20px rgba(243,113,33,0.35)' }}
+                    style={{ background: 'linear-gradient(180deg, #FFA35C 0%, #F37121 55%, #C94E00 100%)' }}
                   >
                     <Y2kIcon emoji={svc.icon} size={24} className="text-white" />
                   </div>
@@ -97,7 +97,7 @@ export default function ServicesClient() {
       </div>
 
       {/* CTA */}
-      <div className="border-t border-[#D2D2D7] py-24" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+      <div className="border-t border-[#D2D2D7] py-24 bg-[#F5F5F7]">
         <div className="max-w-3xl mx-auto px-5 text-center">
           <h2 className="text-4xl font-bold text-[#1D1D1F] mb-4" style={{ fontFamily: 'var(--font-orbitron)' }}>Ready to start?</h2>
           <p className="text-[#424245] text-base mb-8 max-w-md mx-auto">

@@ -110,7 +110,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
     <div className="pt-[100px] min-h-screen bg-white">
 
       {/* Header */}
-      <div className="border-b border-[#D2D2D7]" style={{ background: 'linear-gradient(180deg, #F7F8FA 0%, #ECEFF3 100%)' }}>
+      <div className="border-b border-[#D2D2D7] bg-[#F5F5F7]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-16">
           <motion.p
             className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#F37121] mb-3"
