@@ -204,7 +204,7 @@ export default function HomeClient({ products, testimonials, occasions }) {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="y2k-shine mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
+            className="mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           >
             <Y2kIcon emoji="🖼️" size={44} className="flex-shrink-0 text-[#F37121]" />
@@ -274,7 +274,7 @@ export default function HomeClient({ products, testimonials, occasions }) {
               <motion.a
                 key={svc.title}
                 href={svc.href}
-                className="y2k-chrome-surface y2k-lift y2k-shine group rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 cursor-pointer overflow-hidden"
+                className="y2k-chrome-surface y2k-lift group rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300 cursor-pointer overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

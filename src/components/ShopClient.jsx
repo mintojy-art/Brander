@@ -150,7 +150,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
                 <motion.button
                   key={cat}
                   onClick={() => setActive(cat)}
-                  className={`y2k-lift flex flex-col items-center gap-2 p-4 rounded-3xl transition-all ${
+                  className={`y2k-lift y2k-shine flex flex-col items-center gap-2 p-4 rounded-3xl transition-all overflow-hidden ${
                     active === cat ? 'y2k-accent-surface' : 'y2k-chrome-surface'
                   }`}
                   initial={{ opacity: 0, y: 12 }}
@@ -177,7 +177,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+              className={`relative y2k-shine px-4 py-2 text-sm font-medium rounded-full transition-all overflow-hidden ${
                 active === cat
                   ? 'y2k-accent-surface'
                   : 'bg-[#F5F5F7] text-[#424245] hover:bg-[#E8E8ED] hover:text-[#1D1D1F]'
@@ -193,7 +193,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
           href="https://wa.me/918310194953"
           target="_blank"
           rel="noopener noreferrer"
-          className="y2k-shine mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
+          className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         >
           <Y2kIcon emoji="🖼️" size={44} className="flex-shrink-0 text-[#F37121]" />

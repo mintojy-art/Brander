@@ -1087,7 +1087,7 @@ export default function LithophaneClient() {
                 <button key={t}
                   onClick={() => !locked && setTab(t)}
                   disabled={locked}
-                  className={`flex-1 py-2.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
+                  className={`relative y2k-shine flex-1 py-2.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap overflow-hidden ${
                     tab === t ? 'y2k-accent-surface' : locked ? 'text-[#C7C7CC] cursor-not-allowed' : 'text-[#424245] hover:text-[#1D1D1F] hover:bg-white/50'
                   }`}>
                   {TAB_LABELS[t]}
@@ -1185,7 +1185,7 @@ export default function LithophaneClient() {
                 <button
                   onClick={orderPrint}
                   disabled={!processedCanvas || ordering}
-                  className={`y2k-chrome-surface py-3.5 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 ${
+                  className={`y2k-chrome-surface y2k-shine py-3.5 text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-2 overflow-hidden ${
                     ordering ? 'text-[#86868B] cursor-wait'
                     : !processedCanvas ? 'opacity-50 text-[#86868B] cursor-not-allowed'
                     : 'text-[#1D1D1F]'

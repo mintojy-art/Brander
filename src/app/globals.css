@@ -28,7 +28,6 @@
   --color-lime-500: #9AE619;
 
   --animate-slideIn: slideIn 0.2s ease-out;
-  --animate-y2kShine: y2kShine 1.1s ease;
 }
 
 @keyframes slideIn {
@@ -207,7 +206,6 @@ a img, button img, .interactive img {
 /* Chrome/silver glossy surface — buttons, pills, cards */
 .y2k-chrome-surface {
   position: relative;
-  isolation: isolate;
   background: linear-gradient(180deg, #FFFFFF 0%, #EEF1F6 42%, #DDE1E9 43%, #C7CCD6 100%);
   border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow:
@@ -218,7 +216,6 @@ a img, button img, .interactive img {
 /* Electric-blue glossy surface — primary CTAs */
 .y2k-accent-surface {
   position: relative;
-  isolation: isolate;
   background: linear-gradient(180deg, var(--color-electric-400) 0%, var(--color-electric-500) 55%, var(--color-electric-600) 100%);
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -228,13 +225,26 @@ a img, button img, .interactive img {
 /* Dark glossy surface — used on dark sections (navbar CTA area, footer, etc.) */
 .y2k-dark-surface {
   position: relative;
-  isolation: isolate;
   background: linear-gradient(180deg, #2A2C33 0%, #1D1D1F 55%, #101113 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Diagonal shine sweep — pairs with any .y2k-*-surface, triggers on hover/focus */
+/* Lift on hover, for cards */
+.y2k-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.y2k-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Cyber-lime badge accent */
+.y2k-lime-glow {
+  box-shadow: 0 0 0 1px rgba(154, 230, 25, 0.4);
+}
+
+/* Diagonal shine sweep — buttons only (not cards/banners: large elements are
+   prone to firing this on :hover as they scroll past a stationary cursor). */
 .y2k-shine::after {
   content: '';
   position: absolute;
@@ -251,23 +261,6 @@ a img, button img, .interactive img {
   background-position: 100% 100%;
 }
 
-/* Lift on hover, for cards */
-.y2k-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.y2k-lift:hover {
-  transform: translateY(-4px);
-}
-
-/* Cyber-lime badge accent */
-.y2k-lime-glow {
-  box-shadow: 0 0 0 1px rgba(154, 230, 25, 0.4);
-}
-
-@keyframes y2kShine {
-  0%   { background-position: -100% -100%; }
-  100% { background-position: 100% 100%; }
-}
 
 /* Hide everything when printing */
 @media print {

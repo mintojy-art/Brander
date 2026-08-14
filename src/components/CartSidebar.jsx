@@ -75,12 +75,12 @@ export default function CartSidebar() {
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() => update(item.id, item.qty - 1)}
-                          className="y2k-chrome-surface w-6 h-6 rounded-full flex items-center justify-center text-[#424245] text-sm transition-colors"
+                          className="y2k-chrome-surface y2k-shine w-6 h-6 rounded-full flex items-center justify-center text-[#424245] text-sm transition-colors overflow-hidden"
                         >−</button>
                         <span className="text-sm font-medium text-[#1D1D1F] w-4 text-center">{item.qty}</span>
                         <button
                           onClick={() => update(item.id, item.qty + 1)}
-                          className="y2k-chrome-surface w-6 h-6 rounded-full flex items-center justify-center text-[#424245] text-sm transition-colors"
+                          className="y2k-chrome-surface y2k-shine w-6 h-6 rounded-full flex items-center justify-center text-[#424245] text-sm transition-colors overflow-hidden"
                         >+</button>
                       </div>
                     </div>

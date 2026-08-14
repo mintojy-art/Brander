@@ -132,7 +132,7 @@ export default function BobbleheadsClient({ products, occasions }) {
             href="https://wa.me/918310194953"
             target="_blank"
             rel="noopener noreferrer"
-            className="y2k-shine mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
+            className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           >
             <Y2kIcon emoji="🖼️" size={40} className="flex-shrink-0 text-[#F37121]" />

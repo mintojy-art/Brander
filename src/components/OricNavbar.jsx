@@ -41,7 +41,7 @@ export default function OricNavbar({ categories = [] }) {
   return (
     <header
       className={`fixed top-9 left-0 right-0 z-40 transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-[#D2D2D7]' : 'bg-white/70 backdrop-blur-md'
+        scrolled ? 'bg-white border-b border-[#D2D2D7]' : 'bg-white'
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
@@ -198,7 +198,7 @@ export default function OricNavbar({ categories = [] }) {
                 href="/"
                 className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                   isActive('/')
-                    ? 'y2k-accent-surface text-white'
+                    ? 'y2k-accent-surface y2k-shine text-white'
                     : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
                 }`}
               >
@@ -212,7 +212,7 @@ export default function OricNavbar({ categories = [] }) {
                     href="/shop"
                     className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                       isActive('/shop')
-                        ? 'y2k-accent-surface text-white'
+                        ? 'y2k-accent-surface y2k-shine text-white'
                         : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
                     }`}
                   >
@@ -260,7 +260,7 @@ export default function OricNavbar({ categories = [] }) {
                   href={link.to}
                   className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all overflow-hidden ${
                     isActive(link.to)
-                      ? 'y2k-accent-surface text-white'
+                      ? 'y2k-accent-surface y2k-shine text-white'
                       : 'text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F]'
                   }`}
                 >
@@ -271,7 +271,7 @@ export default function OricNavbar({ categories = [] }) {
                 href="https://wa.me/918310194953"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="y2k-accent-surface block w-full text-center mt-3 px-4 py-3 text-white text-sm font-semibold rounded-xl overflow-hidden"
+                className="y2k-accent-surface y2k-shine block w-full text-center mt-3 px-4 py-3 text-white text-sm font-semibold rounded-xl overflow-hidden"
               >
                 Order via WhatsApp
               </a>
