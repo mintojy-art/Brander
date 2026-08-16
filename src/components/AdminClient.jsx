@@ -3222,7 +3222,8 @@ function PricingSettingsForm({ toast }) {
     setLoading(true)
     const { data, error } = await supabase.from('print_pricing').select('*').eq('id', 1).single()
     if (error) {
-      if (error.message?.includes('does not exist')) setNeedsSetup(true)
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')) setNeedsSetup(true)
       // A missing row (no error, data null) or any other read error just
       // means we keep showing the fallback defaults — never block the page.
     } else {
@@ -3249,7 +3250,8 @@ function PricingSettingsForm({ toast }) {
     )
     setSaving(false)
     if (error) {
-      if (error.message?.includes('does not exist')) setNeedsSetup(true)
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')) setNeedsSetup(true)
       else toast('Save failed: ' + error.message, 'error')
       return
     }
