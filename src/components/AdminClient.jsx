@@ -3138,6 +3138,199 @@ function CommentsList({ comments, loading, onRefresh, toast }) {
   )
 }
 
+// ── Print Pricing ─────────────────────────────────────────────────────────────
+const PRICING_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists print_pricing (
+  id int primary key default 1,
+  pla_price numeric not null default 1.5,
+  petg_price numeric not null default 2.0,
+  tpu_price numeric not null default 3.0,
+  abs_price numeric not null default 1.8,
+  asa_price numeric not null default 2.5,
+  print_rate_per_hour numeric not null default 80,
+  base_fee numeric not null default 80,
+  minimum_price numeric not null default 149,
+  updated_at timestamptz not null default now(),
+  constraint print_pricing_singleton check (id = 1)
+);
+insert into print_pricing (id) values (1) on conflict (id) do nothing;
+
+alter table print_pricing enable row level security;
+drop policy if exists "Public read pricing" on print_pricing;
+drop policy if exists "Admin write pricing" on print_pricing;
+create policy "Public read pricing" on print_pricing
+  for select using (true);
+create policy "Admin write pricing" on print_pricing
+  for all to authenticated using (true) with check (true);`
+
+function PricingSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(PRICING_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Pricing table not set up yet</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">print_pricing</code> table, then try saving again. Until then, the print configurator uses built-in fallback prices.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{PRICING_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Falls back to these exact values if the table isn't set up yet, or a field
+// is missing — kept in sync with PrintConfigurator's DEFAULT_PRICING.
+const PRICING_DEFAULTS = {
+  pla_price: 1.5, petg_price: 2.0, tpu_price: 3.0, abs_price: 1.8, asa_price: 2.5,
+  print_rate_per_hour: 80, base_fee: 80, minimum_price: 149,
+}
+
+const PRICING_FIELDS = [
+  { key: 'pla_price',  label: 'PLA',  hint: '₹ per gram' },
+  { key: 'petg_price', label: 'PETG', hint: '₹ per gram' },
+  { key: 'tpu_price',  label: 'TPU',  hint: '₹ per gram' },
+  { key: 'abs_price',  label: 'ABS',  hint: '₹ per gram' },
+  { key: 'asa_price',  label: 'ASA',  hint: '₹ per gram' },
+]
+
+function PricingSettingsForm({ toast }) {
+  const [form, setForm] = useState(PRICING_DEFAULTS)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [needsSetup, setNeedsSetup] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+
+  const fetchPricing = useCallback(async () => {
+    if (!supabase) return
+    setLoading(true)
+    const { data, error } = await supabase.from('print_pricing').select('*').eq('id', 1).single()
+    if (error) {
+      if (error.message?.includes('does not exist')) setNeedsSetup(true)
+      // A missing row (no error, data null) or any other read error just
+      // means we keep showing the fallback defaults — never block the page.
+    } else {
+      setNeedsSetup(false)
+    }
+    if (data) setForm({ ...PRICING_DEFAULTS, ...data })
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchPricing() }, [fetchPricing])
+
+  const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+
+  const handleSave = async () => {
+    setSaving(true)
+    const payload = {}
+    for (const k of Object.keys(PRICING_DEFAULTS)) {
+      const v = parseFloat(form[k])
+      payload[k] = Number.isFinite(v) && v >= 0 ? v : PRICING_DEFAULTS[k]
+    }
+    const { error } = await supabase.from('print_pricing').upsert(
+      { id: 1, ...payload, updated_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    )
+    setSaving(false)
+    if (error) {
+      if (error.message?.includes('does not exist')) setNeedsSetup(true)
+      else toast('Save failed: ' + error.message, 'error')
+      return
+    }
+    setNeedsSetup(false)
+    setIsDirty(false)
+    toast('Pricing updated — live on the site now')
+    fetchPricing()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {/* Top bar */}
+      <div className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-sm font-semibold text-[#202223]">Configure Your Print — Pricing</span>
+          {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
+        </div>
+        <button onClick={handleSave} disabled={saving || loading}
+          className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2 shrink-0">
+          {saving ? (
+            <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</>
+          ) : (
+            <>{Ico.check} Save</>
+          )}
+        </button>
+      </div>
+
+      {needsSetup && <PricingSetupBanner onDismiss={() => setNeedsSetup(false)} />}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 max-w-3xl mx-auto w-full space-y-5">
+        <p className="text-sm text-[#6D7175]">
+          These prices drive the instant estimate on the homepage's "Configure Your Print" tool. Changes go live as soon as you save — no code or deploy needed.
+        </p>
+
+        {loading ? (
+          <div className="py-20 text-center">
+            <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#6D7175]">Loading pricing…</p>
+          </div>
+        ) : (
+          <>
+            <Card>
+              <CardTitle>Material price (per gram of filament used)</CardTitle>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {PRICING_FIELDS.map(f => (
+                  <div key={f.key}>
+                    <Label hint={f.hint}>{f.label}</Label>
+                    <Input type="number" step="0.1" min="0" value={form[f.key]}
+                      onChange={e => set(f.key, e.target.value)} placeholder={String(PRICING_DEFAULTS[f.key])} />
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card>
+              <CardTitle>Print rate & fees</CardTitle>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <Label hint="₹ per hour">Print rate</Label>
+                  <Input type="number" step="1" min="0" value={form.print_rate_per_hour}
+                    onChange={e => set('print_rate_per_hour', e.target.value)} placeholder={String(PRICING_DEFAULTS.print_rate_per_hour)} />
+                </div>
+                <div>
+                  <Label hint="handling + setup">Base fee</Label>
+                  <Input type="number" step="1" min="0" value={form.base_fee}
+                    onChange={e => set('base_fee', e.target.value)} placeholder={String(PRICING_DEFAULTS.base_fee)} />
+                </div>
+                <div>
+                  <Label hint="floor for any order">Minimum price</Label>
+                  <Input type="number" step="1" min="0" value={form.minimum_price}
+                    onChange={e => set('minimum_price', e.target.value)} placeholder={String(PRICING_DEFAULTS.minimum_price)} />
+                </div>
+              </div>
+            </Card>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminClient() {
   const [authed, setAuthed] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
@@ -3164,6 +3357,8 @@ export default function AdminClient() {
   const inOccasions = view === 'occasions-list' || view === 'occasions-form'
   const inBlog = view === 'blog-list' || view === 'blog-form'
   const inComments = view === 'comments-list'
+  const inPricing = view === 'pricing'
+  const noAddAction = inComments || inPricing
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -3298,11 +3493,11 @@ export default function AdminClient() {
             if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
             else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
             else if (inBlog) { setEditPost({ _new: true }); setView('blog-form') }
-            else if (inComments) { /* no "add" action for comments */ }
+            else if (noAddAction) { /* no "add" action for comments/pricing */ }
             else { setEditProduct({ _new: true }); setView('form') }
             setMobileOpen(false)
           }}
-          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3 ${inComments ? 'hidden' : ''}`}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3 ${noAddAction ? 'hidden' : ''}`}
         >
           {Ico.plus} {inOccasions ? 'Add occasion' : inTestimonials ? 'Add testimonial' : inBlog ? 'Add post' : 'Add product'}
         </button>
@@ -3340,6 +3535,10 @@ export default function AdminClient() {
           {comments.filter(c => c.status === 'pending').length > 0 && (
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{comments.filter(c => c.status === 'pending').length}</span>
           )}
+        </button>
+        <button onClick={() => { setView('pricing'); setMobileOpen(false) }}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inPricing ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          💰 Pricing
         </button>
         <a href="/" target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
@@ -3379,7 +3578,7 @@ export default function AdminClient() {
             <p className="text-white text-sm font-bold">Admin</p>
           </div>
           <div className="flex items-center gap-2">
-            {!inComments && (
+            {!noAddAction && (
               <button
                 onClick={() => {
                   if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
@@ -3470,6 +3669,8 @@ export default function AdminClient() {
              onSave={() => { setView('blog-list'); fetchPosts() }}
              onBack={() => setView('blog-list')}
            />
+         ) : view === 'pricing' ? (
+           <PricingSettingsForm toast={toast} />
          ) : (
            <CommentsList
              comments={comments}

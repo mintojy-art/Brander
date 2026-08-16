@@ -5,16 +5,28 @@ import * as THREE from 'three'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { useCart } from '@/context/CartContext'
+import { supabase } from '@/lib/supabase'
 import OrderModal from './OrderModal'
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const MATERIALS = [
-  { id: 'PLA',  label: 'PLA',  ppg: 1.5,  density: 1.24, note: 'Best for most orders — gifts, figurines, decor, general use' },
-  { id: 'PETG', label: 'PETG', ppg: 2.0,  density: 1.27, note: 'Durable & food-safe — functional parts, water-resistant items' },
-  { id: 'TPU',  label: 'TPU',  ppg: 3.0,  density: 1.21, note: 'Flexible rubber-like — ideal for grips, phone cases, wearables' },
-  { id: 'ABS',  label: 'ABS',  ppg: 1.8,  density: 1.05, note: 'Heat resistant — good for mechanical parts, higher temperatures' },
-  { id: 'ASA',  label: 'ASA',  ppg: 2.5,  density: 1.07, note: 'Outdoor grade — UV resistant, ideal for parts used outside' },
+  { id: 'PLA',  label: 'PLA',  density: 1.24, note: 'Best for most orders — gifts, figurines, decor, general use' },
+  { id: 'PETG', label: 'PETG', density: 1.27, note: 'Durable & food-safe — functional parts, water-resistant items' },
+  { id: 'TPU',  label: 'TPU',  density: 1.21, note: 'Flexible rubber-like — ideal for grips, phone cases, wearables' },
+  { id: 'ABS',  label: 'ABS',  density: 1.05, note: 'Heat resistant — good for mechanical parts, higher temperatures' },
+  { id: 'ASA',  label: 'ASA',  density: 1.07, note: 'Outdoor grade — UV resistant, ideal for parts used outside' },
 ]
+
+// Used until live pricing loads from Supabase (admin dashboard → Pricing),
+// or if that table isn't set up / the client isn't configured — the price
+// calculator must never break just because pricing settings are missing.
+// Keep these in sync with PRICING_DEFAULTS in AdminClient.jsx.
+const DEFAULT_PRICING = {
+  PLA: 1.5, PETG: 2.0, TPU: 3.0, ABS: 1.8, ASA: 2.5,
+  printRatePerHour: 80,
+  baseFee: 80,
+  minimumPrice: 149,
+}
 
 const COLORS_LIST = [
   { id: 'Black',  hex: '#1a1a1a' },
@@ -35,25 +47,26 @@ const QUALITIES = [
 ]
 
 // ── Price estimation ────────────────────────────────────────────────────────
-function estimatePrice(dims, strength, materialId, qualityId, scale = 1) {
+function estimatePrice(dims, strength, materialId, qualityId, scale = 1, pricing = DEFAULT_PRICING) {
   const mat    = MATERIALS.find((m) => m.id === materialId) || MATERIALS[0]
   const qual   = QUALITIES.find((q) => q.id === qualityId)  || QUALITIES[1]
   const infill = strength / 100
+  const ppg    = pricing[materialId] ?? DEFAULT_PRICING[materialId]
 
   const sx = dims.x * scale, sy = dims.y * scale, sz = dims.z * scale
   const bboxVol     = (sx * sy * sz) / 1000                   // mm³ → cm³
   const fillFrac    = 0.12 + infill * 0.28                     // 12% at 0% infill → 40% at 100%
   const filamentVol = bboxVol * fillFrac
   const weight      = filamentVol * mat.density                // grams
-  const matCost     = weight * mat.ppg                         // material ₹
+  const matCost     = weight * ppg                             // material ₹
 
-  // Print time: base cm³/hr * quality multiplier, charged at ₹80/hr
+  // Print time: base cm³/hr * quality multiplier, charged at the admin-set hourly rate
   const printHrs    = (bboxVol / 12) * qual.timeMul
-  const printCost   = printHrs * 80
+  const printCost   = printHrs * pricing.printRatePerHour
 
-  const base = 80                                              // handling + setup
+  const base = pricing.baseFee                                 // handling + setup
 
-  return Math.max(Math.round(base + matCost + printCost), 149)
+  return Math.max(Math.round(base + matCost + printCost), pricing.minimumPrice)
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -69,6 +82,7 @@ export default function PrintConfigurator() {
   const [quality, setQuality]     = useState('Standard (0.2mm)')
   const [strength, setStrength]   = useState(50)
   const [price, setPrice]         = useState(null)
+  const [pricing, setPricing]     = useState(DEFAULT_PRICING)
   const [calculating, setCalc]    = useState(false)
   const [ordering, setOrdering]   = useState(false)
   const [orderModal, setOrderModal] = useState(false)
@@ -87,6 +101,25 @@ export default function PrintConfigurator() {
   const meshRef     = useRef(null)
 
   const { add } = useCart()
+
+  // Live pricing from the admin dashboard — falls back to DEFAULT_PRICING
+  // (silently) if Supabase isn't configured or the table isn't set up yet.
+  useEffect(() => {
+    if (!supabase) return
+    supabase.from('print_pricing').select('*').eq('id', 1).single().then(({ data }) => {
+      if (!data) return
+      setPricing({
+        PLA: data.pla_price ?? DEFAULT_PRICING.PLA,
+        PETG: data.petg_price ?? DEFAULT_PRICING.PETG,
+        TPU: data.tpu_price ?? DEFAULT_PRICING.TPU,
+        ABS: data.abs_price ?? DEFAULT_PRICING.ABS,
+        ASA: data.asa_price ?? DEFAULT_PRICING.ASA,
+        printRatePerHour: data.print_rate_per_hour ?? DEFAULT_PRICING.printRatePerHour,
+        baseFee: data.base_fee ?? DEFAULT_PRICING.baseFee,
+        minimumPrice: data.minimum_price ?? DEFAULT_PRICING.minimumPrice,
+      })
+    })
+  }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -261,7 +294,7 @@ export default function PrintConfigurator() {
     if (!dims) return
     setCalc(true)
     setTimeout(() => {
-      setPrice(estimatePrice(dims, strength, material, quality, scale))
+      setPrice(estimatePrice(dims, strength, material, quality, scale, pricing))
       setCalc(false)
     }, 700)
   }
