@@ -7,6 +7,12 @@ export const metadata = buildMetadata({
   description:
     'Nine 3D printing services in Bangalore — small batch manufacturing, prototyping, figurines, bobbleheads, toys and idols. Request a quote today.',
   path: '/services',
+  keywords: [
+    '3D printing service in Bangalore',
+    'custom figurine near me',
+    'custom bobblehead near me',
+    '3D printing near me Bangalore',
+  ],
 })
 
 const jsonLd = {

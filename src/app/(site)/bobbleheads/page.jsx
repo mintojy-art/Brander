@@ -13,6 +13,12 @@ export const metadata = buildMetadata({
   description:
     'Hand-sculpted custom bobbleheads for weddings, birthdays and corporate gifts. Send a photo on WhatsApp, we print and ship across India.',
   path: '/bobbleheads',
+  keywords: [
+    'custom bobblehead near me',
+    'best bobblehead store in Bangalore',
+    'custom bobblehead Bangalore',
+    'bobblehead maker near me',
+  ],
 })
 
 export default async function Bobbleheads() {

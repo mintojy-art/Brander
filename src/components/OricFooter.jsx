@@ -94,6 +94,10 @@ export default function OricFooter() {
             <p>3D Printing Service · Bangalore, Karnataka · +91 83101 94953</p>
           </div>
         </div>
+
+        <p className="text-[11px] text-white/30 pb-6 text-center md:text-left">
+          Bangalore's custom bobblehead &amp; figurine store — serving customers searching for a custom bobblehead near me, custom figurine near me, and 3D printing service in Bangalore.
+        </p>
       </div>
     </footer>
   )

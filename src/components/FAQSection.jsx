@@ -33,6 +33,22 @@ const FAQS = [
       </>
     ),
   },
+  {
+    q: 'Is there a custom bobblehead store near me in Bangalore?',
+    a: "Yes — ORIC is a custom bobblehead studio based in Bangalore, Karnataka. Send a photo on WhatsApp and we'll hand-sculpt and 3D print a bobblehead of you, your pet, or anyone else, with delivery across Bangalore and the rest of India.",
+  },
+  {
+    q: 'Where can I get a custom figurine made near me?',
+    a: "ORIC prints custom figurines from Bangalore — send a reference photo or 3D file on WhatsApp and we'll design, print, and ship it to you anywhere in India, so you don't need a shop \"near me\" to get one made.",
+  },
+  {
+    q: 'What is the best bobblehead store in Bangalore?',
+    a: "ORIC is Bangalore's dedicated custom bobblehead studio — every bobblehead is hand-sculpted and 3D printed to order, not mass-produced, for weddings, birthdays, and corporate gifts.",
+  },
+  {
+    q: 'Do you offer a 3D printing service in Bangalore?',
+    a: 'Yes — ORIC is a 3D print-on-demand studio based in Bangalore offering FDM printing, prototyping, small batch manufacturing, figurines, bobbleheads, idols, and lithophanes, with no minimum order.',
+  },
 ]
 
 function Item({ faq, isOpen, onToggle }) {

@@ -14,6 +14,13 @@ export const metadata = buildMetadata({
   description:
     "Bangalore's 3D print-on-demand studio. Custom figurines, prototypes, parts and idols with FDM precision, no minimum order. Get a quote on WhatsApp.",
   path: '/',
+  keywords: [
+    '3D printing service in Bangalore',
+    'custom bobblehead near me',
+    'custom figurine near me',
+    'best bobblehead store in Bangalore',
+    'custom 3D printing Bangalore',
+  ],
 })
 
 export default async function Home() {

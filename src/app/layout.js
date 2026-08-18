@@ -111,7 +111,11 @@ const localBusinessJsonLd = {
     'Prototype Manufacturing',
     'Small Batch Manufacturing',
     'Lithophane Printing',
+    'Custom Bobblehead Store',
+    'Custom Figurine Printing',
   ],
+  keywords:
+    '3D printing service in Bangalore, custom bobblehead near me, custom figurine near me, best bobblehead store in Bangalore, custom bobblehead Bangalore, custom figurine Bangalore',
   priceRange: '₹₹',
   currenciesAccepted: 'INR',
   paymentAccepted: 'UPI, Bank Transfer, Cash',
@@ -185,6 +189,38 @@ const faqJsonLd = {
       acceptedAnswer: {
         '@type': 'Answer',
         text: 'Defective or damaged prints are reprinted free of charge. See our full Refund & Reprint Policy for what qualifies and how to raise a request.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is there a custom bobblehead store near me in Bangalore?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Yes — ORIC is a custom bobblehead studio based in Bangalore, Karnataka. Send a photo on WhatsApp and we'll hand-sculpt and 3D print a bobblehead of you, your pet, or anyone else, with delivery across Bangalore and the rest of India.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Where can I get a custom figurine made near me?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "ORIC prints custom figurines from Bangalore — send a reference photo or 3D file on WhatsApp and we'll design, print, and ship it to you anywhere in India, so you don't need a shop \"near me\" to get one made.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the best bobblehead store in Bangalore?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "ORIC is Bangalore's dedicated custom bobblehead studio — every bobblehead is hand-sculpted and 3D printed to order, not mass-produced, for weddings, birthdays, and corporate gifts.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do you offer a 3D printing service in Bangalore?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes — ORIC is a 3D print-on-demand studio based in Bangalore offering FDM printing, prototyping, small batch manufacturing, figurines, bobbleheads, idols, and lithophanes, with no minimum order.',
       },
     },
   ],
