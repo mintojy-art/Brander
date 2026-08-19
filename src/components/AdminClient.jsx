@@ -3161,7 +3161,41 @@ drop policy if exists "Admin write pricing" on print_pricing;
 create policy "Public read pricing" on print_pricing
   for select using (true);
 create policy "Admin write pricing" on print_pricing
-  for all to authenticated using (true) with check (true);`
+  for all to authenticated using (true) with check (true);
+
+create table if not exists bobblehead_pricing (
+  id int primary key default 1,
+  small_price numeric not null default 1999,
+  medium_price numeric not null default 2999,
+  large_price numeric not null default 3999,
+  xl_price numeric not null default 4999,
+  extra_person_fee numeric not null default 1500,
+  updated_at timestamptz not null default now(),
+  constraint bobblehead_pricing_singleton check (id = 1)
+);
+insert into bobblehead_pricing (id) values (1) on conflict (id) do nothing;
+
+alter table bobblehead_pricing enable row level security;
+drop policy if exists "Public read bobblehead pricing" on bobblehead_pricing;
+drop policy if exists "Admin write bobblehead pricing" on bobblehead_pricing;
+create policy "Public read bobblehead pricing" on bobblehead_pricing
+  for select using (true);
+create policy "Admin write bobblehead pricing" on bobblehead_pricing
+  for all to authenticated using (true) with check (true);
+
+-- Storage bucket for reference photos customers upload when configuring a
+-- custom bobblehead on the public site (unauthenticated uploads, unlike the
+-- other media buckets which are only ever written to from this dashboard).
+insert into storage.buckets (id, name, public)
+values ('bobblehead-orders', 'bobblehead-orders', true)
+on conflict (id) do nothing;
+
+drop policy if exists "Public read bobblehead order photos" on storage.objects;
+drop policy if exists "Public upload bobblehead order photos" on storage.objects;
+create policy "Public read bobblehead order photos" on storage.objects
+  for select using (bucket_id = 'bobblehead-orders');
+create policy "Public upload bobblehead order photos" on storage.objects
+  for insert with check (bucket_id = 'bobblehead-orders');`
 
 function PricingSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)
@@ -3176,11 +3210,11 @@ function PricingSetupBanner({ onDismiss }) {
         <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <p className="text-sm font-semibold text-red-800">Pricing table not set up yet</p>
+            <p className="text-sm font-semibold text-red-800">Pricing tables not set up yet</p>
             <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
           </div>
           <p className="text-xs text-red-700 mb-3">
-            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">print_pricing</code> table, then try saving again. Until then, the print configurator uses built-in fallback prices.
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">print_pricing</code> and <code className="bg-red-100 px-1 rounded font-mono">bobblehead_pricing</code> tables (plus the storage bucket for customer photo uploads), then try saving again. Until then, both configurators use built-in fallback prices.
           </p>
           <div className="relative">
             <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{PRICING_SETUP_SQL}</pre>
@@ -3210,32 +3244,53 @@ const PRICING_FIELDS = [
   { key: 'asa_price',  label: 'ASA',  hint: '₹ per gram' },
 ]
 
+// Falls back to these exact values if the table isn't set up yet, or a
+// field is missing — kept in sync with BobbleheadDetailClient's
+// DEFAULT_BOBBLEHEAD_PRICING.
+const BOBBLEHEAD_PRICING_DEFAULTS = {
+  small_price: 1999, medium_price: 2999, large_price: 3999, xl_price: 4999,
+  extra_person_fee: 1500,
+}
+
+const BOBBLEHEAD_SIZE_FIELDS = [
+  { key: 'small_price',  label: 'Small',  hint: '6"' },
+  { key: 'medium_price', label: 'Medium', hint: '8"' },
+  { key: 'large_price',  label: 'Large',  hint: '10"' },
+  { key: 'xl_price',     label: 'XL',     hint: '12"' },
+]
+
 function PricingSettingsForm({ toast }) {
   const [form, setForm] = useState(PRICING_DEFAULTS)
+  const [bhForm, setBhForm] = useState(BOBBLEHEAD_PRICING_DEFAULTS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [needsSetup, setNeedsSetup] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
 
+  const isMissingTable = (error) => {
+    const msg = error?.message || ''
+    return msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')
+  }
+
   const fetchPricing = useCallback(async () => {
     if (!supabase) return
     setLoading(true)
-    const { data, error } = await supabase.from('print_pricing').select('*').eq('id', 1).single()
-    if (error) {
-      const msg = error.message || ''
-      if (msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')) setNeedsSetup(true)
-      // A missing row (no error, data null) or any other read error just
-      // means we keep showing the fallback defaults — never block the page.
-    } else {
-      setNeedsSetup(false)
-    }
-    if (data) setForm({ ...PRICING_DEFAULTS, ...data })
+    const [printRes, bhRes] = await Promise.all([
+      supabase.from('print_pricing').select('*').eq('id', 1).single(),
+      supabase.from('bobblehead_pricing').select('*').eq('id', 1).single(),
+    ])
+    // A missing row (no error, data null) or any other read error just
+    // means we keep showing the fallback defaults — never block the page.
+    setNeedsSetup(isMissingTable(printRes.error) || isMissingTable(bhRes.error))
+    if (printRes.data) setForm({ ...PRICING_DEFAULTS, ...printRes.data })
+    if (bhRes.data) setBhForm({ ...BOBBLEHEAD_PRICING_DEFAULTS, ...bhRes.data })
     setLoading(false)
   }, [])
 
   useEffect(() => { fetchPricing() }, [fetchPricing])
 
   const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+  const setBh = (k, v) => { setIsDirty(true); setBhForm(f => ({ ...f, [k]: v })) }
 
   const handleSave = async () => {
     setSaving(true)
@@ -3244,15 +3299,21 @@ function PricingSettingsForm({ toast }) {
       const v = parseFloat(form[k])
       payload[k] = Number.isFinite(v) && v >= 0 ? v : PRICING_DEFAULTS[k]
     }
-    const { error } = await supabase.from('print_pricing').upsert(
-      { id: 1, ...payload, updated_at: new Date().toISOString() },
-      { onConflict: 'id' }
-    )
+    const bhPayload = {}
+    for (const k of Object.keys(BOBBLEHEAD_PRICING_DEFAULTS)) {
+      const v = parseFloat(bhForm[k])
+      bhPayload[k] = Number.isFinite(v) && v >= 0 ? v : BOBBLEHEAD_PRICING_DEFAULTS[k]
+    }
+
+    const [printRes, bhRes] = await Promise.all([
+      supabase.from('print_pricing').upsert({ id: 1, ...payload, updated_at: new Date().toISOString() }, { onConflict: 'id' }),
+      supabase.from('bobblehead_pricing').upsert({ id: 1, ...bhPayload, updated_at: new Date().toISOString() }, { onConflict: 'id' }),
+    ])
     setSaving(false)
-    if (error) {
-      const msg = error.message || ''
-      if (msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')) setNeedsSetup(true)
-      else toast('Save failed: ' + error.message, 'error')
+
+    if (printRes.error || bhRes.error) {
+      if (isMissingTable(printRes.error) || isMissingTable(bhRes.error)) setNeedsSetup(true)
+      else toast('Save failed: ' + (printRes.error?.message || bhRes.error?.message), 'error')
       return
     }
     setNeedsSetup(false)
@@ -3266,7 +3327,7 @@ function PricingSettingsForm({ toast }) {
       {/* Top bar */}
       <div className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-sm font-semibold text-[#202223]">Configure Your Print — Pricing</span>
+          <span className="text-sm font-semibold text-[#202223]">Pricing</span>
           {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
         </div>
         <button onClick={handleSave} disabled={saving || loading}
@@ -3283,7 +3344,7 @@ function PricingSettingsForm({ toast }) {
 
       <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 max-w-3xl mx-auto w-full space-y-5">
         <p className="text-sm text-[#6D7175]">
-          These prices drive the instant estimate on the homepage's "Configure Your Print" tool. Changes go live as soon as you save — no code or deploy needed.
+          These prices drive the instant estimates on the "Configure Your Print" tool and the custom bobblehead configurator. Changes go live as soon as you save — no code or deploy needed.
         </p>
 
         {loading ? (
@@ -3293,6 +3354,8 @@ function PricingSettingsForm({ toast }) {
           </div>
         ) : (
           <>
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6D7175] pt-2">Configure Your Print</p>
+
             <Card>
               <CardTitle>Material price (per gram of filament used)</CardTitle>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -3324,6 +3387,30 @@ function PricingSettingsForm({ toast }) {
                   <Input type="number" step="1" min="0" value={form.minimum_price}
                     onChange={e => set('minimum_price', e.target.value)} placeholder={String(PRICING_DEFAULTS.minimum_price)} />
                 </div>
+              </div>
+            </Card>
+
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#6D7175] pt-4">Custom Bobbleheads</p>
+
+            <Card>
+              <CardTitle>Price by size</CardTitle>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {BOBBLEHEAD_SIZE_FIELDS.map(f => (
+                  <div key={f.key}>
+                    <Label hint={f.hint}>{f.label}</Label>
+                    <Input type="number" step="1" min="0" value={bhForm[f.key]}
+                      onChange={e => setBh(f.key, e.target.value)} placeholder={String(BOBBLEHEAD_PRICING_DEFAULTS[f.key])} />
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card>
+              <CardTitle>Extra people</CardTitle>
+              <div className="max-w-[200px]">
+                <Label hint="₹ per person beyond the first">Extra person fee</Label>
+                <Input type="number" step="1" min="0" value={bhForm.extra_person_fee}
+                  onChange={e => setBh('extra_person_fee', e.target.value)} placeholder={String(BOBBLEHEAD_PRICING_DEFAULTS.extra_person_fee)} />
               </div>
             </Card>
           </>

@@ -32,9 +32,10 @@ export function CartProvider({ children }) {
 
   const checkoutWhatsApp = () => {
     if (!items.length) return
-    const lines = items.map(
-      (i) => `• ${i.name} (x${i.qty}) — ${i.price ? `₹${(i.price * i.qty).toLocaleString()}` : 'Custom Quote'}`
-    )
+    const lines = items.map((i) => {
+      const head = `• ${i.name} (x${i.qty}) — ${i.price ? `₹${(i.price * i.qty).toLocaleString()}` : 'Custom Quote'}`
+      return i.tagline ? `${head}\n   ${i.tagline}` : head
+    })
     const totalLine = total > 0 ? `\n\nTotal: ₹${total.toLocaleString()}` : ''
     const msg = `Hi ORIC! I'd like to place an order:\n\n${lines.join('\n')}${totalLine}\n\nPlease confirm availability and payment details.`
     window.open(`https://wa.me/918310194953?text=${encodeURIComponent(msg)}`, '_blank')
