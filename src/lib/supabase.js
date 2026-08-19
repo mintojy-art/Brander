@@ -33,7 +33,6 @@ async function deleteFromBucket(url, bucket) {
 }
 
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024 // 50MB — matches Supabase's default storage upload limit
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024 // 10MB — generous ceiling for a phone-camera reference photo
 
 export const uploadImage = (file) => uploadToBucket(file, 'product-images')
 export const deleteImage = (url) => deleteFromBucket(url, 'product-images')
@@ -46,7 +45,3 @@ export const deleteOccasionImage = (url) => deleteFromBucket(url, 'bobblehead-me
 
 export const uploadBlogImage = (file) => uploadToBucket(file, 'blog-images')
 export const deleteBlogImage = (url) => deleteFromBucket(url, 'blog-images')
-
-// Customer-uploaded reference photo from the public bobblehead configurator —
-// the only bucket in this app written to by unauthenticated visitors.
-export const uploadBobbleheadOrderPhoto = (file) => uploadToBucket(file, 'bobblehead-orders', { maxBytes: MAX_IMAGE_BYTES })

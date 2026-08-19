@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Y2kIcon from '@/components/Y2kIcon'
 import { useCart } from '@/context/CartContext'
-import { supabase, uploadBobbleheadOrderPhoto } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 // Falls back to these exact values if the table isn't set up yet, or a
 // field is missing — kept in sync with BOBBLEHEAD_PRICING_DEFAULTS in
@@ -44,10 +44,6 @@ export default function BobbleheadDetailClient({ occasion, related }) {
   const [size, setSize]               = useState('small')
   const [personCount, setPersonCount] = useState(1)
   const [proofRequest, setProofRequest] = useState(false)
-  const [photoFile, setPhotoFile]     = useState(null)
-  const [photoUrl, setPhotoUrl]       = useState(null)
-  const [uploading, setUploading]     = useState(false)
-  const [uploadError, setUploadError] = useState(false)
   const [added, setAdded]             = useState(false)
 
   // Live pricing from the admin dashboard — falls back to
@@ -69,25 +65,6 @@ export default function BobbleheadDetailClient({ occasion, related }) {
 
   const totalPrice = pricing[size] + (personCount - 1) * pricing.extraPersonFee
 
-  const handlePhotoChange = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setPhotoFile(file)
-    setPhotoUrl(null)
-    setUploadError(false)
-    setUploading(true)
-    try {
-      const url = await uploadBobbleheadOrderPhoto(file)
-      setPhotoUrl(url)
-    } catch {
-      // Upload failed (bucket not set up yet, network issue, etc.) — the
-      // customer can still order, they'll just attach the photo manually
-      // in WhatsApp instead of us sending a link.
-      setUploadError(true)
-    }
-    setUploading(false)
-  }
-
   const sizeInfo = SIZES.find((s) => s.id === size)
   const headInfo = HEAD_TYPES.find((h) => h.id === headType)
   const personInfo = PERSON_COUNTS.find((p) => p.id === personCount)
@@ -101,20 +78,19 @@ export default function BobbleheadDetailClient({ occasion, related }) {
   ].filter(Boolean)
 
   const waMsg = encodeURIComponent(
-    `Hi ORIC! I'd like to order a custom bobblehead:\n\n${configLines.join('\n')}\nEstimated price: ₹${totalPrice.toLocaleString()}\n` +
-    (photoUrl ? `\nReference photo: ${photoUrl}\n` : photoFile ? `\n(Attaching the reference photo here)\n` : '') +
-    `\nPlease confirm final pricing and next steps.`
+    `Hi ORIC! I'd like to order a custom bobblehead:\n\n${configLines.join('\n')}\nEstimated price: ₹${totalPrice.toLocaleString()}\n\n` +
+    `(Attaching my reference photo here)\n\nPlease confirm final pricing and next steps.`
   )
 
   const handleAddToCart = () => {
     add({
       id: `bobblehead-${occasion.id}-${size}-${personCount}-${headType}`,
       name: `Custom Bobblehead — ${occasion.title}`,
-      tagline: configLines.join(' · ') + (photoUrl ? ` · Photo: ${photoUrl}` : ''),
+      tagline: configLines.join(' · '),
       price: totalPrice,
       priceDisplay: `₹${totalPrice.toLocaleString()}`,
       category: 'Bobbleheads',
-      image: photoUrl || images[0] || null,
+      image: images[0] || null,
       badge: 'Custom Order',
     })
     setAdded(true)
@@ -273,40 +249,12 @@ export default function BobbleheadDetailClient({ occasion, related }) {
               {/* Reference photo */}
               <div className="mb-5">
                 <label className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#86868B] mb-2">Reference Photo</label>
-                <label className="flex items-center gap-3 border border-dashed border-[#D2D2D7] rounded-xl px-4 py-3 cursor-pointer hover:border-[#86868B] transition-colors">
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-                  {uploading ? (
-                    <>
-                      <span className="w-8 h-8 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                        <span className="w-3.5 h-3.5 border-2 border-[#D2D2D7] border-t-[#1D1D1F] rounded-full animate-spin" />
-                      </span>
-                      <span className="text-sm text-[#424245]">Uploading…</span>
-                    </>
-                  ) : photoFile ? (
-                    <>
-                      {photoUrl ? (
-                        <img src={photoUrl} alt="Reference" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                      ) : (
-                        <span className="w-8 h-8 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                          <Y2kIcon emoji="🖼️" size={18} className="text-[#F37121]" />
-                        </span>
-                      )}
-                      <span className="text-sm text-[#424245] truncate">{photoFile.name}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-8 h-8 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                        <Y2kIcon emoji="🖼️" size={18} className="text-[#F37121]" />
-                      </span>
-                      <span className="text-sm text-[#424245]">Click to upload a photo</span>
-                    </>
-                  )}
-                </label>
-                {uploadError && (
-                  <p className="text-xs text-[#EA580C] mt-1.5">
-                    Couldn't upload automatically — no problem, just attach the photo directly when you open WhatsApp.
-                  </p>
-                )}
+                <div className="flex items-center gap-3 border border-dashed border-[#D2D2D7] rounded-xl px-4 py-3">
+                  <span className="w-8 h-8 rounded-lg bg-[#F5F5F7] flex items-center justify-center shrink-0">
+                    <Y2kIcon emoji="🖼️" size={18} className="text-[#F37121]" />
+                  </span>
+                  <span className="text-sm text-[#424245]">You'll attach your reference photo directly in WhatsApp after tapping below</span>
+                </div>
               </div>
 
               {/* Proof request */}

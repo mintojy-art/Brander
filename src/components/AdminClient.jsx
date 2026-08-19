@@ -3181,21 +3181,7 @@ drop policy if exists "Admin write bobblehead pricing" on bobblehead_pricing;
 create policy "Public read bobblehead pricing" on bobblehead_pricing
   for select using (true);
 create policy "Admin write bobblehead pricing" on bobblehead_pricing
-  for all to authenticated using (true) with check (true);
-
--- Storage bucket for reference photos customers upload when configuring a
--- custom bobblehead on the public site (unauthenticated uploads, unlike the
--- other media buckets which are only ever written to from this dashboard).
-insert into storage.buckets (id, name, public)
-values ('bobblehead-orders', 'bobblehead-orders', true)
-on conflict (id) do nothing;
-
-drop policy if exists "Public read bobblehead order photos" on storage.objects;
-drop policy if exists "Public upload bobblehead order photos" on storage.objects;
-create policy "Public read bobblehead order photos" on storage.objects
-  for select using (bucket_id = 'bobblehead-orders');
-create policy "Public upload bobblehead order photos" on storage.objects
-  for insert with check (bucket_id = 'bobblehead-orders');`
+  for all to authenticated using (true) with check (true);`
 
 function PricingSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)
@@ -3214,7 +3200,7 @@ function PricingSetupBanner({ onDismiss }) {
             <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
           </div>
           <p className="text-xs text-red-700 mb-3">
-            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">print_pricing</code> and <code className="bg-red-100 px-1 rounded font-mono">bobblehead_pricing</code> tables (plus the storage bucket for customer photo uploads), then try saving again. Until then, both configurators use built-in fallback prices.
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">print_pricing</code> and <code className="bg-red-100 px-1 rounded font-mono">bobblehead_pricing</code> tables, then try saving again. Until then, both configurators use built-in fallback prices.
           </p>
           <div className="relative">
             <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{PRICING_SETUP_SQL}</pre>
