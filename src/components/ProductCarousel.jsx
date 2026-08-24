@@ -63,8 +63,12 @@ export default function ProductCarousel({ children }) {
         // Sidestepping it entirely is more robust than tuning it further.
         // At `sm` and up (mouse/trackpad, no gesture ambiguity) it becomes
         // the original horizontal snap-scroll carousel with arrow buttons.
-        style={{ touchAction: 'pan-x' }}
-        className="no-scrollbar grid grid-cols-2 gap-3 sm:flex sm:gap-5 sm:overflow-x-auto sm:snap-x sm:snap-mandatory sm:pb-2"
+        // `touch-pan-x` must only apply at `sm:` — on the mobile grid this
+        // element doesn't scroll at all, and `pan-x` there was telling the
+        // browser to recognize ONLY horizontal panning on it, which blocked
+        // vertical page-scroll from being recognized whenever a thumb
+        // started its drag on top of a card instead of the screen edge.
+        className="no-scrollbar touch-auto grid grid-cols-2 gap-3 sm:flex sm:gap-5 sm:touch-pan-x sm:overflow-x-auto sm:snap-x sm:snap-mandatory sm:pb-2"
       >
         {Children.map(children, (child) => (
           <div className="sm:snap-start sm:shrink-0 w-full sm:w-[260px]">
