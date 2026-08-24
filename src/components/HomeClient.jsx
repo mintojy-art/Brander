@@ -72,13 +72,17 @@ function ProductCard({ product }) {
           <h3 className="text-base font-semibold text-[#1D1D1F] leading-snug mb-1">{product.name}</h3>
           <p className="text-sm text-[#86868B] mb-4 leading-relaxed">{product.tagline}</p>
 
-          <div className="flex items-center justify-between">
-            <span className="text-base font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm sm:text-base font-bold text-[#1D1D1F]">{product.priceDisplay}</span>
             <button
               onClick={(e) => { e.preventDefault(); add(product) }}
-              className="y2k-accent-surface y2k-shine px-3 py-1.5 text-xs font-semibold text-white rounded-full transition-all overflow-hidden"
+              className="y2k-accent-surface y2k-shine px-3 py-1.5 text-xs font-semibold text-white rounded-full transition-all overflow-hidden whitespace-nowrap shrink-0"
             >
-              {product.price ? 'Add to Cart' : 'Get Quote'}
+              {/* Shorter label below `sm` — the mobile 2-col grid gives each
+                  card less width than the desktop carousel, and "Add to
+                  Cart" was wrapping/overflowing the button there. */}
+              <span className="sm:hidden">{product.price ? 'Add' : 'Quote'}</span>
+              <span className="hidden sm:inline">{product.price ? 'Add to Cart' : 'Get Quote'}</span>
             </button>
           </div>
         </div>

@@ -54,18 +54,20 @@ export default function ProductCarousel({ children }) {
       )}
       <div
         ref={scrollerRef}
-        // Nested inside a vertically-scrolling page — without this, a touch
-        // drag that's mostly vertical (nearly all real swipes drift slightly)
-        // can get briefly captured by this horizontal snap container, which
-        // visibly "corrects" itself (a small jump/shift) before releasing the
-        // gesture back to the page. touch-action: pan-x tells the browser to
-        // only handle horizontal panning here and let vertical drags pass
-        // through to the page untouched.
+        // Below `sm`, this is a static 2-col grid — no horizontal swipe at
+        // all, so there's nothing to compete with the page's vertical
+        // scroll. A swipeable row asks a thumb mid vertical-scroll to also
+        // recognize and commit to a second, horizontal gesture; even with
+        // perfect touch-action tuning that's still two competing gestures
+        // in the same space, which reads as janky/confusing on a phone.
+        // Sidestepping it entirely is more robust than tuning it further.
+        // At `sm` and up (mouse/trackpad, no gesture ambiguity) it becomes
+        // the original horizontal snap-scroll carousel with arrow buttons.
         style={{ touchAction: 'pan-x' }}
-        className="no-scrollbar flex gap-5 overflow-x-auto snap-x snap-mandatory pb-2"
+        className="no-scrollbar grid grid-cols-2 gap-3 sm:flex sm:gap-5 sm:overflow-x-auto sm:snap-x sm:snap-mandatory sm:pb-2"
       >
         {Children.map(children, (child) => (
-          <div className="snap-start shrink-0 w-[70vw] sm:w-[260px]">
+          <div className="sm:snap-start sm:shrink-0 w-full sm:w-[260px]">
             {child}
           </div>
         ))}
