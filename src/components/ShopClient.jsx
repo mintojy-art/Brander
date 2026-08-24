@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import { categoryIcons } from '@/data/products'
 import Y2kIcon from '@/components/Y2kIcon'
+import WishlistButton from '@/components/WishlistButton'
 
 function StarMini({ rating }) {
   return (
@@ -50,6 +51,7 @@ function ProductCard({ product }) {
             {product.badge}
           </div>
         )}
+        <WishlistButton product={product} className="absolute top-4 right-4" />
       </Link>
 
       {/* Info */}

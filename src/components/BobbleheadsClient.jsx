@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import BobbleheadCollections from '@/components/BobbleheadCollections'
 import Y2kIcon from '@/components/Y2kIcon'
+import WishlistButton from '@/components/WishlistButton'
 
 function ProductCard({ product }) {
   const { add } = useCart()
@@ -33,6 +34,7 @@ function ProductCard({ product }) {
               {product.badge}
             </div>
           )}
+          <WishlistButton product={product} className="absolute top-4 right-4" />
         </div>
         <div className="p-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#86868B] mb-1">{product.category}</p>

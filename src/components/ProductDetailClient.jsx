@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import Y2kIcon from '@/components/Y2kIcon'
 
 // ── Star Rating ───────────────────────────────────────────────────────────────
@@ -45,6 +46,7 @@ function TrustBadge({ icon, text }) {
 
 export default function ProductDetailClient({ product, related }) {
   const { add } = useCart()
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist()
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [activeImg, setActiveImg] = useState(0)
@@ -287,6 +289,17 @@ export default function ProductDetailClient({ product, related }) {
                 </svg>
                 Order via WhatsApp
               </a>
+
+              {/* Wishlist */}
+              <button
+                onClick={() => toggleWishlist(product)}
+                className="w-full py-3 mt-3 rounded-full text-sm font-semibold text-[#424245] border border-[#D2D2D7] hover:border-[#86868B] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={isWishlisted(product.id) ? '#F37121' : 'none'} stroke={isWishlisted(product.id) ? '#F37121' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+                {isWishlisted(product.id) ? 'Saved to Wishlist' : 'Add to Wishlist'}
+              </button>
 
               {/* Trust badges */}
               <div className="mt-5 pt-5 border-t border-[#F5F5F7] space-y-3">

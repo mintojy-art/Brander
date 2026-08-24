@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import { categoryIcons } from '@/data/products'
 import Y2kIcon from '@/components/Y2kIcon'
 
@@ -25,6 +26,7 @@ export default function OricNavbar({ categories = [] }) {
   const [shopMenuOpen, setShopMenu] = useState(false)
   const [mobileShopOpen, setMShop]  = useState(false)
   const { count, setIsOpen }      = useCart()
+  const { count: wishCount, setIsOpen: setWishOpen } = useWishlist()
   const pathname                  = usePathname()
   const shopCategories            = categories
 
@@ -141,8 +143,24 @@ export default function OricNavbar({ categories = [] }) {
             ))}
           </nav>
 
-          {/* Right: Cart + CTA */}
+          {/* Right: Wishlist + Cart + CTA */}
           <div className="flex items-center gap-3">
+            {/* Wishlist */}
+            <button
+              onClick={() => setWishOpen(true)}
+              className="relative p-2 text-[#424245] hover:text-[#1D1D1F] transition-colors rounded-full hover:bg-[#F5F5F7]"
+              aria-label="Wishlist"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+              {wishCount > 0 && (
+                <span className="y2k-lime-glow absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#9AE619] text-[#1D1D1F] text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {wishCount}
+                </span>
+              )}
+            </button>
+
             {/* Cart */}
             <button
               onClick={() => setIsOpen(true)}

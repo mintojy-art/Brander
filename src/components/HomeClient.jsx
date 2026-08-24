@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { UploadCloud, ClipboardCheck, PackageCheck } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import Y2kIcon from '@/components/Y2kIcon'
+import WishlistButton from '@/components/WishlistButton'
 import ProductCarousel from '@/components/ProductCarousel'
 import TrustBadgeRow from '@/components/TrustBadgeRow'
 import BobbleheadCollections from '@/components/BobbleheadCollections'
@@ -62,6 +63,7 @@ function ProductCard({ product }) {
               {product.badge}
             </div>
           )}
+          <WishlistButton product={product} className="absolute top-4 right-4" />
         </div>
 
         {/* Info */}

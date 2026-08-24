@@ -1,8 +1,10 @@
 import { CartProvider } from '@/context/CartContext'
+import { WishlistProvider } from '@/context/WishlistContext'
 import AnnouncementBar from '@/components/AnnouncementBar'
 import OricNavbar from '@/components/OricNavbar'
 import OricFooter from '@/components/OricFooter'
 import CartSidebar from '@/components/CartSidebar'
+import WishlistSidebar from '@/components/WishlistSidebar'
 import PageViewTracker from '@/components/PageViewTracker'
 import { getProducts } from '@/lib/data/products'
 
@@ -17,12 +19,15 @@ export default async function SiteLayout({ children }) {
 
   return (
     <CartProvider>
-      <PageViewTracker />
-      <AnnouncementBar />
-      <OricNavbar categories={shopCategories} />
-      <CartSidebar />
-      {children}
-      <OricFooter />
+      <WishlistProvider>
+        <PageViewTracker />
+        <AnnouncementBar />
+        <OricNavbar categories={shopCategories} />
+        <CartSidebar />
+        <WishlistSidebar />
+        {children}
+        <OricFooter />
+      </WishlistProvider>
     </CartProvider>
   )
 }
