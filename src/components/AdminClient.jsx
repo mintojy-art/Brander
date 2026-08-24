@@ -3406,6 +3406,234 @@ function PricingSettingsForm({ toast }) {
   )
 }
 
+// ── Insights (visitor tracking) ────────────────────────────────────────────────
+const INSIGHTS_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists page_views (
+  id bigint generated always as identity primary key,
+  path text not null,
+  referrer text,
+  session_id text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists page_views_created_at_idx on page_views (created_at);
+
+alter table page_views enable row level security;
+drop policy if exists "Public log page views" on page_views;
+drop policy if exists "Admin read page views" on page_views;
+create policy "Public log page views" on page_views
+  for insert with check (true);
+create policy "Admin read page views" on page_views
+  for select to authenticated using (true);`
+
+function InsightsSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(INSIGHTS_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Insights table not set up yet</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">page_views</code> table, then refresh this page. The site won't lose any visits in the meantime — page view logging just quietly no-ops until this exists.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{INSIGHTS_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const INSIGHTS_RANGES = [
+  { id: '1',  label: 'Today' },
+  { id: '7',  label: 'Last 7 days' },
+  { id: '30', label: 'Last 30 days' },
+  { id: 'all', label: 'All time' },
+]
+
+function InsightsPanel({ toast }) {
+  const [range, setRange] = useState('7')
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [needsSetup, setNeedsSetup] = useState(false)
+
+  const fetchViews = useCallback(async () => {
+    if (!supabase) return
+    setLoading(true)
+    let query = supabase.from('page_views').select('path, referrer, session_id, created_at').order('created_at', { ascending: false }).limit(10000)
+    if (range !== 'all') {
+      const since = new Date()
+      if (range === '1') {
+        since.setHours(0, 0, 0, 0)
+      } else {
+        since.setDate(since.getDate() - parseInt(range))
+      }
+      query = query.gte('created_at', since.toISOString())
+    }
+    const { data, error } = await query
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')) {
+        setNeedsSetup(true)
+      } else if (!msg.toLowerCase().includes('permission') && !msg.toLowerCase().includes('policy')) {
+        toast('Failed to load insights: ' + msg, 'error')
+      }
+      setRows([])
+    } else {
+      setNeedsSetup(false)
+      setRows(data || [])
+    }
+    setLoading(false)
+  }, [range, toast])
+
+  useEffect(() => { fetchViews() }, [fetchViews])
+
+  const totalViews = rows.length
+  const uniqueVisitors = new Set(rows.map((r) => r.session_id)).size
+
+  const topPages = Object.entries(
+    rows.reduce((acc, r) => { acc[r.path] = (acc[r.path] || 0) + 1; return acc }, {})
+  ).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const maxPageCount = Math.max(...topPages.map(([, c]) => c), 1)
+
+  const topReferrers = Object.entries(
+    rows.reduce((acc, r) => {
+      let ref = 'Direct / None'
+      if (r.referrer) {
+        try { ref = new URL(r.referrer).hostname.replace(/^www\./, '') } catch { ref = r.referrer }
+      }
+      acc[ref] = (acc[ref] || 0) + 1
+      return acc
+    }, {})
+  ).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  const maxRefCount = Math.max(...topReferrers.map(([, c]) => c), 1)
+
+  const dailyCounts = Object.entries(
+    rows.reduce((acc, r) => {
+      const day = new Date(r.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+      acc[day] = (acc[day] || 0) + 1
+      return acc
+    }, {})
+  ).reverse()
+  const maxDayCount = Math.max(...dailyCounts.map(([, c]) => c), 1)
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {/* Top bar */}
+      <div className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <span className="text-sm font-semibold text-[#202223]">Insights</span>
+        <div className="flex items-center gap-2">
+          <button onClick={fetchViews} disabled={loading}
+            className="p-2 text-[#6D7175] hover:text-[#202223] hover:bg-[#F6F6F7] rounded-lg transition-colors disabled:opacity-40" title="Refresh">
+            {Ico.refresh}
+          </button>
+          <div className="flex items-center bg-[#F6F6F7] rounded-lg p-1">
+            {INSIGHTS_RANGES.map((r) => (
+              <button key={r.id} onClick={() => setRange(r.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${range === r.id ? 'bg-white text-[#202223] shadow-sm' : 'text-[#6D7175] hover:text-[#202223]'}`}>
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {needsSetup && <InsightsSetupBanner onDismiss={() => setNeedsSetup(false)} />}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 max-w-5xl mx-auto w-full space-y-5">
+        <p className="text-sm text-[#6D7175]">
+          Visitor activity logged directly from the site — a lightweight, self-hosted view. For deeper analysis, Google Analytics is also installed on the site.
+        </p>
+
+        {loading ? (
+          <div className="py-20 text-center">
+            <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#6D7175]">Loading insights…</p>
+          </div>
+        ) : needsSetup ? null : rows.length === 0 ? (
+          <div className="py-20 text-center px-8">
+            <p className="text-2xl mb-3">📊</p>
+            <p className="text-sm text-[#6D7175]">No page views logged in this range yet.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6D7175] mb-1">Page Views</p>
+                <p className="text-3xl font-bold text-[#202223]">{totalViews.toLocaleString()}</p>
+              </Card>
+              <Card>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6D7175] mb-1">Unique Visitors</p>
+                <p className="text-3xl font-bold text-[#202223]">{uniqueVisitors.toLocaleString()}</p>
+              </Card>
+            </div>
+
+            {dailyCounts.length > 1 && (
+              <Card>
+                <CardTitle>Views per day</CardTitle>
+                <div className="space-y-2">
+                  {dailyCounts.map(([day, c]) => (
+                    <div key={day} className="flex items-center gap-3">
+                      <span className="text-xs text-[#6D7175] w-16 shrink-0">{day}</span>
+                      <div className="flex-1 h-5 bg-[#F6F6F7] rounded overflow-hidden">
+                        <div className="h-full bg-[#1D1D1F] rounded" style={{ width: `${(c / maxDayCount) * 100}%` }} />
+                      </div>
+                      <span className="text-xs font-semibold text-[#202223] w-8 text-right shrink-0">{c}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            <Card>
+              <CardTitle>Top pages</CardTitle>
+              <div className="space-y-2">
+                {topPages.map(([path, c]) => (
+                  <div key={path} className="flex items-center gap-3">
+                    <span className="text-xs text-[#202223] font-mono truncate flex-1 min-w-0">{path}</span>
+                    <div className="w-24 h-4 bg-[#F6F6F7] rounded overflow-hidden shrink-0">
+                      <div className="h-full bg-[#1D1D1F] rounded" style={{ width: `${(c / maxPageCount) * 100}%` }} />
+                    </div>
+                    <span className="text-xs font-semibold text-[#202223] w-8 text-right shrink-0">{c}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card>
+              <CardTitle>Top referrers</CardTitle>
+              <div className="space-y-2">
+                {topReferrers.map(([ref, c]) => (
+                  <div key={ref} className="flex items-center gap-3">
+                    <span className="text-xs text-[#202223] truncate flex-1 min-w-0">{ref}</span>
+                    <div className="w-24 h-4 bg-[#F6F6F7] rounded overflow-hidden shrink-0">
+                      <div className="h-full bg-[#1D1D1F] rounded" style={{ width: `${(c / maxRefCount) * 100}%` }} />
+                    </div>
+                    <span className="text-xs font-semibold text-[#202223] w-8 text-right shrink-0">{c}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminClient() {
   const [authed, setAuthed] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
@@ -3433,7 +3661,8 @@ export default function AdminClient() {
   const inBlog = view === 'blog-list' || view === 'blog-form'
   const inComments = view === 'comments-list'
   const inPricing = view === 'pricing'
-  const noAddAction = inComments || inPricing
+  const inInsights = view === 'insights'
+  const noAddAction = inComments || inPricing || inInsights
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -3615,6 +3844,10 @@ export default function AdminClient() {
           className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inPricing ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
           💰 Pricing
         </button>
+        <button onClick={() => { setView('insights'); setMobileOpen(false) }}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inInsights ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          📊 Insights
+        </button>
         <a href="/" target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/10 transition-colors">
           {Ico.store} View store ↗
@@ -3746,6 +3979,8 @@ export default function AdminClient() {
            />
          ) : view === 'pricing' ? (
            <PricingSettingsForm toast={toast} />
+         ) : view === 'insights' ? (
+           <InsightsPanel toast={toast} />
          ) : (
            <CommentsList
              comments={comments}

@@ -3,6 +3,7 @@ import AnnouncementBar from '@/components/AnnouncementBar'
 import OricNavbar from '@/components/OricNavbar'
 import OricFooter from '@/components/OricFooter'
 import CartSidebar from '@/components/CartSidebar'
+import PageViewTracker from '@/components/PageViewTracker'
 import { getProducts } from '@/lib/data/products'
 
 // Without this, the navbar's category dropdown (built from live product
@@ -16,6 +17,7 @@ export default async function SiteLayout({ children }) {
 
   return (
     <CartProvider>
+      <PageViewTracker />
       <AnnouncementBar />
       <OricNavbar categories={shopCategories} />
       <CartSidebar />
