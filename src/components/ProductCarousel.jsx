@@ -54,6 +54,14 @@ export default function ProductCarousel({ children }) {
       )}
       <div
         ref={scrollerRef}
+        // Nested inside a vertically-scrolling page — without this, a touch
+        // drag that's mostly vertical (nearly all real swipes drift slightly)
+        // can get briefly captured by this horizontal snap container, which
+        // visibly "corrects" itself (a small jump/shift) before releasing the
+        // gesture back to the page. touch-action: pan-x tells the browser to
+        // only handle horizontal panning here and let vertical drags pass
+        // through to the page untouched.
+        style={{ touchAction: 'pan-x' }}
         className="no-scrollbar flex gap-5 overflow-x-auto snap-x snap-mandatory pb-2"
       >
         {Children.map(children, (child) => (
