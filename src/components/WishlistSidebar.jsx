@@ -1,13 +1,55 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useWishlist } from '@/context/WishlistContext'
 import { useCart } from '@/context/CartContext'
 import Y2kIcon from '@/components/Y2kIcon'
 
+function Checkbox({ checked, size = 20 }) {
+  return (
+    <span
+      className={`rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+        checked ? 'bg-[#F37121] border-[#F37121]' : 'border-[#D2D2D7] bg-white'
+      }`}
+      style={{ width: size, height: size }}
+    >
+      {checked && (
+        <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      )}
+    </span>
+  )
+}
+
 export default function WishlistSidebar() {
   const { items, remove, count, isOpen, setIsOpen } = useWishlist()
   const { add, setIsOpen: setCartOpen } = useCart()
+  const [selected, setSelected] = useState(new Set())
+
+  // Drop any selected id that's no longer in the wishlist (removed, or the
+  // set was seeded before items loaded from localStorage).
+  useEffect(() => {
+    setSelected((prev) => new Set([...prev].filter((id) => items.some((i) => i.id === id))))
+  }, [items])
+
+  // Selection is a transient, per-visit choice — don't leave it stale for
+  // next time the drawer opens.
+  useEffect(() => { if (!isOpen) setSelected(new Set()) }, [isOpen])
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const allSelected = items.length > 0 && selected.size === items.length
+  const toggleSelectAll = () => {
+    setSelected(allSelected ? new Set() : new Set(items.map((i) => i.id)))
+  }
 
   const moveToCart = (item) => {
     add(item)
@@ -20,6 +62,15 @@ export default function WishlistSidebar() {
     setIsOpen(false)
     setCartOpen(true)
   }
+
+  const addSelectedToCart = () => {
+    items.filter((item) => selected.has(item.id)).forEach((item) => add(item))
+    setSelected(new Set())
+    setIsOpen(false)
+    setCartOpen(true)
+  }
+
+  const hasSelection = selected.size > 0
 
   return (
     <AnimatePresence>
@@ -58,6 +109,22 @@ export default function WishlistSidebar() {
               </button>
             </div>
 
+            {/* Select all */}
+            {items.length > 0 && (
+              <div className="flex items-center justify-between px-6 py-3 border-b border-[#F5F5F7] bg-[#FAFAFA]">
+                <button
+                  onClick={toggleSelectAll}
+                  className="flex items-center gap-2 text-xs font-semibold text-[#1D1D1F]"
+                >
+                  <Checkbox checked={allSelected} size={16} />
+                  Select all
+                </button>
+                <span className="text-xs text-[#86868B]">
+                  {hasSelection ? `${selected.size} selected` : `${items.length} item${items.length !== 1 ? 's' : ''}`}
+                </span>
+              </div>
+            )}
+
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               {items.length === 0 ? (
@@ -71,6 +138,17 @@ export default function WishlistSidebar() {
               ) : (
                 items.map((item) => (
                   <div key={item.id} className="flex gap-4 py-4 border-b border-[#F5F5F7] last:border-0">
+                    {/* Select */}
+                    <button
+                      type="button"
+                      onClick={() => toggleSelect(item.id)}
+                      aria-label={selected.has(item.id) ? 'Deselect item' : 'Select item'}
+                      aria-pressed={selected.has(item.id)}
+                      className="self-center shrink-0"
+                    >
+                      <Checkbox checked={selected.has(item.id)} />
+                    </button>
+
                     {/* Thumbnail */}
                     <div className="w-16 h-16 rounded-xl bg-[#F5F5F7] overflow-hidden shrink-0 flex items-center justify-center">
                       {item.image ? (
@@ -112,10 +190,10 @@ export default function WishlistSidebar() {
                   Saved on this device. Move items to your cart to order them.
                 </p>
                 <button
-                  onClick={addAllToCart}
+                  onClick={hasSelection ? addSelectedToCart : addAllToCart}
                   className="y2k-chrome-surface y2k-shine w-full py-3.5 text-[#1D1D1F] text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 overflow-hidden"
                 >
-                  Add All to Cart
+                  {hasSelection ? `Add Selected to Cart (${selected.size})` : 'Add All to Cart'}
                 </button>
               </div>
             )}
