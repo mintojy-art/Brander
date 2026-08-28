@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase'
 const DEFAULT_BOBBLEHEAD_PRICING = {
   small: 1999, medium: 2999, large: 3999, xl: 4999,
   extraPersonFee: 1500,
+  bobbleHeadFee: 500,
 }
 
 const SIZES = [
@@ -59,11 +60,14 @@ export default function BobbleheadDetailClient({ occasion, related }) {
         large: data.large_price ?? DEFAULT_BOBBLEHEAD_PRICING.large,
         xl: data.xl_price ?? DEFAULT_BOBBLEHEAD_PRICING.xl,
         extraPersonFee: data.extra_person_fee ?? DEFAULT_BOBBLEHEAD_PRICING.extraPersonFee,
+        bobbleHeadFee: data.bobble_head_fee ?? DEFAULT_BOBBLEHEAD_PRICING.bobbleHeadFee,
       })
     })
   }, [])
 
-  const totalPrice = pricing[size] + (personCount - 1) * pricing.extraPersonFee
+  const totalPrice = pricing[size]
+    + (personCount - 1) * pricing.extraPersonFee
+    + (headType === 'bobble' ? pricing.bobbleHeadFee : 0)
 
   const sizeInfo = SIZES.find((s) => s.id === size)
   const headInfo = HEAD_TYPES.find((h) => h.id === headType)
@@ -192,13 +196,16 @@ export default function BobbleheadDetailClient({ occasion, related }) {
                       key={h.id}
                       type="button"
                       onClick={() => setHeadType(h.id)}
-                      className={`py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                      className={`flex flex-col items-center gap-0.5 py-2.5 rounded-xl border transition-all ${
                         headType === h.id
                           ? 'border-[#F37121] bg-[#FFF7ED] text-[#1D1D1F]'
                           : 'border-[#D2D2D7] text-[#424245] hover:border-[#86868B]'
                       }`}
                     >
-                      {h.label}
+                      <span className="text-sm font-medium">{h.label}</span>
+                      {h.id === 'bobble' && pricing.bobbleHeadFee > 0 && (
+                        <span className="text-[10px] text-[#86868B]">+₹{pricing.bobbleHeadFee.toLocaleString()}</span>
+                      )}
                     </button>
                   ))}
                 </div>

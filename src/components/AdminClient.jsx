@@ -3170,10 +3170,15 @@ create table if not exists bobblehead_pricing (
   large_price numeric not null default 3999,
   xl_price numeric not null default 4999,
   extra_person_fee numeric not null default 1500,
+  bobble_head_fee numeric not null default 500,
   updated_at timestamptz not null default now(),
   constraint bobblehead_pricing_singleton check (id = 1)
 );
 insert into bobblehead_pricing (id) values (1) on conflict (id) do nothing;
+
+-- Safe to re-run: adds the column to a bobblehead_pricing table that
+-- already exists from before the bobble-vs-stationary price split shipped.
+alter table bobblehead_pricing add column if not exists bobble_head_fee numeric not null default 500;
 
 alter table bobblehead_pricing enable row level security;
 drop policy if exists "Public read bobblehead pricing" on bobblehead_pricing;
@@ -3236,6 +3241,7 @@ const PRICING_FIELDS = [
 const BOBBLEHEAD_PRICING_DEFAULTS = {
   small_price: 1999, medium_price: 2999, large_price: 3999, xl_price: 4999,
   extra_person_fee: 1500,
+  bobble_head_fee: 500,
 }
 
 const BOBBLEHEAD_SIZE_FIELDS = [
@@ -3389,6 +3395,16 @@ function PricingSettingsForm({ toast }) {
                   </div>
                 ))}
               </div>
+            </Card>
+
+            <Card>
+              <CardTitle>Head type</CardTitle>
+              <div className="max-w-[200px]">
+                <Label hint="added on top of the size price when the customer picks Bobble Head">Bobble head fee</Label>
+                <Input type="number" step="1" min="0" value={bhForm.bobble_head_fee}
+                  onChange={e => setBh('bobble_head_fee', e.target.value)} placeholder={String(BOBBLEHEAD_PRICING_DEFAULTS.bobble_head_fee)} />
+              </div>
+              <p className="text-xs text-[#6D7175] mt-2">Stationary Head is priced at the plain size price; Bobble Head adds this amount on top. Set to 0 to price them the same.</p>
             </Card>
 
             <Card>
