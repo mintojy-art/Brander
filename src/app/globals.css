@@ -206,11 +206,8 @@ a img, button img, .interactive img {
 /* Chrome/silver glossy surface — buttons, pills, cards */
 .y2k-chrome-surface {
   position: relative;
-  background: linear-gradient(180deg, #FFFFFF 0%, #EEF1F6 42%, #DDE1E9 43%, #C7CCD6 100%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(20, 30, 60, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #D2D2D7;
 }
 
 /* Electric-blue glossy surface — primary CTAs */
