@@ -24,8 +24,8 @@ const SIZES = [
 ]
 
 const HEAD_TYPES = [
-  { id: 'bobble',     label: 'Bobble Head' },
-  { id: 'stationary', label: 'Stationary Head' },
+  { id: 'bobble',     label: 'Bobble Head',     icon: '/bobble-head-icon.png' },
+  { id: 'stationary', label: 'Stationary Head', icon: '/stationary-head-icon.png' },
 ]
 
 const PERSON_COUNTS = [
@@ -196,12 +196,13 @@ export default function BobbleheadDetailClient({ occasion, related }) {
                       key={h.id}
                       type="button"
                       onClick={() => setHeadType(h.id)}
-                      className={`flex flex-col items-center gap-0.5 py-2.5 rounded-xl border transition-all ${
+                      className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border transition-all ${
                         headType === h.id
                           ? 'border-[#F37121] bg-[#FFF7ED] text-[#1D1D1F]'
                           : 'border-[#D2D2D7] text-[#424245] hover:border-[#86868B]'
                       }`}
                     >
+                      <img src={h.icon} alt="" className="w-10 h-10 object-contain" />
                       <span className="text-sm font-medium">{h.label}</span>
                       {h.id === 'bobble' && pricing.bobbleHeadFee > 0 && (
                         <span className="text-[10px] text-[#86868B]">+₹{pricing.bobbleHeadFee.toLocaleString()}</span>
