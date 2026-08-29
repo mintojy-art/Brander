@@ -202,7 +202,7 @@ export default function BobbleheadDetailClient({ occasion, related }) {
                           : 'border-[#D2D2D7] text-[#424245] hover:border-[#86868B]'
                       }`}
                     >
-                      <img src={h.icon} alt="" className="w-10 h-10 object-contain" />
+                      <img src={h.icon} alt="" className="w-20 h-20 object-contain" />
                       <span className="text-sm font-medium">{h.label}</span>
                       {h.id === 'bobble' && pricing.bobbleHeadFee > 0 && (
                         <span className="text-[10px] text-[#86868B]">+₹{pricing.bobbleHeadFee.toLocaleString()}</span>
