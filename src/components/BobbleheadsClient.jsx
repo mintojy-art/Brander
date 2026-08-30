@@ -1,11 +1,13 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useCart } from '@/context/CartContext'
 import BobbleheadCollections from '@/components/BobbleheadCollections'
 import Y2kIcon from '@/components/Y2kIcon'
 import WishlistButton from '@/components/WishlistButton'
+import PhotoQuoteModal from '@/components/PhotoQuoteModal'
 
 function ProductCard({ product }) {
   const { add } = useCart()
@@ -57,6 +59,7 @@ function ProductCard({ product }) {
 
 export default function BobbleheadsClient({ products, occasions }) {
   const bobbleheadProducts = products.filter((p) => p.category === 'Bobbleheads')
+  const [quoteOpen, setQuoteOpen] = useState(false)
 
   return (
     <div className="pt-[100px] min-h-screen bg-white">
@@ -130,11 +133,10 @@ export default function BobbleheadsClient({ products, occasions }) {
           </div>
 
           {/* 'Got a photo?' banner */}
-          <motion.a
-            href="https://wa.me/918310194953"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
+          <motion.button
+            type="button"
+            onClick={() => setQuoteOpen(true)}
+            className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden text-left w-full"
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           >
             <Y2kIcon emoji="🖼️" size={40} className="flex-shrink-0 text-[#F37121]" />
@@ -143,7 +145,8 @@ export default function BobbleheadsClient({ products, occasions }) {
               <p className="text-xs text-[#424245] mt-0.5">Send any image on WhatsApp — yourself, a couple, a pet, anyone. Quote in 24 hours. No file needed.</p>
             </div>
             <span className="text-xs font-semibold text-[#EA580C] flex-shrink-0">Send Your Photo →</span>
-          </motion.a>
+          </motion.button>
+          <PhotoQuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} context="a bobblehead" />
 
           {bobbleheadProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

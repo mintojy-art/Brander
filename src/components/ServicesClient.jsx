@@ -1,11 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { services } from '@/data/services'
 import Y2kIcon from '@/components/Y2kIcon'
+import PhotoQuoteModal from '@/components/PhotoQuoteModal'
 
 export default function ServicesClient() {
+  // Holds the clicked service's title (used as the modal's WhatsApp-message
+  // context) — null when the modal is closed.
+  const [quoteService, setQuoteService] = useState(null)
+
   return (
     <div className="pt-[100px] min-h-screen bg-white">
 
@@ -63,12 +69,13 @@ export default function ServicesClient() {
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-[#1D1D1F] leading-tight mb-2">{svc.title}</h2>
                 <p className="text-[#86868B] text-sm font-medium mb-4">{svc.tagline}</p>
-                <Link
-                  href="/shop"
+                <button
+                  type="button"
+                  onClick={() => setQuoteService(svc.title)}
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#F37121] hover:text-[#C94E00] transition-colors underline underline-offset-4"
                 >
                   Order this service →
-                </Link>
+                </button>
               </div>
 
               {/* Right */}
@@ -95,6 +102,12 @@ export default function ServicesClient() {
           </motion.div>
         ))}
       </div>
+
+      <PhotoQuoteModal
+        isOpen={!!quoteService}
+        onClose={() => setQuoteService(null)}
+        context={quoteService || ''}
+      />
 
       {/* CTA */}
       <div className="border-t border-[#D2D2D7] py-24 bg-[#F5F5F7]">

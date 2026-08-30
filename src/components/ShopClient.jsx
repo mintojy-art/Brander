@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext'
 import { categoryIcons } from '@/data/products'
 import Y2kIcon from '@/components/Y2kIcon'
 import WishlistButton from '@/components/WishlistButton'
+import PhotoQuoteModal from '@/components/PhotoQuoteModal'
 
 function StarMini({ rating }) {
   return (
@@ -107,6 +108,7 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
   }
   const categories = ['All', ...new Set(products.map((p) => p.category))]
   const filtered = active === 'All' ? products : products.filter((p) => p.category === active)
+  const [quoteOpen, setQuoteOpen] = useState(false)
 
   return (
     <div className="pt-[100px] min-h-screen bg-white">
@@ -191,11 +193,10 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
         </div>
 
         {/* 'Got a photo?' banner */}
-        <motion.a
-          href="https://wa.me/918310194953"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
+        <motion.button
+          type="button"
+          onClick={() => setQuoteOpen(true)}
+          className="mb-8 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden text-left w-full"
           initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
         >
           <Y2kIcon emoji="🖼️" size={44} className="flex-shrink-0 text-[#F37121]" />
@@ -205,7 +206,8 @@ export default function ShopClient({ products, initialCategory = 'All' }) {
             <p className="text-xs text-[#424245] mt-0.5">Send any image on WhatsApp — pet, person, character, idol. Quote in 24 hours. No file needed.</p>
           </div>
           <span className="text-xs font-semibold text-[#EA580C] flex-shrink-0">Send Your Photo →</span>
-        </motion.a>
+        </motion.button>
+        <PhotoQuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} context="a 3D figurine" />
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
@@ -13,6 +14,7 @@ import BobbleheadCollections from '@/components/BobbleheadCollections'
 import Testimonials from '@/components/Testimonials'
 import InstagramFeed from '@/components/InstagramFeed'
 import FAQSection from '@/components/FAQSection'
+import PhotoQuoteModal from '@/components/PhotoQuoteModal'
 
 const PrintConfigurator = dynamic(() => import('@/components/PrintConfigurator'), { ssr: false })
 
@@ -114,6 +116,7 @@ function ShopAllCard() {
 export default function HomeClient({ products, testimonials, occasions }) {
   const bestSellers = products.filter((p) => p.badge === 'Popular')
   const newArrivals  = products.filter((p) => p.badge === 'New')
+  const [quoteOpen, setQuoteOpen] = useState(false)
 
   return (
     <div className="pt-[100px]">
@@ -206,11 +209,10 @@ export default function HomeClient({ products, testimonials, occasions }) {
           </div>
 
           {/* 'Got a photo?' banner */}
-          <motion.a
-            href="https://wa.me/918310194953"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden"
+          <motion.button
+            type="button"
+            onClick={() => setQuoteOpen(true)}
+            className="mb-6 flex flex-col sm:flex-row items-center gap-4 bg-[#FFF7ED] border border-[#FED7AA] rounded-2xl px-6 py-5 hover:border-[#EA580C]/40 transition-colors overflow-hidden text-left w-full"
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           >
             <Y2kIcon emoji="🖼️" size={44} className="flex-shrink-0 text-[#F37121]" />
@@ -219,7 +221,8 @@ export default function HomeClient({ products, testimonials, occasions }) {
               <p className="text-xs text-[#424245] mt-0.5">Send any image on WhatsApp — pet, person, character, idol. Quote in 24 hours. No file needed.</p>
             </div>
             <span className="text-xs font-semibold text-[#EA580C] flex-shrink-0">Send Your Photo →</span>
-          </motion.a>
+          </motion.button>
+          <PhotoQuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} context="a 3D figurine" />
 
           {bestSellers.length > 0 && (
             <ProductCarousel>
