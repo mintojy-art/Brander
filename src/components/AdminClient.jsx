@@ -3138,6 +3138,513 @@ function CommentsList({ comments, loading, onRefresh, toast }) {
   )
 }
 
+// ── Careers: setup SQL ────────────────────────────────────────────────────────
+const CAREERS_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists career_roles (
+  id text primary key,
+  title text not null,
+  type text default 'Freelance Consultant',
+  summary text,
+  description text,
+  responsibilities text[],
+  requirements text[],
+  active boolean default true,
+  sort_order integer default 0,
+  created_at timestamptz default now()
+);
+alter table career_roles enable row level security;
+drop policy if exists "Public read career roles" on career_roles;
+drop policy if exists "Admin write career roles" on career_roles;
+create policy "Public read career roles" on career_roles
+  for select using (true);
+create policy "Admin write career roles" on career_roles
+  for all to authenticated using (true) with check (true);
+
+create table if not exists job_applications (
+  id uuid primary key default gen_random_uuid(),
+  role_id text,
+  role_title text not null,
+  name text not null,
+  email text not null,
+  phone text,
+  portfolio_url text,
+  message text,
+  status text not null default 'new',
+  created_at timestamptz not null default now()
+);
+alter table job_applications enable row level security;
+drop policy if exists "Public submit applications" on job_applications;
+drop policy if exists "Admin manage applications" on job_applications;
+create policy "Public submit applications" on job_applications
+  for insert with check (true);
+create policy "Admin manage applications" on job_applications
+  for all to authenticated using (true) with check (true);
+
+insert into career_roles (id, title, type, summary, description, responsibilities, requirements, sort_order) values
+('senior-3d-designer', 'Senior 3D Designer', 'Freelance Consultant',
+ 'Lead complex modeling and sculpting work across figurines, bobbleheads, idols, and custom commissions.',
+ 'We''re looking for an experienced 3D designer to take on our more intricate modeling and sculpting briefs — likenesses from reference photos, detailed figurines, and custom character work. You''ll work directly with the ORIC team on a project basis, turning customer references and specs into print-ready models.',
+ ARRAY['Sculpt and model custom figurines, bobbleheads, and idols from photo references','Prepare and optimize models for FDM printing (wall thickness, supports, orientation)','Collaborate with the team on scoping and timelines for incoming commissions','Maintain a consistent quality and style bar across delivered work'],
+ ARRAY['3+ years of experience in 3D modeling/sculpting (ZBrush, Blender, or similar)','A portfolio showing character or likeness-based work','Comfortable preparing models specifically for FDM 3D printing','Based in or able to work India hours; freelance/project-based availability'],
+ 0),
+('marketing-and-sales', 'Marketing and Sales', 'Freelance Consultant',
+ 'Grow ORIC''s customer base and manage outreach across digital channels and direct sales.',
+ 'We''re looking for a marketing and sales consultant to help grow ORIC''s reach — from social media and content to direct outreach for bulk/corporate orders (gifting, events, manufacturing batches). You''ll work closely with the founder on campaigns, partnerships, and lead generation.',
+ ARRAY['Plan and run social media / digital marketing campaigns','Identify and pursue corporate gifting and bulk order opportunities','Build partnerships with event planners, gifting platforms, and resellers','Track and report on campaign performance and lead conversion'],
+ ARRAY['Experience in digital marketing, sales, or business development','Comfortable owning outreach end-to-end — from first contact to close','Prior experience with a D2C, gifting, or e-commerce brand is a plus','Freelance/project-based availability'],
+ 1),
+('3d-print-design-specialist', '3D Print Design Specialist', 'Freelance Consultant',
+ 'Prepare, slice, and troubleshoot print files across our FDM material and shape range.',
+ 'We''re looking for someone who lives in the details of getting a model from file to finished print — slicer settings, material selection, supports, and print troubleshooting across PLA, PETG, TPU, ABS, and ASA. You''ll work on incoming custom print requests, prototypes, and small-batch manufacturing runs.',
+ ARRAY['Prepare and slice customer-submitted STL/STEP/OBJ files for print','Recommend material, infill, and quality settings per job','Troubleshoot print failures and iterate on settings for tricky geometries','Support small-batch manufacturing runs with consistent, repeatable setups'],
+ ARRAY['Hands-on experience with FDM printing and slicing software (Cura, PrusaSlicer, or similar)','Working knowledge of PLA, PETG, TPU, ABS, and ASA behavior and settings','Comfortable troubleshooting prints independently','Freelance/project-based availability'],
+ 2)
+on conflict (id) do nothing;`
+
+function CareersSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(CAREERS_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-6 mt-4 border border-red-200 bg-red-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-red-500 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-red-800">Careers tables not set up yet</p>
+            <button onClick={onDismiss} className="text-red-400 hover:text-red-600 shrink-0">{Ico.xLg}</button>
+          </div>
+          <p className="text-xs text-red-700 mb-3">
+            Run this SQL in <strong>Supabase → SQL Editor → New query</strong> to create the <code className="bg-red-100 px-1 rounded font-mono">career_roles</code> and <code className="bg-red-100 px-1 rounded font-mono">job_applications</code> tables (seeded with the 3 roles already live on the site), then try saving again.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{CAREERS_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Career Role Form ──────────────────────────────────────────────────────────
+function CareerRoleForm({ role, onSave, onBack, toast }) {
+  const isNew = !role?.id || !!role?._new
+  const topRef = useRef(null)
+
+  const initForm = () => {
+    if (!role || role._new) return {
+      id: '', title: '', type: 'Freelance Consultant', summary: '', description: '',
+      responsibilities: '', requirements: '', active: true, sort_order: 0,
+    }
+    return {
+      ...role,
+      responsibilities: serializeLines(role.responsibilities),
+      requirements: serializeLines(role.requirements),
+    }
+  }
+
+  const [form, setForm] = useState(initForm)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [schemaError, setSchemaError] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
+
+  const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+
+  const handleBack = () => {
+    if (isDirty) setShowDiscard(true)
+    else onBack()
+  }
+
+  const handleSave = async (stayOnPage = false) => {
+    if (!form.title.trim()) {
+      setErr('Role title is required.')
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      return
+    }
+    setSaving(true)
+    setErr('')
+
+    const id = isNew ? (form.id.trim() || slugify(form.title)) : form.id
+    const payload = {
+      id,
+      title: form.title.trim(),
+      type: form.type?.trim() || 'Freelance Consultant',
+      summary: form.summary?.trim() || '',
+      description: form.description?.trim() || '',
+      responsibilities: parseLines(form.responsibilities),
+      requirements: parseLines(form.requirements),
+      active: !!form.active,
+      sort_order: parseInt(form.sort_order) || 0,
+    }
+
+    let error
+    if (isNew) {
+      const res = await supabase.from('career_roles').insert(payload)
+      error = res.error
+    } else {
+      const res = await supabase.from('career_roles').update(payload).eq('id', form.id)
+      error = res.error
+    }
+
+    setSaving(false)
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('schema cache') || msg.includes('column') || msg.includes('does not exist') || msg.includes('relation')) {
+        setSchemaError(true)
+        setErr('')
+      } else if (msg.includes('duplicate key')) {
+        setErr('A role with this ID already exists — try a different title.')
+      } else {
+        setErr(msg)
+      }
+      topRef.current?.scrollIntoView({ behavior: 'smooth' })
+      toast('Save failed — see instructions above', 'error')
+      return
+    }
+    setSchemaError(false)
+
+    toast(`"${form.title}" ${isNew ? 'created' : 'saved'} successfully`)
+    setIsDirty(false)
+
+    if (stayOnPage) {
+      if (isNew) setForm(f => ({ ...f, id }))
+    } else {
+      onSave()
+    }
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {showDiscard && (
+        <DiscardModal
+          onConfirm={() => { setShowDiscard(false); onBack() }}
+          onCancel={() => setShowDiscard(false)}
+        />
+      )}
+
+      <div ref={topRef} className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={handleBack} className="flex items-center gap-1 text-sm text-[#6D7175] hover:text-[#202223] transition-colors shrink-0">
+            {Ico.back} Careers
+          </button>
+          <span className="text-[#C9CCCF]">/</span>
+          <span className="text-sm font-semibold text-[#202223] truncate">
+            {isNew ? 'Add role' : (form.title || 'Edit role')}
+          </span>
+          {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 ml-4">
+          <button onClick={handleBack} className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors hidden sm:block">
+            Discard
+          </button>
+          <button onClick={() => handleSave(true)} disabled={saving}
+            className="px-4 py-2 text-sm font-medium border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40 hidden md:block">
+            Save & continue
+          </button>
+          <button onClick={() => handleSave(false)} disabled={saving}
+            className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2">
+            {saving ? (
+              <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</>
+            ) : (
+              <>{Ico.check} Save</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {schemaError && (
+        <CareersSetupBanner onDismiss={() => setSchemaError(false)} />
+      )}
+      {err && !schemaError && (
+        <div className="mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+          <span className="shrink-0 mt-0.5 font-bold">✕</span>
+          <span>{err}</span>
+        </div>
+      )}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
+
+        <div className="lg:col-span-2 space-y-5">
+          <Card>
+            <CardTitle>Role details</CardTitle>
+            <div className="space-y-4">
+              <div>
+                <Label>Role title <span className="text-red-500">*</span></Label>
+                <Input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Senior 3D Designer" />
+              </div>
+              <div>
+                <Label hint="(e.g. Freelance Consultant, Full-time)">Type</Label>
+                <Input value={form.type} onChange={e => set('type', e.target.value)} placeholder="Freelance Consultant" />
+              </div>
+              <div>
+                <Label hint="(shown on the role card, one or two sentences)">Summary</Label>
+                <Textarea rows={2} value={form.summary} onChange={e => set('summary', e.target.value)} placeholder="Short one-line summary of the role" />
+              </div>
+              <div>
+                <Label hint="(fuller overview shown on the careers page)">Description</Label>
+                <Textarea rows={5} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Describe the role in more detail" />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardTitle>What they'll do</CardTitle>
+            <Label hint="(one per line)">Responsibilities</Label>
+            <Textarea rows={5} value={form.responsibilities} onChange={e => set('responsibilities', e.target.value)}
+              placeholder={'Sculpt and model custom figurines...\nPrepare files for FDM printing...'} />
+          </Card>
+
+          <Card>
+            <CardTitle>What we're looking for</CardTitle>
+            <Label hint="(one per line)">Requirements</Label>
+            <Textarea rows={5} value={form.requirements} onChange={e => set('requirements', e.target.value)}
+              placeholder={'3+ years of experience...\nA portfolio of relevant work...'} />
+          </Card>
+        </div>
+
+        <div className="space-y-5">
+          <Card>
+            <CardTitle>Status</CardTitle>
+            <div className="space-y-4">
+              <Toggle value={form.active} onChange={v => set('active', v)} label="Active (visible on site)" />
+              <div>
+                <Label hint="(lower number = shows first)">Sort order</Label>
+                <Input type="number" value={form.sort_order} onChange={e => set('sort_order', e.target.value)} placeholder="0" />
+              </div>
+            </div>
+          </Card>
+
+          <div className="flex flex-col gap-2">
+            <button onClick={() => handleSave(false)} disabled={saving}
+              className="w-full py-3 text-sm font-semibold bg-[#1D1D1F] text-white rounded-xl hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+              {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</> : <>{Ico.check} Save role</>}
+            </button>
+            <button onClick={() => handleSave(true)} disabled={saving}
+              className="w-full py-2.5 text-sm font-medium border border-[#C9CCCF] rounded-xl hover:bg-[#F6F6F7] text-[#202223] transition-colors disabled:opacity-40">
+              Save &amp; continue editing
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Career Roles List ─────────────────────────────────────────────────────────
+function CareerRolesList({ roles, loading, onAdd, onEdit, onToggleActive, onRefresh, toast }) {
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    const { error } = await supabase.from('career_roles').delete().eq('id', deleteTarget.id)
+    if (error) { toast('Delete failed: ' + error.message, 'error') }
+    else { toast(`"${deleteTarget.title}" deleted`) }
+    setDeleteTarget(null)
+    onRefresh()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {deleteTarget && (
+        <DeleteModal
+          title={`Delete "${deleteTarget.title}"?`}
+          message="This will permanently remove this role from your site. This action cannot be undone."
+          confirmLabel="Delete role"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
+        <h1 className="text-lg font-bold text-[#202223]">Careers</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={onRefresh} title="Refresh" disabled={loading}
+            className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+            <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+          </button>
+          <button onClick={onAdd} className="flex items-center gap-1.5 px-4 py-2 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+            {Ico.plus} <span>Add role</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        <div className="bg-white border border-[#E1E3E5] rounded-xl overflow-hidden">
+          {loading ? (
+            <div className="py-20 text-center">
+              <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-[#6D7175]">Loading roles…</p>
+            </div>
+          ) : roles.length === 0 ? (
+            <div className="py-20 text-center px-8">
+              <p className="text-2xl mb-3">💼</p>
+              <p className="text-base font-semibold text-[#202223] mb-1">No roles yet</p>
+              <p className="text-sm text-[#6D7175] mb-5">Add your first open role to show it on the careers page.</p>
+              <button onClick={onAdd} className="px-5 py-2.5 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors">
+                Add first role
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#F1F1F1]">
+              {roles.map(r => (
+                <div key={r.id} className="flex items-center gap-3 px-4 sm:px-5 py-3.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-[#202223] truncate">{r.title}</p>
+                    <p className="text-xs text-[#6D7175] truncate max-w-[320px]">{r.type} {r.summary ? `· ${r.summary}` : ''}</p>
+                  </div>
+                  <button onClick={() => onToggleActive(r)} className="hidden sm:flex items-center gap-1.5 shrink-0">
+                    <span className={`w-2 h-2 rounded-full ${r.active ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                    <span className={`text-xs font-medium ${r.active ? 'text-green-700' : 'text-[#6D7175]'}`}>{r.active ? 'Active' : 'Hidden'}</span>
+                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => onEdit(r)}
+                      className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] transition-colors">
+                      {Ico.edit}
+                    </button>
+                    <button onClick={() => onToggleActive(r)} title={r.active ? 'Hide from site' : 'Unhide'}
+                      className="sm:hidden p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] transition-colors">
+                      {r.active ? Ico.eyeOff : Ico.eye}
+                    </button>
+                    <button onClick={() => setDeleteTarget(r)}
+                      className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
+                      {Ico.trash}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Job Applications List ─────────────────────────────────────────────────────
+function ApplicationsList({ applications, loading, onRefresh, toast }) {
+  const [tab, setTab] = useState('new')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const counts = {
+    all: applications.length,
+    new: applications.filter(a => a.status === 'new').length,
+    reviewed: applications.filter(a => a.status === 'reviewed').length,
+  }
+  const filtered = tab === 'all' ? applications : applications.filter(a => a.status === tab)
+
+  const setStatus = async (a, status) => {
+    const { error } = await supabase.from('job_applications').update({ status }).eq('id', a.id)
+    if (error) { toast('Update failed: ' + error.message, 'error'); return }
+    toast(status === 'reviewed' ? 'Marked as reviewed' : 'Marked as new')
+    onRefresh()
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    const { error } = await supabase.from('job_applications').delete().eq('id', deleteTarget.id)
+    if (error) { toast('Delete failed: ' + error.message, 'error') }
+    else { toast('Application deleted') }
+    setDeleteTarget(null)
+    onRefresh()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {deleteTarget && (
+        <DeleteModal
+          title={`Delete application from "${deleteTarget.name}"?`}
+          message="This will permanently remove this application. This action cannot be undone."
+          confirmLabel="Delete application"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      <div className="hidden md:flex bg-white border-b border-[#E1E3E5] px-6 py-4 items-center justify-between flex-wrap gap-3">
+        <h1 className="text-lg font-bold text-[#202223]">Applications</h1>
+        <button onClick={onRefresh} title="Refresh" disabled={loading}
+          className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+          <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+        </button>
+      </div>
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        <div className="flex border border-[#C9CCCF] rounded-lg overflow-hidden w-fit mb-5">
+          {[['new', 'New'], ['reviewed', 'Reviewed'], ['all', 'All']].map(([val, lbl]) => (
+            <button key={val} onClick={() => setTab(val)}
+              className={`px-4 py-2 text-xs font-medium transition-colors ${tab === val ? 'bg-[#1D1D1F] text-white' : 'bg-white text-[#6D7175] hover:bg-[#F6F6F7]'}`}>
+              {lbl} <span className="opacity-60">{counts[val] ?? 0}</span>
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="py-20 text-center">
+            <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#6D7175]">Loading applications…</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-20 text-center px-8">
+            <p className="text-2xl mb-3">📥</p>
+            <p className="text-sm text-[#6D7175]">No {tab === 'all' ? '' : tab} applications.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map(a => (
+              <div key={a.id} className="bg-white border border-[#E1E3E5] rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#202223]">{a.name}</p>
+                    <p className="text-xs text-[#6D7175]">
+                      applied for <span className="font-medium">{a.role_title}</span> · {new Date(a.created_at).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {a.status === 'new' ? (
+                      <button onClick={() => setStatus(a, 'reviewed')}
+                        className="px-3 py-1.5 text-xs font-semibold bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Mark reviewed
+                      </button>
+                    ) : (
+                      <button onClick={() => setStatus(a, 'new')}
+                        className="px-3 py-1.5 text-xs font-semibold border border-[#C9CCCF] text-[#202223] rounded-lg hover:bg-[#F6F6F7] transition-colors">
+                        Mark as new
+                      </button>
+                    )}
+                    <button onClick={() => setDeleteTarget(a)}
+                      className="p-1.5 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">
+                      {Ico.trash}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#424245] mb-2">
+                  <a href={`mailto:${a.email}`} className="hover:underline">{a.email}</a>
+                  {a.phone && <span>{a.phone}</span>}
+                  {a.portfolio_url && (
+                    <a href={a.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      Portfolio/Resume ↗
+                    </a>
+                  )}
+                </div>
+                {a.message && <p className="text-sm text-[#424245] leading-relaxed">{a.message}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Print Pricing ─────────────────────────────────────────────────────────────
 const PRICING_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
 create table if not exists print_pricing (
@@ -3665,20 +4172,27 @@ export default function AdminClient() {
   const [postsLoading, setPostsLoading] = useState(false)
   const [comments, setComments] = useState([])
   const [commentsLoading, setCommentsLoading] = useState(false)
+  const [careerRoles, setCareerRoles] = useState([])
+  const [careerRolesLoading, setCareerRolesLoading] = useState(false)
+  const [applications, setApplications] = useState([])
+  const [applicationsLoading, setApplicationsLoading] = useState(false)
   const [view, setView] = useState('list')
   const [editProduct, setEditProduct] = useState(null)
   const [editTestimonial, setEditTestimonial] = useState(null)
   const [editOccasion, setEditOccasion] = useState(null)
   const [editPost, setEditPost] = useState(null)
+  const [editCareerRole, setEditCareerRole] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { toasts, toast } = useToast()
   const inTestimonials = view === 'testimonials-list' || view === 'testimonials-form'
   const inOccasions = view === 'occasions-list' || view === 'occasions-form'
   const inBlog = view === 'blog-list' || view === 'blog-form'
   const inComments = view === 'comments-list'
+  const inCareers = view === 'careers-list' || view === 'careers-form'
+  const inApplications = view === 'applications-list'
   const inPricing = view === 'pricing'
   const inInsights = view === 'insights'
-  const noAddAction = inComments || inPricing || inInsights
+  const noAddAction = inComments || inPricing || inInsights || inApplications
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -3750,6 +4264,28 @@ export default function AdminClient() {
 
   useEffect(() => { if (authed && isConfigured) fetchComments() }, [authed, fetchComments])
 
+  const fetchCareerRoles = useCallback(async () => {
+    if (!supabase) return
+    setCareerRolesLoading(true)
+    const { data, error } = await supabase.from('career_roles').select('*').order('sort_order', { ascending: true })
+    if (error && !error.message.includes('does not exist')) toast('Failed to load career roles: ' + error.message, 'error')
+    setCareerRoles(data || [])
+    setCareerRolesLoading(false)
+  }, [toast])
+
+  useEffect(() => { if (authed && isConfigured) fetchCareerRoles() }, [authed, fetchCareerRoles])
+
+  const fetchApplications = useCallback(async () => {
+    if (!supabase) return
+    setApplicationsLoading(true)
+    const { data, error } = await supabase.from('job_applications').select('*').order('created_at', { ascending: false })
+    if (error && !error.message.includes('does not exist')) toast('Failed to load applications: ' + error.message, 'error')
+    setApplications(data || [])
+    setApplicationsLoading(false)
+  }, [toast])
+
+  useEffect(() => { if (authed && isConfigured) fetchApplications() }, [authed, fetchApplications])
+
   const handleSeedOccasions = async () => {
     setOccasionSeeding(true)
     const rows = DEFAULT_OCCASIONS.map((o, i) => ({ id: slugify(o.title), images: [], price_display: null, active: true, sort_order: i, ...o }))
@@ -3791,6 +4327,13 @@ export default function AdminClient() {
     fetchOccasions()
   }
 
+  const handleToggleActiveCareerRole = async (r) => {
+    const { error } = await supabase.from('career_roles').update({ active: !r.active }).eq('id', r.id)
+    if (error) { toast('Update failed: ' + error.message, 'error'); return }
+    toast(`"${r.title}" ${!r.active ? 'activated' : 'hidden'}`)
+    fetchCareerRoles()
+  }
+
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#F6F6F7]"><div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin" /></div>
   if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />
 
@@ -3813,13 +4356,14 @@ export default function AdminClient() {
             if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
             else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
             else if (inBlog) { setEditPost({ _new: true }); setView('blog-form') }
-            else if (noAddAction) { /* no "add" action for comments/pricing */ }
+            else if (inCareers) { setEditCareerRole({ _new: true }); setView('careers-form') }
+            else if (noAddAction) { /* no "add" action for comments/pricing/applications */ }
             else { setEditProduct({ _new: true }); setView('form') }
             setMobileOpen(false)
           }}
           className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm bg-white text-[#1D1D1F] font-bold hover:bg-white/90 transition-colors mb-3 ${noAddAction ? 'hidden' : ''}`}
         >
-          {Ico.plus} {inOccasions ? 'Add occasion' : inTestimonials ? 'Add testimonial' : inBlog ? 'Add post' : 'Add product'}
+          {Ico.plus} {inOccasions ? 'Add occasion' : inTestimonials ? 'Add testimonial' : inBlog ? 'Add post' : inCareers ? 'Add role' : 'Add product'}
         </button>
         <button onClick={() => { setView('list'); setMobileOpen(false) }}
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${view === 'list' || view === 'form' ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
@@ -3854,6 +4398,20 @@ export default function AdminClient() {
           <span className="flex items-center gap-2">🗨️ Comments</span>
           {comments.filter(c => c.status === 'pending').length > 0 && (
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{comments.filter(c => c.status === 'pending').length}</span>
+          )}
+        </button>
+        <button onClick={() => { setView('careers-list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inCareers ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">💼 Careers</span>
+          {careerRoles.length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{careerRoles.length}</span>
+          )}
+        </button>
+        <button onClick={() => { setView('applications-list'); setMobileOpen(false) }}
+          className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inApplications ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          <span className="flex items-center gap-2">📥 Applications</span>
+          {applications.filter(a => a.status === 'new').length > 0 && (
+            <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{applications.filter(a => a.status === 'new').length}</span>
           )}
         </button>
         <button onClick={() => { setView('pricing'); setMobileOpen(false) }}
@@ -3908,6 +4466,7 @@ export default function AdminClient() {
                   if (inOccasions) { setEditOccasion({ _new: true }); setView('occasions-form') }
                   else if (inTestimonials) { setEditTestimonial({ _new: true }); setView('testimonials-form') }
                   else if (inBlog) { setEditPost({ _new: true }); setView('blog-form') }
+                  else if (inCareers) { setEditCareerRole({ _new: true }); setView('careers-form') }
                   else { setEditProduct({ _new: true }); setView('form') }
                 }}
                 className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#1D1D1F] text-xs font-bold rounded-lg"
@@ -3992,6 +4551,30 @@ export default function AdminClient() {
              toast={toast}
              onSave={() => { setView('blog-list'); fetchPosts() }}
              onBack={() => setView('blog-list')}
+           />
+         ) : view === 'careers-list' ? (
+           <CareerRolesList
+             roles={careerRoles}
+             loading={careerRolesLoading}
+             toast={toast}
+             onAdd={() => { setEditCareerRole({ _new: true }); setView('careers-form') }}
+             onEdit={r => { setEditCareerRole(r); setView('careers-form') }}
+             onToggleActive={handleToggleActiveCareerRole}
+             onRefresh={fetchCareerRoles}
+           />
+         ) : view === 'careers-form' ? (
+           <CareerRoleForm
+             role={editCareerRole}
+             toast={toast}
+             onSave={() => { setView('careers-list'); fetchCareerRoles() }}
+             onBack={() => setView('careers-list')}
+           />
+         ) : view === 'applications-list' ? (
+           <ApplicationsList
+             applications={applications}
+             loading={applicationsLoading}
+             toast={toast}
+             onRefresh={fetchApplications}
            />
          ) : view === 'pricing' ? (
            <PricingSettingsForm toast={toast} />
