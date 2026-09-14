@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import posthog from 'posthog-js'
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import Y2kIcon from '@/components/Y2kIcon'
@@ -50,6 +51,16 @@ export default function ProductDetailClient({ product, related }) {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [activeImg, setActiveImg] = useState(0)
+
+  useEffect(() => {
+    posthog.capture('product_viewed', {
+      product_id: product.id,
+      product_name: product.name,
+      price: product.price ?? null,
+      category: product.category ?? null,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id])
 
   const handleAddToCart = () => {
     for (let i = 0; i < qty; i++) add(product)

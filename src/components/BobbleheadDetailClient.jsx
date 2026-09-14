@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import posthog from 'posthog-js'
 import Y2kIcon from '@/components/Y2kIcon'
 import { useCart } from '@/context/CartContext'
 import { supabase } from '@/lib/supabase'
@@ -46,6 +47,15 @@ export default function BobbleheadDetailClient({ occasion, related }) {
   const [personCount, setPersonCount] = useState(1)
   const [proofRequest, setProofRequest] = useState(false)
   const [added, setAdded]             = useState(false)
+
+  useEffect(() => {
+    posthog.capture('product_viewed', {
+      product_id: occasion.id,
+      product_name: occasion.title,
+      category: 'Bobbleheads',
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [occasion.id])
 
   // Live pricing from the admin dashboard — falls back to
   // DEFAULT_BOBBLEHEAD_PRICING (silently) if Supabase isn't configured or

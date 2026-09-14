@@ -1,6 +1,7 @@
 import { Poppins, Black_Ops_One, Orbitron } from 'next/font/google'
 import Script from 'next/script'
 import ContentProtection from '@/components/ContentProtection'
+import PostHogInit from '@/components/PostHogInit'
 import './globals.css'
 
 const poppins = Poppins({
@@ -246,6 +247,7 @@ export default function RootLayout({ children }) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
 
         <ContentProtection />
+        <PostHogInit />
         {children}
 
         <Script
