@@ -11,6 +11,7 @@ import WishlistButton from '@/components/WishlistButton'
 import ProductCarousel from '@/components/ProductCarousel'
 import TrustBadgeRow from '@/components/TrustBadgeRow'
 import BobbleheadCollections from '@/components/BobbleheadCollections'
+import MaskStudioSection from '@/components/MaskStudioSection'
 import Testimonials from '@/components/Testimonials'
 import InstagramFeed from '@/components/InstagramFeed'
 import FAQSection from '@/components/FAQSection'
@@ -251,6 +252,8 @@ export default function HomeClient({ products, testimonials, occasions }) {
       </section>
 
       <BobbleheadCollections occasions={occasions} />
+
+      <MaskStudioSection products={products} />
 
       {/* ── SERVICES GRID ── */}
       <section className="py-28 bg-white">

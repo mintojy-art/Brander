@@ -16,9 +16,18 @@ const navLinks = [
   { to: '/lithophanes',  label: 'Lithophane' },
 ]
 
-// Bobbleheads has its own dedicated hub page (occasions + products together)
-// instead of the generic category-filtered shop view.
-const categoryHref = (cat) => cat === 'Bobbleheads' ? '/bobbleheads' : `/shop?cat=${encodeURIComponent(cat)}`
+// Bobbleheads and Mask Studio (data category: 'Cosplay') each have their own
+// dedicated hub page (occasions/gallery + products together) instead of the
+// generic category-filtered shop view.
+const categoryHref = (cat) => {
+  if (cat === 'Bobbleheads') return '/bobbleheads'
+  if (cat === 'Cosplay') return '/mask-studio'
+  return `/shop?cat=${encodeURIComponent(cat)}`
+}
+
+// "Cosplay" is rebranded as "Mask Studio" everywhere it's user-facing; the
+// underlying category value stays 'Cosplay' for Shop filtering/data.
+const categoryLabel = (cat) => cat === 'Cosplay' ? 'Mask Studio' : cat
 
 export default function OricNavbar({ categories = [] }) {
   const [scrolled, setScrolled]     = useState(false)
@@ -107,7 +116,7 @@ export default function OricNavbar({ categories = [] }) {
                             className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/70 transition-colors"
                           >
                             <Y2kIcon emoji={categoryIcons[cat] || '🖨️'} size={22} className="text-[#F37121]" />
-                            <span className="text-sm text-[#1D1D1F] font-medium">{cat}</span>
+                            <span className="text-sm text-[#1D1D1F] font-medium">{categoryLabel(cat)}</span>
                           </Link>
                         ))}
                       </div>
@@ -263,7 +272,7 @@ export default function OricNavbar({ categories = [] }) {
                             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-[#424245] hover:bg-[#F5F5F7] hover:text-[#1D1D1F] transition-colors"
                           >
                             <Y2kIcon emoji={categoryIcons[cat] || '🖨️'} size={16} className="text-[#F37121]" />
-                            {cat}
+                            {categoryLabel(cat)}
                           </Link>
                         ))}
                       </div>

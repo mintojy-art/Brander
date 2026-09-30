@@ -11,6 +11,8 @@ const col1 = [
 ]
 
 const col2 = [
+  { label: 'Bobbleheads',     to: '/bobbleheads'         },
+  { label: 'Mask Studio',     to: '/mask-studio'         },
   { label: 'Brander Roller',  to: '/shop/brander-roller' },
   { label: 'Figurines',       to: '/services#figurines'  },
   { label: 'Prototyping',     to: '/services#prototyping'},
