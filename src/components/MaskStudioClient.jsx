@@ -26,8 +26,7 @@ export default function MaskStudioClient({ products = [] }) {
             Mask Studio
           </motion.p>
           <motion.h1
-            className="text-5xl md:text-7xl text-white leading-tight mb-6"
-            style={{ fontFamily: 'var(--font-cinzel)' }}
+            className="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
@@ -38,7 +37,7 @@ export default function MaskStudioClient({ products = [] }) {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Hand-finished cosplay and display masks, sculpted and printed one piece at a time in Bangalore.
+            Custom mask design and custom cosplay mask design in Bangalore, India — hand-finished, sculpted, and 3D printed one piece at a time.
           </motion.p>
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center"
@@ -74,8 +73,7 @@ export default function MaskStudioClient({ products = [] }) {
               The Collection
             </motion.p>
             <motion.h2
-              className="text-4xl md:text-5xl text-white leading-tight"
-              style={{ fontFamily: 'var(--font-cinzel)' }}
+              className="text-4xl md:text-5xl font-extrabold text-white leading-tight"
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
@@ -92,7 +90,7 @@ export default function MaskStudioClient({ products = [] }) {
           ) : (
             <div className="border border-white/10 p-10 md:p-14 text-center">
               <div className="text-5xl mb-3">🎭</div>
-              <h3 className="text-xl text-white mb-2" style={{ fontFamily: 'var(--font-cinzel)' }}>
+              <h3 className="text-xl font-extrabold text-white mb-2">
                 No masks listed yet
               </h3>
               <p className="text-sm text-white/50 max-w-sm mx-auto mb-6">
@@ -110,12 +108,54 @@ export default function MaskStudioClient({ products = [] }) {
         </div>
       </section>
 
+      {/* FAQ — visible copy matching the FAQPage schema on the page (server) component */}
+      <section className="py-24 border-t border-white/10">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10">
+          <div className="text-center mb-12">
+            <motion.p
+              className="text-[11px] font-semibold uppercase tracking-[0.4em] mb-3"
+              style={{ color: '#C24A5E' }}
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            >
+              Questions
+            </motion.p>
+            <motion.h2
+              className="text-3xl md:text-4xl font-extrabold text-white leading-tight"
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Custom Mask Design, Answered.
+            </motion.h2>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-base font-extrabold text-white mb-1.5">Who does custom mask design in Bangalore, India?</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                ORIC Mask Studio, based in Bangalore, designs and 3D prints custom masks — including custom cosplay mask design — for customers across India. Send a reference photo or sketch on WhatsApp and get a quote within 24 hours.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white mb-1.5">Do you offer custom cosplay mask design in Bangalore?</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Yes — ORIC's Mask Studio hand-sculpts and 3D prints custom cosplay masks from a photo, sketch, or character reference, finished and painted in Bangalore, then shipped across India.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white mb-1.5">Can I get a mask 3D printed and shipped anywhere in India?</h3>
+              <p className="text-sm text-white/50 leading-relaxed">
+                Yes — every mask is printed to order in Bangalore and shipped pan-India via Shiprocket/Delhivery. There's no minimum order, whether it's a display piece or a full cosplay mask.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA banner */}
       <section className="py-28 border-t border-white/10" style={{ background: '#111014' }}>
         <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 text-center">
           <motion.h2
-            className="text-4xl md:text-6xl text-white leading-tight tracking-tight mb-8"
-            style={{ fontFamily: 'var(--font-cinzel)' }}
+            className="text-4xl md:text-6xl font-extrabold text-white leading-tight tracking-tight mb-8"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

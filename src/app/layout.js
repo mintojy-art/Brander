@@ -1,4 +1,4 @@
-import { Poppins, Black_Ops_One, Orbitron, Cinzel } from 'next/font/google'
+import { Poppins, Black_Ops_One, Orbitron } from 'next/font/google'
 import Script from 'next/script'
 import ContentProtection from '@/components/ContentProtection'
 import PostHogInit from '@/components/PostHogInit'
@@ -22,16 +22,6 @@ const orbitron = Orbitron({
   subsets: ['latin'],
   weight: ['600', '700', '800', '900'],
   variable: '--font-orbitron',
-  display: 'swap',
-})
-
-// Engraved, theatrical serif — used only by the Mask Studio section/page so
-// it reads as a distinct "gallery" identity against the rest of the site's
-// Poppins/Orbitron look, rather than another Y2K-styled category.
-const cinzel = Cinzel({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-cinzel',
   display: 'swap',
 })
 
@@ -239,7 +229,7 @@ const faqJsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${poppins.variable} ${blackOpsOne.variable} ${orbitron.variable} ${cinzel.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${blackOpsOne.variable} ${orbitron.variable}`}>
       <body>
         {/* Meta Pixel noscript fallback (must be in body) */}
         <noscript>

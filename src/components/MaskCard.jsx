@@ -39,10 +39,7 @@ export default function MaskCard({ product, delay = 0 }) {
       <WishlistButton product={product} className="top-3 right-3" />
 
       <div className="absolute inset-x-0 bottom-0 p-5">
-        <h3
-          className="text-lg text-white leading-snug mb-1"
-          style={{ fontFamily: 'var(--font-cinzel)' }}
-        >
+        <h3 className="text-lg font-extrabold text-white leading-snug mb-1">
           {product.name}
         </h3>
         <div className="flex items-center justify-between gap-3">

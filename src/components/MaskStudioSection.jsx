@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import MaskCard from '@/components/MaskCard'
 
 // Mask Studio is deliberately its own visual world — near-black + a single
-// crimson accent, Cinzel serif headings, sharp "framed" corners instead of
+// crimson accent, bold sans-serif headings, sharp "framed" corners instead of
 // the rounded Y2K-orange treatment used everywhere else on the site. Pulls
 // from the existing 'Cosplay' product category (kept as the underlying data
 // label per the admin's existing Products section) but is branded as "Mask
@@ -27,8 +27,7 @@ export default function MaskStudioSection({ products = [] }) {
             Mask Studio
           </motion.p>
           <motion.h2
-            className="text-4xl md:text-5xl text-white leading-tight mb-4"
-            style={{ fontFamily: 'var(--font-cinzel)' }}
+            className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4"
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
