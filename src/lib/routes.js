@@ -10,5 +10,6 @@ export const STATIC_ROUTES = [
   { path: '/lithophanes', freq: 'monthly', priority: '0.8' },
   { path: '/shop/brander-roller', freq: 'monthly', priority: '0.7' },
   { path: '/about', freq: 'yearly', priority: '0.6' },
+  { path: '/careers', freq: 'monthly', priority: '0.5' },
   { path: '/refund-policy', freq: 'yearly', priority: '0.4' },
 ]

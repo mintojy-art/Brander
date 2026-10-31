@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
@@ -114,17 +114,30 @@ function ShopAllCard() {
   )
 }
 
+// Browsers download autoplay videos even inside display:none containers, so
+// rendering both hero videos cost every visitor ~9MB for one visible video.
+// null on the server/first paint → neither src is set until we know the viewport.
+const MOBILE_QUERY = '(max-width: 639px)'
+const subscribeViewport = (cb) => {
+  const mq = window.matchMedia(MOBILE_QUERY)
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+const useIsMobile = () =>
+  useSyncExternalStore(subscribeViewport, () => window.matchMedia(MOBILE_QUERY).matches, () => null)
+
 export default function HomeClient({ products, testimonials, occasions }) {
   const bestSellers = products.filter((p) => p.badge === 'Popular')
   const newArrivals  = products.filter((p) => p.badge === 'New')
   const [quoteOpen, setQuoteOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   return (
     <div className="pt-[100px]">
 
       {/* ── HERO MOBILE: video on top, text below ── */}
       <div className="block sm:hidden bg-[#1D1D1F]">
-        <video className="w-full block" src="/3DPRINTING02.mp4" autoPlay loop muted playsInline />
+        <video className="w-full block aspect-[1080/1700] bg-[#1D1D1F]" src={isMobile === true ? '/3DPRINTING02.mp4' : undefined} autoPlay loop muted playsInline />
         <div className="px-6 py-10">
           <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#86868B] mb-4">
             ORIC · 3D Print on Demand · Made in India
@@ -152,7 +165,7 @@ export default function HomeClient({ products, testimonials, occasions }) {
       <section className="hidden sm:flex relative bg-[#1D1D1F] min-h-[92vh] items-center overflow-hidden">
         <video
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', zIndex: 0 }}
-          src="/3DPRINTING.mp4"
+          src={isMobile === false ? '/3DPRINTING.mp4' : undefined}
           autoPlay loop muted playsInline
         />
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(29,29,31,0.70)', zIndex: 1 }} />

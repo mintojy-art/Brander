@@ -717,7 +717,7 @@ export default function LithophaneClient() {
     } finally {
       setOrdering(false)
     }
-  }, [processedCanvas, ordering, shape, planeP, cylP, arcP, sphP, edit])
+  }, [processedCanvas, ordering, shape, planeP, cylP, arcP, sphP, edit, rawFile])
 
   // ── Tab content ──────────────────────────────────────────────────────────────
   const renderTab = () => {
