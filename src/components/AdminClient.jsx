@@ -214,9 +214,9 @@ on conflict (id) do nothing;
 create policy "Public read images" on storage.objects
   for select using (bucket_id = 'product-images');
 create policy "Allow upload" on storage.objects
-  for insert to authenticated with check (bucket_id = 'product-images');
+  for insert to authenticated with check (bucket_id = 'product-images' and public.is_admin());
 create policy "Allow delete" on storage.objects
-  for delete to authenticated using (bucket_id = 'product-images');`
+  for delete to authenticated using (bucket_id = 'product-images' and public.is_admin());`
 
 const SCHEMA_FIX_SQL = `-- Run in Supabase → SQL Editor → New query
 -- Adds any missing columns to your products table
@@ -248,7 +248,7 @@ drop policy if exists "Admin write products" on products;
 create policy "Public read products" on products
   for select using (true);
 create policy "Admin write products" on products
-  for all to authenticated using (true) with check (true);`
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());`
 
 // ── Image Crop Modal ──────────────────────────────────────────────────────────
 const RESIZE_OPTIONS = [
@@ -721,7 +721,7 @@ drop policy if exists "Admin write products" on products;
 create policy "Public read products" on products
   for select using (true);
 create policy "Admin write products" on products
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- 2. Image storage bucket
 insert into storage.buckets (id, name, public)
@@ -731,9 +731,9 @@ on conflict (id) do nothing;
 create policy "Public read images" on storage.objects
   for select using (bucket_id = 'product-images');
 create policy "Allow upload" on storage.objects
-  for insert to authenticated with check (bucket_id = 'product-images');
+  for insert to authenticated with check (bucket_id = 'product-images' and public.is_admin());
 create policy "Allow delete" on storage.objects
-  for delete to authenticated using (bucket_id = 'product-images');`
+  for delete to authenticated using (bucket_id = 'product-images' and public.is_admin());`
 
   const copy = () => {
     navigator.clipboard.writeText(sql)
@@ -1345,7 +1345,7 @@ drop policy if exists "Admin write testimonials" on testimonials;
 create policy "Public read testimonials" on testimonials
   for select using (true);
 create policy "Admin write testimonials" on testimonials
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 insert into storage.buckets (id, name, public)
 values ('testimonial-media', 'testimonial-media', true)
@@ -1354,9 +1354,9 @@ on conflict (id) do nothing;
 create policy "Public read testimonial media" on storage.objects
   for select using (bucket_id = 'testimonial-media');
 create policy "Allow upload testimonial media" on storage.objects
-  for insert to authenticated with check (bucket_id = 'testimonial-media');
+  for insert to authenticated with check (bucket_id = 'testimonial-media' and public.is_admin());
 create policy "Allow delete testimonial media" on storage.objects
-  for delete to authenticated using (bucket_id = 'testimonial-media');`
+  for delete to authenticated using (bucket_id = 'testimonial-media' and public.is_admin());`
 
 function TestimonialSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)
@@ -1926,7 +1926,7 @@ drop policy if exists "Admin write occasions" on bobblehead_occasions;
 create policy "Public read occasions" on bobblehead_occasions
   for select using (true);
 create policy "Admin write occasions" on bobblehead_occasions
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 insert into storage.buckets (id, name, public)
 values ('bobblehead-media', 'bobblehead-media', true)
@@ -1935,9 +1935,9 @@ on conflict (id) do nothing;
 create policy "Public read bobblehead media" on storage.objects
   for select using (bucket_id = 'bobblehead-media');
 create policy "Allow upload bobblehead media" on storage.objects
-  for insert to authenticated with check (bucket_id = 'bobblehead-media');
+  for insert to authenticated with check (bucket_id = 'bobblehead-media' and public.is_admin());
 create policy "Allow delete bobblehead media" on storage.objects
-  for delete to authenticated using (bucket_id = 'bobblehead-media');`
+  for delete to authenticated using (bucket_id = 'bobblehead-media' and public.is_admin());`
 
 function OccasionSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)
@@ -2501,7 +2501,7 @@ drop policy if exists "Admin write posts" on blog_posts;
 create policy "Public read published posts" on blog_posts
   for select using (status = 'published' and published_at <= now());
 create policy "Admin write posts" on blog_posts
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 create table if not exists blog_comments (
   id uuid primary key default gen_random_uuid(),
@@ -2521,7 +2521,7 @@ create policy "Public read approved comments" on blog_comments
 create policy "Public submit comments" on blog_comments
   for insert with check (status = 'pending');
 create policy "Admin manage comments" on blog_comments
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 insert into storage.buckets (id, name, public)
 values ('blog-images', 'blog-images', true)
@@ -2530,9 +2530,9 @@ on conflict (id) do nothing;
 create policy "Public read blog images" on storage.objects
   for select using (bucket_id = 'blog-images');
 create policy "Allow upload blog images" on storage.objects
-  for insert to authenticated with check (bucket_id = 'blog-images');
+  for insert to authenticated with check (bucket_id = 'blog-images' and public.is_admin());
 create policy "Allow delete blog images" on storage.objects
-  for delete to authenticated using (bucket_id = 'blog-images');`
+  for delete to authenticated using (bucket_id = 'blog-images' and public.is_admin());`
 
 function BlogSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)
@@ -3158,7 +3158,7 @@ drop policy if exists "Admin write career roles" on career_roles;
 create policy "Public read career roles" on career_roles
   for select using (true);
 create policy "Admin write career roles" on career_roles
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 create table if not exists job_applications (
   id uuid primary key default gen_random_uuid(),
@@ -3178,7 +3178,7 @@ drop policy if exists "Admin manage applications" on job_applications;
 create policy "Public submit applications" on job_applications
   for insert with check (true);
 create policy "Admin manage applications" on job_applications
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 insert into career_roles (id, title, type, summary, description, responsibilities, requirements, sort_order) values
 ('senior-3d-designer', 'Senior 3D Designer', 'Freelance Consultant',
@@ -3629,10 +3629,15 @@ function ApplicationsList({ applications, loading, onRefresh, toast }) {
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#424245] mb-2">
                   <a href={`mailto:${a.email}`} className="hover:underline">{a.email}</a>
                   {a.phone && <span>{a.phone}</span>}
-                  {a.portfolio_url && (
+                  {/* Applicants can insert rows directly via the public API, so a
+                      javascript: URL here would run in the admin's session if clicked. */}
+                  {a.portfolio_url && /^https?:\/\//i.test(a.portfolio_url) && (
                     <a href={a.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                       Portfolio/Resume ↗
                     </a>
+                  )}
+                  {a.portfolio_url && !/^https?:\/\//i.test(a.portfolio_url) && (
+                    <span className="text-[#86868B] break-all">Portfolio (unsafe link, not clickable): {a.portfolio_url}</span>
                   )}
                 </div>
                 {a.message && <p className="text-sm text-[#424245] leading-relaxed">{a.message}</p>}
@@ -3668,7 +3673,7 @@ drop policy if exists "Admin write pricing" on print_pricing;
 create policy "Public read pricing" on print_pricing
   for select using (true);
 create policy "Admin write pricing" on print_pricing
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 create table if not exists bobblehead_pricing (
   id int primary key default 1,
@@ -3693,7 +3698,7 @@ drop policy if exists "Admin write bobblehead pricing" on bobblehead_pricing;
 create policy "Public read bobblehead pricing" on bobblehead_pricing
   for select using (true);
 create policy "Admin write bobblehead pricing" on bobblehead_pricing
-  for all to authenticated using (true) with check (true);`
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());`
 
 function PricingSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)
@@ -3946,7 +3951,7 @@ drop policy if exists "Admin read page views" on page_views;
 create policy "Public log page views" on page_views
   for insert with check (true);
 create policy "Admin read page views" on page_views
-  for select to authenticated using (true);`
+  for select to authenticated using (public.is_admin());`
 
 function InsightsSetupBanner({ onDismiss }) {
   const [copied, setCopied] = useState(false)

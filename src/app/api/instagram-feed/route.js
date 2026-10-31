@@ -15,7 +15,8 @@ export async function GET() {
     const data = await igRes.json()
 
     if (!igRes.ok) {
-      return Response.json({ configured: true, posts: [], error: data?.error?.message || 'Instagram API error' })
+      console.error('Instagram API error:', data?.error?.message)
+      return Response.json({ configured: true, posts: [], error: 'Instagram feed unavailable' })
     }
 
     const posts = (data.data || []).map((p) => ({
@@ -34,6 +35,7 @@ export async function GET() {
       { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' } }
     )
   } catch (err) {
-    return Response.json({ configured: true, posts: [], error: err.message })
+    console.error('Instagram feed fetch failed:', err)
+    return Response.json({ configured: true, posts: [], error: 'Instagram feed unavailable' })
   }
 }

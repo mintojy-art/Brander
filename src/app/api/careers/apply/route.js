@@ -25,6 +25,23 @@ export async function POST(req) {
   const cleanPortfolio = String(portfolioUrl || '').trim()
   const cleanMessage = String(message || '').trim()
 
+  if (
+    cleanName.length > 100 ||
+    String(roleTitle).length > 150 ||
+    cleanEmail.length > 254 ||
+    cleanPhone.length > 30 ||
+    cleanPortfolio.length > 500 ||
+    cleanMessage.length > 5000
+  ) {
+    return Response.json({ error: 'One of the fields is too long.' }, { status: 400 })
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return Response.json({ error: 'Please enter a valid email address.' }, { status: 400 })
+  }
+  if (cleanPortfolio && !/^https?:\/\//i.test(cleanPortfolio)) {
+    return Response.json({ error: 'Portfolio link must start with http:// or https://' }, { status: 400 })
+  }
+
   // ── Save to Supabase (best effort) ──
   let savedToDb = false
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
