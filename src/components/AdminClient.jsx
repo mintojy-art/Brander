@@ -798,6 +798,51 @@ function ProductForm({ product, onSave, onBack, toast }) {
   const [isDirty, setIsDirty] = useState(false)
   const [showDiscard, setShowDiscard] = useState(false)
 
+  // Product-collection sections added on the Home Page screen. Ticking one here
+  // adds this product to that section (stored in home_sections.product_ids).
+  const [homeCollections, setHomeCollections] = useState([])
+  const [homePicked, setHomePicked] = useState([])
+  useEffect(() => {
+    let alive = true
+    supabase.from('home_sections').select('id,title,product_ids,visible').eq('kind', 'products')
+      .order('sort_order', { ascending: true })
+      .then(({ data, error }) => {
+        if (!alive || error || !data) return
+        setHomeCollections(data)
+        if (product?.id && !product._new) {
+          setHomePicked(data.filter(s => (s.product_ids || []).includes(product.id)).map(s => s.id))
+        }
+      })
+    return () => { alive = false }
+  }, [product?.id, product?._new])
+
+  const toggleHomePick = (sid) => {
+    setIsDirty(true)
+    setHomePicked(p => p.includes(sid) ? p.filter(x => x !== sid) : [...p, sid])
+  }
+
+  const syncHomeCollections = async (pid) => {
+    const updates = homeCollections.map(s => {
+      const ids = s.product_ids || []
+      const want = homePicked.includes(s.id)
+      if (want && !ids.includes(pid)) return { s, ids: [...ids, pid] }
+      if (!want && ids.includes(pid)) return { s, ids: ids.filter(x => x !== pid) }
+      return null
+    }).filter(Boolean)
+    if (!updates.length) return null
+    const results = await Promise.all(updates.map(u =>
+      supabase.from('home_sections').update({ product_ids: u.ids, updated_at: new Date().toISOString() }).eq('id', u.s.id)
+    ))
+    const failed = results.find(r => r.error)
+    if (!failed) {
+      setHomeCollections(cs => cs.map(c => {
+        const u = updates.find(x => x.s.id === c.id)
+        return u ? { ...c, product_ids: u.ids } : c
+      }))
+    }
+    return failed?.error || null
+  }
+
   const set = (k, v) => {
     setIsDirty(true)
     setForm(f => {
@@ -872,6 +917,9 @@ function ProductForm({ product, onSave, onBack, toast }) {
       return
     }
     setSchemaError(false)
+
+    const homeErr = await syncHomeCollections(id)
+    if (homeErr) toast(`Product saved, but home page sections didn't update: ${homeErr.message}`, 'error')
 
     toast(`"${form.name}" ${isNew ? 'created' : 'saved'} successfully`)
     setIsDirty(false)
@@ -1022,6 +1070,25 @@ function ProductForm({ product, onSave, onBack, toast }) {
                   {CATEGORIES.map(c => <option key={c}>{c}</option>)}
                 </Select>
               </div>
+              {homeCollections.length > 0 && (
+                <div>
+                  <Label hint="(tick to show it there)">Home page sections</Label>
+                  <div className="space-y-1.5 mt-1">
+                    {homeCollections.map(s => (
+                      <label key={s.id} className="flex items-center gap-2 text-sm text-[#202223] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={homePicked.includes(s.id)}
+                          onChange={() => toggleHomePick(s.id)}
+                          className="w-4 h-4 accent-[#008060]"
+                        />
+                        <span className="truncate">{s.title || 'Untitled section'}</span>
+                        {s.visible === false && <span className="text-[11px] text-[#6D7175]">(hidden)</span>}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div>
                 <Label hint="(optional — shows as a pill badge)">Badge label</Label>
                 <Input value={form.badge} onChange={e => set('badge', e.target.value)} placeholder="New / Popular / Pre-Order" />
