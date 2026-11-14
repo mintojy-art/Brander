@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import MultiLine from '@/components/MultiLine'
 import MaskCard from '@/components/MaskCard'
 
 // Mask Studio is deliberately its own visual world — near-black + a single
@@ -11,7 +12,12 @@ import MaskCard from '@/components/MaskCard'
 // label per the admin's existing Products section) but is branded as "Mask
 // Studio" throughout the UI.
 
-export default function MaskStudioSection({ products = [] }) {
+export default function MaskStudioSection({
+  products = [],
+  eyebrow = 'Mask Studio',
+  title = 'Behind Every Mask, A Story.',
+  subtitle = 'Hand-finished cosplay and display masks, sculpted and printed one piece at a time.',
+}) {
   const masks = products.filter((p) => p.category === 'Cosplay')
   if (masks.length === 0) return null
 
@@ -24,21 +30,21 @@ export default function MaskStudioSection({ products = [] }) {
             style={{ color: '#C24A5E' }}
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           >
-            Mask Studio
+            {eyebrow}
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4"
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Behind Every Mask, A Story.
+            <MultiLine text={title} />
           </motion.h2>
           <motion.p
             className="text-white/50 text-sm max-w-md mx-auto"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             transition={{ delay: 0.15 }}
           >
-            Hand-finished cosplay and display masks, sculpted and printed one piece at a time.
+            {subtitle}
           </motion.p>
         </div>
 

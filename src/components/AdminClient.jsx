@@ -7,6 +7,7 @@ import { products as STATIC_PRODUCTS } from '@/data/products'
 import { getCroppedImg } from '@/utils/cropImage'
 import { BLOG_CATEGORIES } from '@/data/blogCategories'
 import BlogEditor from '@/components/BlogEditor'
+import { BUILTIN_SECTIONS, DEFAULT_ORDER, FIELD_LABELS, BACKGROUNDS, sectionText, safeHref } from '@/lib/homeSections'
 
 const CATEGORIES = ['Tools', 'Figurines', 'Bobbleheads', 'Cosplay', 'Accessories', 'Custom', 'Idols', 'Prototyping', 'Manufacturing', 'Toys']
 
@@ -4162,6 +4163,556 @@ function InsightsPanel({ toast }) {
   )
 }
 
+// ── Home Page sections ────────────────────────────────────────────────────────
+const HOME_SECTIONS_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists home_sections (
+  id text primary key default gen_random_uuid()::text,
+  kind text not null check (kind in ('builtin', 'products', 'content')),
+  builtin_key text unique,
+  eyebrow text,
+  title text,
+  title2 text,
+  subtitle text,
+  body text,
+  product_ids text[] not null default '{}',
+  image_url text,
+  button_label text,
+  button_url text check (button_url is null or button_url ~* '^(https?://|/([^/]|$)|mailto:|tel:)'),
+  layout text not null default 'image-right',
+  background text not null default 'light',
+  visible boolean not null default true,
+  sort_order integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+alter table home_sections enable row level security;
+drop policy if exists "Public read home sections" on home_sections;
+drop policy if exists "Admin write home sections" on home_sections;
+create policy "Public read home sections" on home_sections
+  for select using (true);
+create policy "Admin write home sections" on home_sections
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Seed the current home page layout (skipped for rows that already exist)
+insert into home_sections (id, kind, builtin_key, sort_order) values
+${DEFAULT_ORDER.map((k, i) => `('${k}', 'builtin', '${k}', ${i})`).join(',\n')}
+on conflict (id) do nothing;`
+
+function HomeSectionsSetupBanner({ onDismiss }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(HOME_SECTIONS_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-3 sm:mx-6 mt-4 border border-amber-200 bg-amber-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-amber-600 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <p className="text-sm font-semibold text-amber-900">One-time setup needed</p>
+            {onDismiss && <button onClick={onDismiss} className="text-amber-500 hover:text-amber-700 shrink-0">{Ico.xLg}</button>}
+          </div>
+          <p className="text-xs text-amber-800 mb-3">
+            Copy this SQL, paste it in <strong>Supabase → SQL Editor → New query</strong> and click <strong>Run</strong>. It saves your current home page layout so you can edit it here. Until then, the home page keeps its current layout.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{HOME_SECTIONS_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const isMissingTable = (msg = '') => msg.includes('schema cache') || msg.includes('does not exist') || msg.includes('relation')
+
+const SECTION_KIND_LABEL = { builtin: 'Built-in', products: 'Product collection', content: 'Content block' }
+
+function sectionName(s) {
+  if (s.kind === 'builtin') return BUILTIN_SECTIONS[s.builtin_key]?.label || s.builtin_key
+  return s.title?.trim() || (s.kind === 'products' ? 'Untitled collection' : 'Untitled block')
+}
+
+function sectionSummary(s) {
+  if (s.kind === 'builtin') {
+    const t = sectionText(s)
+    return [t.eyebrow, t.title].filter(Boolean).join(' · ').replace(/\n/g, ' ')
+  }
+  if (s.kind === 'products') return `${(s.product_ids || []).length} product${(s.product_ids || []).length === 1 ? '' : 's'}`
+  return (s.body || '').replace(/\n/g, ' ')
+}
+
+function HomeSectionsManager({ toast, onAdd, onEdit }) {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [setupMissing, setSetupMissing] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data, error } = await supabase.from('home_sections').select('*').order('sort_order', { ascending: true })
+    if (error) {
+      if (isMissingTable(error.message)) setSetupMissing(true)
+      else toast('Failed to load sections: ' + error.message, 'error')
+      setRows([])
+    } else {
+      setSetupMissing(false)
+      setRows((data || []).filter(s => s.kind !== 'builtin' || BUILTIN_SECTIONS[s.builtin_key]))
+    }
+    setLoading(false)
+  }, [toast])
+
+  useEffect(() => { load() }, [load])
+
+  const nextOrder = rows.length ? Math.max(...rows.map(r => r.sort_order)) + 1 : 0
+  const removedBuiltins = DEFAULT_ORDER.filter(k => !rows.some(r => r.kind === 'builtin' && r.builtin_key === k))
+
+  const move = async (index, dir) => {
+    const j = index + dir
+    if (j < 0 || j >= rows.length || busy) return
+    const reordered = [...rows]
+    ;[reordered[index], reordered[j]] = [reordered[j], reordered[index]]
+    const changed = reordered.map((r, i) => ({ ...r, sort_order: i })).filter((r, i) => rows.find(x => x.id === r.id).sort_order !== i)
+    setRows(reordered.map((r, i) => ({ ...r, sort_order: i })))
+    setBusy(true)
+    const results = await Promise.all(changed.map(r => supabase.from('home_sections').update({ sort_order: r.sort_order }).eq('id', r.id)))
+    setBusy(false)
+    const failed = results.find(r => r.error)
+    if (failed) { toast('Reorder failed: ' + failed.error.message, 'error'); load() }
+  }
+
+  const toggleVisible = async (s) => {
+    setRows(rs => rs.map(r => r.id === s.id ? { ...r, visible: !s.visible } : r))
+    const { error } = await supabase.from('home_sections').update({ visible: !s.visible }).eq('id', s.id)
+    if (error) { toast('Update failed: ' + error.message, 'error'); load(); return }
+    toast(`"${sectionName(s)}" ${s.visible ? 'hidden' : 'shown'}`)
+  }
+
+  const confirmDelete = async () => {
+    const s = deleteTarget
+    setDeleteTarget(null)
+    const { error } = await supabase.from('home_sections').delete().eq('id', s.id)
+    if (error) { toast('Delete failed: ' + error.message, 'error'); return }
+    toast(`"${sectionName(s)}" deleted`)
+    load()
+  }
+
+  const restore = async (key) => {
+    setAddOpen(false)
+    const { error } = await supabase.from('home_sections').insert({ id: key, kind: 'builtin', builtin_key: key, visible: true, sort_order: nextOrder })
+    if (error) { toast('Restore failed: ' + error.message, 'error'); return }
+    toast(`"${BUILTIN_SECTIONS[key].label}" added back at the bottom`)
+    load()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col">
+      {deleteTarget && (
+        <DeleteModal
+          title={`Delete "${sectionName(deleteTarget)}"?`}
+          message={deleteTarget.kind === 'builtin'
+            ? 'It will be removed from your home page. You can add it back any time from "Add section".'
+            : 'This section and its content will be permanently removed from your home page.'}
+          confirmLabel="Delete section"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      <div className="bg-white border-b border-[#E1E3E5] px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-[#202223]">Home Page</h1>
+          <p className="text-xs text-[#6D7175]">Sections appear top to bottom in this order. Changes show on the live site within about a minute.</p>
+        </div>
+        <div className="flex items-center gap-2 relative">
+          <button onClick={load} title="Refresh" disabled={loading}
+            className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+            <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+          </button>
+          <a href="/" target="_blank" rel="noopener noreferrer"
+            className="px-3 py-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-sm font-medium text-[#202223] transition-colors">
+            Preview ↗
+          </a>
+          <button onClick={() => setAddOpen(o => !o)} disabled={setupMissing}
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#1D1D1F] text-white text-sm font-semibold rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40">
+            {Ico.plus} <span>Add section</span>
+          </button>
+          {addOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setAddOpen(false)} />
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-[#E1E3E5] rounded-xl shadow-xl z-20 overflow-hidden">
+                <button onClick={() => { setAddOpen(false); onAdd({ _new: true, kind: 'products', sort_order: nextOrder }) }}
+                  className="w-full text-left px-4 py-3 hover:bg-[#F6F6F7] transition-colors">
+                  <p className="text-sm font-semibold text-[#202223]">🛍️ Product collection</p>
+                  <p className="text-xs text-[#6D7175]">A named row of products you pick, e.g. "Diwali Gifts"</p>
+                </button>
+                <button onClick={() => { setAddOpen(false); onAdd({ _new: true, kind: 'content', sort_order: nextOrder }) }}
+                  className="w-full text-left px-4 py-3 hover:bg-[#F6F6F7] transition-colors border-t border-[#F1F1F1]">
+                  <p className="text-sm font-semibold text-[#202223]">📝 Content block</p>
+                  <p className="text-xs text-[#6D7175]">Heading, text, an image and a button</p>
+                </button>
+                {removedBuiltins.length > 0 && (
+                  <div className="border-t border-[#E1E3E5] bg-[#FAFAFB]">
+                    <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#6D7175]">Add back a deleted section</p>
+                    {removedBuiltins.map(k => (
+                      <button key={k} onClick={() => restore(k)}
+                        className="w-full text-left px-4 py-2 text-sm text-[#202223] hover:bg-[#F1F1F1] transition-colors">
+                        ↺ {BUILTIN_SECTIONS[k].label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {setupMissing && <HomeSectionsSetupBanner />}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-5">
+        <div className="bg-white border border-[#E1E3E5] rounded-xl overflow-hidden">
+          <div className="px-4 sm:px-5 py-3 bg-[#FAFAFB] border-b border-[#E1E3E5] text-xs text-[#6D7175]">
+            🔒 Hero banner ("Print. Create. Deliver.") always stays at the top
+          </div>
+          {loading ? (
+            <div className="py-20 text-center">
+              <div className="w-8 h-8 border-2 border-[#1D1D1F] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-[#6D7175]">Loading sections…</p>
+            </div>
+          ) : setupMissing ? (
+            <p className="py-12 text-center text-sm text-[#6D7175] px-6">Run the setup above, then click refresh.</p>
+          ) : rows.length === 0 ? (
+            <div className="py-16 text-center px-8">
+              <p className="text-base font-semibold text-[#202223] mb-1">No sections on your home page</p>
+              <p className="text-sm text-[#6D7175]">Only the hero banner is showing. Use "Add section" to add some.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-[#F1F1F1]">
+              {rows.map((s, i) => (
+                <div key={s.id} className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3 ${s.visible ? '' : 'bg-[#FAFAFB]'}`}>
+                  <div className="flex flex-col shrink-0">
+                    <button onClick={() => move(i, -1)} disabled={i === 0 || busy} title="Move up"
+                      className="px-1.5 py-0.5 text-[#6D7175] hover:text-[#202223] disabled:opacity-20 text-xs">▲</button>
+                    <button onClick={() => move(i, 1)} disabled={i === rows.length - 1 || busy} title="Move down"
+                      className="px-1.5 py-0.5 text-[#6D7175] hover:text-[#202223] disabled:opacity-20 text-xs">▼</button>
+                  </div>
+                  <span className="w-6 text-xs font-mono text-[#6D7175] text-right shrink-0">{i + 1}</span>
+                  <button onClick={() => onEdit(s)} className="flex-1 min-w-0 text-left">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={`text-sm font-semibold truncate ${s.visible ? 'text-[#202223]' : 'text-[#6D7175] line-through'}`}>{sectionName(s)}</p>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                        s.kind === 'builtin' ? 'bg-[#F1F1F1] text-[#6D7175]' : s.kind === 'products' ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-blue-700'
+                      }`}>{SECTION_KIND_LABEL[s.kind]}</span>
+                    </div>
+                    {sectionSummary(s) && <p className="text-xs text-[#6D7175] truncate">{sectionSummary(s)}</p>}
+                  </button>
+                  <button onClick={() => toggleVisible(s)} title={s.visible ? 'Hide from home page' : 'Show on home page'}
+                    className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 rounded-lg hover:bg-[#F1F1F1]">
+                    <span className={`w-2 h-2 rounded-full ${s.visible ? 'bg-green-500' : 'bg-[#C9CCCF]'}`} />
+                    <span className={`hidden sm:inline text-xs font-medium ${s.visible ? 'text-green-700' : 'text-[#6D7175]'}`}>{s.visible ? 'Visible' : 'Hidden'}</span>
+                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {(s.kind !== 'builtin' || BUILTIN_SECTIONS[s.builtin_key].fields.length > 0) && (
+                      <button onClick={() => onEdit(s)} title="Edit"
+                        className="p-2 rounded-lg text-[#6D7175] hover:bg-[#E1E3E5] transition-colors">{Ico.edit}</button>
+                    )}
+                    <button onClick={() => setDeleteTarget(s)} title="Delete"
+                      className="p-2 rounded-lg text-[#6D7175] hover:bg-red-50 hover:text-red-600 transition-colors">{Ico.trash}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProductPicker({ products, selected, onChange }) {
+  const [q, setQ] = useState('')
+  const byId = new Map(products.map(p => [p.id, p]))
+  const thumb = (p) => (p.images || []).filter(Boolean)[0] || p.image
+  const available = products.filter(p => !selected.includes(p.id) && (!q || `${p.name} ${p.category}`.toLowerCase().includes(q.toLowerCase())))
+  const move = (i, dir) => {
+    const j = i + dir
+    if (j < 0 || j >= selected.length) return
+    const next = [...selected]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    onChange(next)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label hint="(shown in this order)">Selected products · {selected.length}</Label>
+        {selected.length === 0 ? (
+          <p className="text-xs text-[#6D7175] border border-dashed border-[#C9CCCF] rounded-lg px-3 py-4 text-center">Pick products from the list below.</p>
+        ) : (
+          <div className="border border-[#E1E3E5] rounded-lg divide-y divide-[#F1F1F1]">
+            {selected.map((id, i) => {
+              const p = byId.get(id)
+              return (
+                <div key={id} className="flex items-center gap-3 px-3 py-2">
+                  {p && thumb(p) ? <img src={thumb(p)} alt="" className="w-9 h-9 rounded object-cover shrink-0" /> : <div className="w-9 h-9 rounded bg-[#F1F1F1] shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#202223] truncate">{p ? p.name : id}</p>
+                    {p && !p.active && <p className="text-[11px] text-amber-700">Hidden product: won't show on the site</p>}
+                    {!p && <p className="text-[11px] text-red-600">Product no longer exists</p>}
+                  </div>
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="px-1.5 text-xs text-[#6D7175] disabled:opacity-20">▲</button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === selected.length - 1} className="px-1.5 text-xs text-[#6D7175] disabled:opacity-20">▼</button>
+                  <button type="button" onClick={() => onChange(selected.filter(x => x !== id))} className="p-1.5 text-[#6D7175] hover:text-red-600">{Ico.x}</button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+      <div>
+        <Label>Add products</Label>
+        <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or category" className="mb-2" />
+        <div className="border border-[#E1E3E5] rounded-lg divide-y divide-[#F1F1F1] max-h-72 overflow-y-auto">
+          {available.length === 0 ? (
+            <p className="text-xs text-[#6D7175] px-3 py-4 text-center">{q ? 'No matching products' : 'All products added'}</p>
+          ) : available.map(p => (
+            <button type="button" key={p.id} onClick={() => onChange([...selected, p.id])}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#F6F6F7] text-left">
+              {thumb(p) ? <img src={thumb(p)} alt="" className="w-9 h-9 rounded object-cover shrink-0" /> : <div className="w-9 h-9 rounded bg-[#F1F1F1] shrink-0" />}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-[#202223] truncate">{p.name}</p>
+                <p className="text-[11px] text-[#6D7175]">{p.category}{p.active ? '' : ' · hidden'}</p>
+              </div>
+              <span className="text-[#6D7175]">{Ico.plus}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function HomeSectionForm({ section, products, onSave, onBack, toast }) {
+  const isNew = !!section?._new
+  const kind = section.kind
+  const builtin = kind === 'builtin' ? BUILTIN_SECTIONS[section.builtin_key] : null
+  const topRef = useRef(null)
+
+  const [form, setForm] = useState(() => ({
+    eyebrow: section.eyebrow || '',
+    title: section.title || '',
+    title2: section.title2 || '',
+    subtitle: section.subtitle || '',
+    body: section.body || '',
+    product_ids: section.product_ids || [],
+    image_url: section.image_url || '',
+    button_label: section.button_label || '',
+    button_url: section.button_url || '',
+    layout: section.layout || 'image-right',
+    background: section.background || 'light',
+    visible: section.visible !== false,
+  }))
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+  const [setupMissing, setSetupMissing] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
+  const set = (k, v) => { setIsDirty(true); setForm(f => ({ ...f, [k]: v })) }
+
+  const title = builtin ? builtin.label : isNew ? (kind === 'products' ? 'New product collection' : 'New content block') : (section.title || 'Edit section')
+
+  const fail = (msg) => { setErr(msg); topRef.current?.scrollIntoView({ behavior: 'smooth' }) }
+
+  const handleSave = async () => {
+    const clean = (v) => (v || '').trim() || null
+    if (!builtin && !form.title.trim()) return fail('Add a heading for this section.')
+    if (kind === 'products' && form.product_ids.length === 0) return fail('Pick at least one product.')
+    if (!builtin && form.button_label.trim() && !safeHref(form.button_url)) {
+      return fail('The button link must start with https://, / (a page on your site), mailto: or tel:')
+    }
+    if (!builtin && form.button_url.trim() && !form.button_label.trim()) return fail('Add the button text, or clear the button link.')
+
+    const payload = builtin
+      ? Object.fromEntries(builtin.fields.map(f => [f, clean(form[f])]))
+      : {
+          eyebrow: clean(form.eyebrow),
+          title: clean(form.title),
+          subtitle: kind === 'products' ? clean(form.subtitle) : null,
+          body: kind === 'content' ? clean(form.body) : null,
+          product_ids: kind === 'products' ? form.product_ids : [],
+          image_url: kind === 'content' ? clean(form.image_url) : null,
+          button_label: clean(form.button_label),
+          button_url: clean(form.button_label) ? clean(form.button_url) : null,
+          layout: form.layout,
+          background: form.background,
+          visible: form.visible,
+        }
+    payload.updated_at = new Date().toISOString()
+
+    setSaving(true)
+    setErr('')
+    const res = isNew
+      ? await supabase.from('home_sections').insert({ ...payload, kind, sort_order: section.sort_order ?? 0 })
+      : await supabase.from('home_sections').update(payload).eq('id', section.id)
+    setSaving(false)
+
+    if (res.error) {
+      if (isMissingTable(res.error.message)) { setSetupMissing(true); topRef.current?.scrollIntoView({ behavior: 'smooth' }) }
+      else fail(res.error.message)
+      toast('Save failed', 'error')
+      return
+    }
+    toast(`"${builtin ? builtin.label : form.title}" saved. Live within about a minute.`)
+    setIsDirty(false)
+    onSave()
+  }
+
+  const textField = (field, { multiline = false, rows = 2, placeholder } = {}) => {
+    const lbl = builtin?.fieldLabels?.[field] || FIELD_LABELS[field]
+    const def = builtin?.defaults?.[field]
+    const Comp = multiline ? Textarea : Input
+    return (
+      <div key={field}>
+        <Label hint={def ? '(leave blank to use the original)' : undefined}>{lbl}</Label>
+        <Comp {...(multiline ? { rows } : {})} value={form[field]} onChange={e => set(field, e.target.value)} placeholder={def || placeholder || ''} />
+        {def && form[field].trim() && (
+          <button type="button" onClick={() => set(field, '')} className="mt-1 text-xs text-[#6D7175] hover:text-[#202223] underline">Reset to original</button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7]">
+      {showDiscard && <DiscardModal onConfirm={() => { setShowDiscard(false); onBack() }} onCancel={() => setShowDiscard(false)} />}
+
+      <div ref={topRef} className="bg-white border-b border-[#E1E3E5] px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={() => isDirty ? setShowDiscard(true) : onBack()} className="flex items-center gap-1 text-sm text-[#6D7175] hover:text-[#202223] transition-colors shrink-0">
+            {Ico.back} Home Page
+          </button>
+          <span className="text-[#C9CCCF]">/</span>
+          <span className="text-sm font-semibold text-[#202223] truncate">{title}</span>
+          {isDirty && <span className="text-xs text-[#6D7175] bg-[#F6F6F7] px-2 py-0.5 rounded-full shrink-0">Unsaved</span>}
+        </div>
+        <button onClick={handleSave} disabled={saving}
+          className="px-4 py-2 text-sm font-semibold bg-[#1D1D1F] text-white rounded-lg hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center gap-2 shrink-0 ml-3">
+          {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</> : <>{Ico.check} Save</>}
+        </button>
+      </div>
+
+      {setupMissing && <HomeSectionsSetupBanner onDismiss={() => setSetupMissing(false)} />}
+      {err && (
+        <div className="mx-3 sm:mx-6 mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+          <span className="shrink-0 mt-0.5 font-bold">✕</span><span>{err}</span>
+        </div>
+      )}
+
+      <div className="flex-1 px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-3 gap-5 items-start max-w-6xl mx-auto w-full">
+        <div className="lg:col-span-2 space-y-5">
+          <Card>
+            <CardTitle>Text</CardTitle>
+            <div className="space-y-4">
+              {builtin ? builtin.fields.map(f => textField(f, { multiline: f !== 'eyebrow', rows: f === 'subtitle' ? 3 : 2 })) : (
+                <>
+                  {textField('eyebrow', { placeholder: 'e.g. Festive Picks' })}
+                  {textField('title', { multiline: true, placeholder: kind === 'products' ? 'e.g. Diwali Gifts' : 'e.g. Bulk orders for your company' })}
+                  {kind === 'products'
+                    ? textField('subtitle', { multiline: true, rows: 2, placeholder: 'Optional short line under the heading' })
+                    : (
+                      <div>
+                        <Label>Text</Label>
+                        <Textarea rows={6} value={form.body} onChange={e => set('body', e.target.value)} placeholder="What you want visitors to know" />
+                      </div>
+                    )}
+                </>
+              )}
+              <p className="text-xs text-[#6D7175]">Tip: press Enter in a heading to split it over two lines.</p>
+            </div>
+          </Card>
+
+          {kind === 'products' && (
+            <Card>
+              <CardTitle>Products</CardTitle>
+              <ProductPicker products={products} selected={form.product_ids} onChange={ids => set('product_ids', ids)} />
+            </Card>
+          )}
+
+          {kind === 'content' && (
+            <Card>
+              <CardTitle>Image <span className="font-normal text-[#6D7175]">(optional)</span></CardTitle>
+              <ImageUploader
+                images={form.image_url ? [form.image_url] : []}
+                onChange={imgs => set('image_url', imgs[imgs.length - 1] || '')}
+                toast={toast}
+              />
+            </Card>
+          )}
+
+          {!builtin && (
+            <Card>
+              <CardTitle>Button <span className="font-normal text-[#6D7175]">(optional)</span></CardTitle>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label>Button text</Label>
+                  <Input value={form.button_label} onChange={e => set('button_label', e.target.value)} placeholder="e.g. Order on WhatsApp" />
+                </div>
+                <div>
+                  <Label>Link</Label>
+                  <Input value={form.button_url} onChange={e => set('button_url', e.target.value)} placeholder="https://wa.me/918310194953 or /shop" />
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <div className="space-y-5">
+          {builtin ? (
+            <Card>
+              <CardTitle>About this section</CardTitle>
+              <p className="text-sm text-[#6D7175]">This section's layout and content come from your site. Here you can change its wording. To move, hide or delete it, use the Home Page list.</p>
+            </Card>
+          ) : (
+            <Card>
+              <CardTitle>Appearance</CardTitle>
+              <div className="space-y-4">
+                <Toggle value={form.visible} onChange={v => set('visible', v)} label="Visible on home page" />
+                <div>
+                  <Label>Background</Label>
+                  <Select value={form.background} onChange={e => set('background', e.target.value)}>
+                    {BACKGROUNDS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+                  </Select>
+                </div>
+                {kind === 'content' && form.image_url && (
+                  <div>
+                    <Label>Image position</Label>
+                    <Select value={form.layout} onChange={e => set('layout', e.target.value)}>
+                      <option value="image-right">Image on the right</option>
+                      <option value="image-left">Image on the left</option>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+          <button onClick={handleSave} disabled={saving}
+            className="w-full py-3 text-sm font-semibold bg-[#1D1D1F] text-white rounded-xl hover:bg-[#424245] transition-colors disabled:opacity-40 flex items-center justify-center gap-2">
+            {saving ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Saving…</> : <>{Ico.check} Save section</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminClient() {
   const [authed, setAuthed] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
@@ -4187,6 +4738,7 @@ export default function AdminClient() {
   const [editOccasion, setEditOccasion] = useState(null)
   const [editPost, setEditPost] = useState(null)
   const [editCareerRole, setEditCareerRole] = useState(null)
+  const [editHomeSection, setEditHomeSection] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { toasts, toast } = useToast()
   const inTestimonials = view === 'testimonials-list' || view === 'testimonials-form'
@@ -4197,7 +4749,8 @@ export default function AdminClient() {
   const inApplications = view === 'applications-list'
   const inPricing = view === 'pricing'
   const inInsights = view === 'insights'
-  const noAddAction = inComments || inPricing || inInsights || inApplications
+  const inHome = view === 'home-sections' || view === 'home-sections-form'
+  const noAddAction = inComments || inPricing || inInsights || inApplications || inHome
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -4376,6 +4929,10 @@ export default function AdminClient() {
           {products.length > 0 && (
             <span className="text-[10px] bg-white/20 text-white/80 px-1.5 py-0.5 rounded-full font-semibold">{products.length}</span>
           )}
+        </button>
+        <button onClick={() => { setView('home-sections'); setMobileOpen(false) }}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inHome ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          🏠 Home Page
         </button>
         <button onClick={() => { setView('testimonials-list'); setMobileOpen(false) }}
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inTestimonials ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
@@ -4580,6 +5137,21 @@ export default function AdminClient() {
              loading={applicationsLoading}
              toast={toast}
              onRefresh={fetchApplications}
+           />
+         ) : view === 'home-sections' ? (
+           <HomeSectionsManager
+             toast={toast}
+             onAdd={s => { setEditHomeSection(s); setView('home-sections-form') }}
+             onEdit={s => { setEditHomeSection(s); setView('home-sections-form') }}
+           />
+         ) : view === 'home-sections-form' ? (
+           <HomeSectionForm
+             key={editHomeSection?.id || 'new'}
+             section={editHomeSection}
+             products={products}
+             toast={toast}
+             onSave={() => setView('home-sections')}
+             onBack={() => setView('home-sections')}
            />
          ) : view === 'pricing' ? (
            <PricingSettingsForm toast={toast} />

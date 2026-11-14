@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import MultiLine from '@/components/MultiLine'
 import Link from 'next/link'
 
 const FAQS = [
@@ -92,7 +93,7 @@ function Item({ faq, isOpen, onToggle }) {
   )
 }
 
-export default function FAQSection() {
+export default function FAQSection({ eyebrow = 'Help', title = 'Questions, answered.' }) {
   const [open, setOpen] = useState(0)
   const toggle = (i) => setOpen((prev) => (prev === i ? null : i))
 
@@ -105,7 +106,7 @@ export default function FAQSection() {
             className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           >
-            Help
+            {eyebrow}
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-[#1D1D1F]"
@@ -113,7 +114,7 @@ export default function FAQSection() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Questions, answered.
+            <MultiLine text={title} />
           </motion.h2>
         </div>
 

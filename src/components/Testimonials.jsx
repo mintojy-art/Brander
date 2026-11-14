@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import MultiLine from '@/components/MultiLine'
 
 function Stars({ rating = 5 }) {
   return (
@@ -30,7 +31,7 @@ function TestimonialCard({ t }) {
   )
 }
 
-export default function Testimonials({ testimonials = [] }) {
+export default function Testimonials({ testimonials = [], eyebrow = 'What Customers Say', title = 'Loved by our customers.' }) {
   if (testimonials.length === 0) return null
 
   // Duplicated so the -50% translateX loop is seamless (roll keyframe in globals.css).
@@ -44,7 +45,7 @@ export default function Testimonials({ testimonials = [] }) {
             className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#FFA35C] mb-3"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           >
-            What Customers Say
+            {eyebrow}
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-white"
@@ -52,7 +53,7 @@ export default function Testimonials({ testimonials = [] }) {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Loved by our customers.
+            <MultiLine text={title} />
           </motion.h2>
         </div>
       </div>

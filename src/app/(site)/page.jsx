@@ -2,6 +2,7 @@ import HomeClient from '@/components/HomeClient'
 import { getProducts } from '@/lib/data/products'
 import { getTestimonials } from '@/lib/data/testimonials'
 import { getBobbleheadOccasions } from '@/lib/data/bobbleheadOccasions'
+import { getHomeSections } from '@/lib/data/homeSections'
 import { buildMetadata } from '@/lib/seo'
 
 // Without this, Next.js statically generates this page once at build/deploy
@@ -24,11 +25,12 @@ export const metadata = buildMetadata({
 })
 
 export default async function Home() {
-  const [products, testimonials, occasions] = await Promise.all([
+  const [products, testimonials, occasions, sections] = await Promise.all([
     getProducts(),
     getTestimonials(),
     getBobbleheadOccasions(),
+    getHomeSections(),
   ])
 
-  return <HomeClient products={products} testimonials={testimonials} occasions={occasions} />
+  return <HomeClient products={products} testimonials={testimonials} occasions={occasions} sections={sections} />
 }

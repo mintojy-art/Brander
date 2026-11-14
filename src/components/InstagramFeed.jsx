@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import MultiLine from '@/components/MultiLine'
 
-export default function InstagramFeed() {
+export default function InstagramFeed({ eyebrow = 'Follow Along', title = '@oric3d on Instagram' }) {
   const [posts, setPosts] = useState([])
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function InstagramFeed() {
               className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
               initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
             >
-              Follow Along
+              {eyebrow}
             </motion.p>
             <motion.h2
               className="text-4xl md:text-5xl font-bold text-[#1D1D1F]"
@@ -32,7 +33,7 @@ export default function InstagramFeed() {
               initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              @oric3d on Instagram
+              <MultiLine text={title} />
             </motion.h2>
           </div>
           <a

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import MultiLine from '@/components/MultiLine'
 import Y2kIcon from '@/components/Y2kIcon'
 
 function CollectionCard({ o, span, delay }) {
@@ -57,7 +58,7 @@ function spanFor(index) {
   return 'md:col-span-4'
 }
 
-export default function BobbleheadCollections({ occasions = [] }) {
+export default function BobbleheadCollections({ occasions = [], eyebrow = 'Bobbleheads', title = 'Shop by Occasion' }) {
   if (occasions.length === 0) return null
 
   return (
@@ -68,7 +69,7 @@ export default function BobbleheadCollections({ occasions = [] }) {
             className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#86868B] mb-3"
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
           >
-            Bobbleheads
+            {eyebrow}
           </motion.p>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-[#1D1D1F]"
@@ -76,7 +77,7 @@ export default function BobbleheadCollections({ occasions = [] }) {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Shop by Occasion
+            <MultiLine text={title} />
           </motion.h2>
         </div>
 
