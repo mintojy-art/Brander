@@ -369,6 +369,8 @@ function ProductCollectionSection({ section, products }) {
   const picked = (section.product_ids || []).map((id) => byId.get(id)).filter(Boolean)
   if (picked.length === 0) return null
   const dark = section.background === 'dark'
+  // A Christmas collection links to /christmas-decor unless the admin set its own button.
+  const isXmas = /christmas|xmas/i.test(section.title || '')
 
   return (
     <section className={`py-28 ${SECTION_BG[section.background] || SECTION_BG.light}`}>
@@ -381,7 +383,11 @@ function ProductCollectionSection({ section, products }) {
               <p className={`text-base mt-3 ${dark ? 'text-[#A1A1A6]' : 'text-[#86868B]'}`}>{section.subtitle}</p>
             )}
           </div>
-          <SectionButton label={section.button_label} url={section.button_url} dark={dark} />
+          <SectionButton
+            label={section.button_label || (isXmas ? 'View all Christmas decor' : '')}
+            url={section.button_url || (isXmas ? '/christmas-decor' : '')}
+            dark={dark}
+          />
         </div>
         <ProductCarousel>
           {picked.map((p) => <ProductCard key={p.id} product={p} />)}

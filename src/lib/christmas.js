@@ -15,3 +15,10 @@ export function christmasProducts(products = [], sections = []) {
 
 export const isChristmasProduct = (product, products, sections) =>
   !!product && christmasProducts(products, sections).some((p) => p.id === product.id)
+
+// Seasonal nav link window: 1 November – 25 December (India time), every year.
+export function isChristmasSeason(now = new Date()) {
+  const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000)
+  const m = ist.getUTCMonth()
+  return m === 10 || (m === 11 && ist.getUTCDate() <= 25)
+}

@@ -8,13 +8,17 @@ import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { categoryIcons } from '@/data/products'
 import Y2kIcon from '@/components/Y2kIcon'
+import { isChristmasSeason } from '@/lib/christmas'
 
-const navLinks = [
+const baseNavLinks = [
   { to: '/services',     label: 'Services'    },
   { to: '/blog',         label: 'Blog'        },
   { to: '/about',        label: 'About'       },
   { to: '/lithophanes',  label: 'Lithophane' },
 ]
+
+// Temporary seasonal link — shows 1 Nov to 25 Dec only, then disappears.
+const christmasLink = { to: '/christmas-decor', label: 'Christmas' }
 
 // Bobbleheads and Mask Studio (data category: 'Cosplay') each have their own
 // dedicated hub page (occasions/gallery + products together) instead of the
@@ -137,7 +141,7 @@ export default function OricNavbar({ categories = [] }) {
               </AnimatePresence>
             </div>
 
-            {navLinks.map((link) => (
+            {(isChristmasSeason() ? [christmasLink, ...baseNavLinks] : baseNavLinks).map((link) => (
               <Link
                 key={link.to}
                 href={link.to}
@@ -281,7 +285,7 @@ export default function OricNavbar({ categories = [] }) {
                 </AnimatePresence>
               </div>
 
-              {navLinks.map((link) => (
+              {(isChristmasSeason() ? [christmasLink, ...baseNavLinks] : baseNavLinks).map((link) => (
                 <Link
                   key={link.to}
                   href={link.to}
