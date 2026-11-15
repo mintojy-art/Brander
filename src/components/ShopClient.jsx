@@ -22,7 +22,7 @@ function StarMini({ rating }) {
   )
 }
 
-function ProductCard({ product }) {
+export function ProductCard({ product }) {
   const { add } = useCart()
 
   return (
