@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import Cropper from 'react-easy-crop'
 import { supabase, isConfigured, uploadImage, deleteImage, uploadVideo, deleteVideo, uploadOccasionImage, deleteOccasionImage, uploadBlogImage, deleteBlogImage } from '@/lib/supabase'
 import { products as STATIC_PRODUCTS } from '@/data/products'
@@ -4230,6 +4230,211 @@ function InsightsPanel({ toast }) {
   )
 }
 
+// ── Website chat assistant: conversations ─────────────────────────────────────
+const CHAT_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
+create table if not exists chat_messages (
+  id bigint generated always as identity primary key,
+  session_id text not null check (char_length(session_id) between 8 and 64),
+  role text not null check (role in ('user', 'assistant')),
+  content text not null check (char_length(content) <= 8000),
+  page text check (page is null or char_length(page) <= 200),
+  created_at timestamptz not null default now()
+);
+create index if not exists chat_messages_session_idx on chat_messages (session_id, created_at);
+create index if not exists chat_messages_created_idx on chat_messages (created_at desc);
+
+alter table chat_messages enable row level security;
+drop policy if exists "Website can log chat messages" on chat_messages;
+drop policy if exists "Admin reads chat messages" on chat_messages;
+drop policy if exists "Admin deletes chat messages" on chat_messages;
+-- The website saves each chat turn; only the admin can read or delete them.
+create policy "Website can log chat messages" on chat_messages
+  for insert with check (true);
+create policy "Admin reads chat messages" on chat_messages
+  for select to authenticated using (public.is_admin());
+create policy "Admin deletes chat messages" on chat_messages
+  for delete to authenticated using (public.is_admin());`
+
+const PHONE_RE = /(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}\b/
+
+function ChatSetupBanner() {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(CHAT_SETUP_SQL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="mx-3 sm:mx-6 mt-4 border border-amber-200 bg-amber-50 rounded-xl overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <span className="text-amber-600 shrink-0 mt-0.5">{Ico.warn}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-amber-900 mb-1">One-time setup needed</p>
+          <p className="text-xs text-amber-800 mb-3">
+            Copy this SQL, paste it in <strong>Supabase → SQL Editor → New query</strong> and click <strong>Run</strong>. After that, every conversation customers have with the website chat assistant is saved here.
+          </p>
+          <div className="relative">
+            <pre className="bg-[#1D1D1F] text-[#86868B] text-[10px] p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre max-h-48">{CHAT_SETUP_SQL}</pre>
+            <button onClick={copy}
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold rounded transition-colors">
+              {copied ? <>{Ico.check} Copied!</> : 'Copy SQL'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChatsPanel({ toast }) {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [setupMissing, setSetupMissing] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [onlyPhone, setOnlyPhone] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data, error } = await supabase.from('chat_messages').select('*')
+      .order('created_at', { ascending: false }).limit(3000)
+    if (error) {
+      if (isMissingTable(error.message)) setSetupMissing(true)
+      else toast('Failed to load chats: ' + error.message, 'error')
+      setRows([])
+    } else {
+      setSetupMissing(false)
+      setRows(data || [])
+    }
+    setLoading(false)
+  }, [toast])
+
+  useEffect(() => { load() }, [load])
+
+  // Group messages into conversations, newest conversation first.
+  const conversations = useMemo(() => {
+    const map = new Map()
+    for (const r of rows) {
+      if (!map.has(r.session_id)) map.set(r.session_id, [])
+      map.get(r.session_id).push(r)
+    }
+    return [...map.entries()].map(([id, msgs]) => {
+      msgs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at) || a.id - b.id)
+      const userMsgs = msgs.filter(m => m.role === 'user')
+      return {
+        id,
+        msgs,
+        first: userMsgs[0]?.content || '',
+        questions: userMsgs.length,
+        last: msgs[msgs.length - 1].created_at,
+        page: msgs[0].page,
+        phone: userMsgs.some(m => PHONE_RE.test(m.content)),
+      }
+    }).sort((a, b) => new Date(b.last) - new Date(a.last))
+  }, [rows])
+
+  const shown = onlyPhone ? conversations.filter(c => c.phone) : conversations
+  const current = conversations.find(c => c.id === selected)
+  const fmt = (d) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
+
+  const confirmDelete = async () => {
+    const id = deleteTarget
+    setDeleteTarget(null)
+    const { error } = await supabase.from('chat_messages').delete().eq('session_id', id)
+    if (error) { toast('Delete failed: ' + error.message, 'error'); return }
+    toast('Conversation deleted')
+    if (selected === id) setSelected(null)
+    load()
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-[#F6F6F7] min-h-0">
+      {deleteTarget && (
+        <DeleteModal
+          title="Delete this conversation?"
+          message="The whole chat will be removed. This can't be undone."
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+      <div className="bg-white border-b border-[#E1E3E5] px-4 sm:px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-[#202223]">Website Chats</h1>
+          <p className="text-xs text-[#6D7175]">What customers asked the chat assistant. 📞 marks chats where the customer left a phone number.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-[#202223] cursor-pointer">
+            <input type="checkbox" checked={onlyPhone} onChange={e => setOnlyPhone(e.target.checked)} className="w-4 h-4 accent-[#008060]" />
+            Only with phone number
+          </label>
+          <button onClick={load} title="Refresh" disabled={loading}
+            className="p-2 border border-[#C9CCCF] rounded-lg hover:bg-[#F6F6F7] text-[#6D7175] disabled:opacity-40 transition-colors">
+            <span className={loading ? 'animate-spin inline-block' : ''}>{Ico.refresh}</span>
+          </button>
+        </div>
+      </div>
+
+      {setupMissing && <ChatSetupBanner />}
+
+      {!setupMissing && (
+        <div className="flex-1 flex min-h-0 p-3 sm:p-6 gap-4">
+          {/* List */}
+          <div className={`${current ? 'hidden lg:flex' : 'flex'} flex-col w-full lg:w-96 shrink-0 bg-white border border-[#E1E3E5] rounded-xl overflow-hidden`}>
+            {loading ? (
+              <p className="p-6 text-sm text-[#6D7175]">Loading…</p>
+            ) : shown.length === 0 ? (
+              <p className="p-6 text-sm text-[#6D7175]">{onlyPhone ? 'No chats with a phone number yet.' : 'No conversations yet. They appear here as soon as customers use the chat.'}</p>
+            ) : (
+              <div className="overflow-y-auto divide-y divide-[#F1F1F1]">
+                {shown.map(c => (
+                  <button key={c.id} onClick={() => setSelected(c.id)}
+                    className={`w-full text-left px-4 py-3 hover:bg-[#F6F6F7] transition-colors ${selected === c.id ? 'bg-[#F1F8F5]' : ''}`}>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[11px] text-[#6D7175]">{fmt(c.last)}</span>
+                      <span className="text-[11px] text-[#6D7175]">{c.phone && '📞 '}{c.questions} message{c.questions === 1 ? '' : 's'}</span>
+                    </div>
+                    <p className="text-sm text-[#202223] line-clamp-2">{c.first}</p>
+                    {c.page && <p className="text-[11px] text-[#8C9196] mt-1 truncate">Started on {c.page}</p>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Transcript */}
+          <div className={`${current ? 'flex' : 'hidden lg:flex'} flex-1 flex-col bg-white border border-[#E1E3E5] rounded-xl overflow-hidden min-w-0`}>
+            {!current ? (
+              <p className="m-auto text-sm text-[#6D7175] p-6">Pick a conversation to read it.</p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-[#E1E3E5]">
+                  <button onClick={() => setSelected(null)} className="lg:hidden flex items-center gap-1 text-sm text-[#6D7175]">{Ico.back} All chats</button>
+                  <span className="hidden lg:block text-xs text-[#6D7175]">{fmt(current.msgs[0].created_at)} · started on {current.page || '/'}</span>
+                  <button onClick={() => setDeleteTarget(current.id)} className="text-xs text-[#D72C0D] hover:underline">Delete</button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#FAFAFA]">
+                  {current.msgs.map(m => (
+                    <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
+                      <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-wrap break-words ${
+                        m.role === 'user' ? 'bg-white border border-[#E1E3E5] text-[#202223]' : 'bg-[#F1F8F5] text-[#202223]'
+                      }`}>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8C9196] mb-1">
+                          {m.role === 'user' ? 'Customer' : 'ORIC (AI)'} · {fmt(m.created_at)}{m.page && m.role === 'user' ? ` · ${m.page}` : ''}
+                        </p>
+                        {m.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Home Page sections ────────────────────────────────────────────────────────
 const HOME_SECTIONS_SETUP_SQL = `-- Run in Supabase → SQL Editor → New query
 create table if not exists home_sections (
@@ -4817,7 +5022,8 @@ export default function AdminClient() {
   const inPricing = view === 'pricing'
   const inInsights = view === 'insights'
   const inHome = view === 'home-sections' || view === 'home-sections-form'
-  const noAddAction = inComments || inPricing || inInsights || inApplications || inHome
+  const inChats = view === 'chats'
+  const noAddAction = inComments || inPricing || inInsights || inApplications || inHome || inChats
 
   useEffect(() => {
     if (!supabase) { setAuthLoading(false); return }
@@ -5000,6 +5206,10 @@ export default function AdminClient() {
         <button onClick={() => { setView('home-sections'); setMobileOpen(false) }}
           className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inHome ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
           🏠 Home Page
+        </button>
+        <button onClick={() => { setView('chats'); setMobileOpen(false) }}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inChats ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
+          🤖 Website Chats
         </button>
         <button onClick={() => { setView('testimonials-list'); setMobileOpen(false) }}
           className={`flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm transition-colors ${inTestimonials ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/10'}`}>
@@ -5220,6 +5430,8 @@ export default function AdminClient() {
              onSave={() => setView('home-sections')}
              onBack={() => setView('home-sections')}
            />
+         ) : view === 'chats' ? (
+           <ChatsPanel toast={toast} />
          ) : view === 'pricing' ? (
            <PricingSettingsForm toast={toast} />
          ) : view === 'insights' ? (

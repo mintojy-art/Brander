@@ -6,6 +6,7 @@ import OricFooter from '@/components/OricFooter'
 import CartSidebar from '@/components/CartSidebar'
 import WishlistSidebar from '@/components/WishlistSidebar'
 import PageViewTracker from '@/components/PageViewTracker'
+import ChatWidget from '@/components/ChatWidget'
 import { getProducts } from '@/lib/data/products'
 
 // Without this, the navbar's category dropdown (built from live product
@@ -27,6 +28,8 @@ export default async function SiteLayout({ children }) {
         <WishlistSidebar />
         {children}
         <OricFooter />
+        {/* Chat assistant only appears once the AI key is set on the server. */}
+        {process.env.ANTHROPIC_API_KEY && <ChatWidget />}
       </WishlistProvider>
     </CartProvider>
   )
